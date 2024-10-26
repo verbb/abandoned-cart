@@ -1,0 +1,160 @@
+{% extends 'abandoned-cart/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set fullPageForm = true %}
+{% set selectedNavItem = 'general' %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% block blockContent %}
+
+<input type="hidden" name="action" value="plugins/save-plugin-settings">
+<input type="hidden" name="pluginHandle" value="abandoned-cart">
+
+{% namespace 'settings' %}
+
+{{ forms.autosuggestField({
+    first: true,
+    label: 'Plugin Name' | t('app'),
+    instructions: 'Plugin name for the end user.' | t('abandoned-cart'),
+    id: 'pluginName',
+    name: 'pluginName',
+    suggestEnvVars: true,
+    value: settings.pluginName,
+    errors: settings.getErrors('pluginName'),
+    warning: macros.configWarning('pluginName', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Cron Pass Key' | t('abandoned-cart'),
+    instructions: 'A generated, unique string to increase security against crons being run inadvertently.' | t('abandoned-cart'),
+    id: 'passKey',
+    name: 'passKey',
+    suggestEnvVars: true,
+    value: settings.passKey,
+    errors: settings.getErrors('passKey'),
+    warning: macros.configWarning('passKey', 'abandoned-cart'),
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Disable 2nd Reminder' | t('abandoned-cart'),
+    instructions: 'If disabled only the 1st reminder will be sent.' | t('abandoned-cart'),
+    id: 'disableSecondReminder',
+    name: 'disableSecondReminder',
+    on: settings.disableSecondReminder,
+    errors: settings.getErrors('disableSecondReminder'),
+    warning: macros.configWarning('disableSecondReminder', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Restore Link Expiry' | t('abandoned-cart'),
+    instructions: 'How long should abandoned cart restore links last for after being sent.' | t('abandoned-cart'),
+    name: 'restoreExpiryHours',
+    value: settings.restoreExpiryHours,
+    placeholder: '48',
+    suggestEnvVars: true,
+    errors: settings.getErrors('restoreExpiryHours'),
+    warning: macros.configWarning('restoreExpiryHours', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: '1st Reminder Delay' | t('abandoned-cart'),
+    instructions: 'How long after a cart has been abandoned should the 1st reminder be sent.<br /><i>Note: Carts are marked abandoned 1 hour after no activity.</i>' | t('abandoned-cart'),
+    name: 'firstReminderDelay',
+    value: settings.firstReminderDelay,
+    placeholder: '1',
+    suggestEnvVars: true,
+    errors: settings.getErrors('firstReminderDelay'),
+    warning: macros.configWarning('firstReminderDelay', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: '2nd Reminder Delay' | t('abandoned-cart'),
+    instructions: 'How long after a cart has been abandoned should the 2nd reminder be sent.' | t('abandoned-cart'),
+    name: 'secondReminderDelay',
+    value: settings.secondReminderDelay,
+    placeholder: '12',
+    suggestEnvVars: true,
+    errors: settings.getErrors('secondReminderDelay'),
+    warning: macros.configWarning('secondReminderDelay', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: '1st Reminder Template' | t('abandoned-cart'),
+    instructions: 'Use a custom template for the 1st reminder email.' | t('abandoned-cart'),
+    name: 'firstReminderTemplate',
+    value: settings.firstReminderTemplate,
+    placeholder: 'abandoned-cart/emails/first',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    errors: settings.getErrors('firstReminderTemplate'),
+    warning: macros.configWarning('firstReminderTemplate', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: '1st Reminder Email Subject' | t('abandoned-cart'),
+    name: 'firstReminderSubject',
+    value: settings.firstReminderSubject,
+    placeholder: 'You‘ve left some items in your cart' | t('abandoned-cart'),
+    suggestEnvVars: true,
+    errors: settings.getErrors('firstReminderSubject'),
+    warning: macros.configWarning('firstReminderSubject', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: '2nd Reminder Email Template' | t('abandoned-cart'),
+    instructions: 'Use a custom template for the 2nd reminder email.' | t('abandoned-cart'),
+    name: 'secondReminderTemplate',
+    value: settings.secondReminderTemplate,
+    placeholder: 'abandoned-cart/emails/second',
+    suggestEnvVars: true,
+    suggestAliases: true,
+    errors: settings.getErrors('secondReminderTemplate'),
+    warning: macros.configWarning('secondReminderTemplate', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: '2nd Reminder Subject' | t('abandoned-cart'),
+    name: 'secondReminderSubject',
+    value: settings.secondReminderSubject,
+    placeholder: 'Your items are still waiting - don‘t miss out' | t('abandoned-cart'),
+    suggestEnvVars: true,
+    errors: settings.getErrors('secondReminderSubject'),
+    warning: macros.configWarning('secondReminderSubject', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Discount Code' | t('abandoned-cart'),
+    instructions: 'Enter the discount code that abandoned carts can use.<br />Discount rules and conditions should be set accordingly.<br /><i>Note: this simply displays the code in the email template, customers will need to apply it.</i>' | t('abandoned-cart'),
+    name: 'discountCode',
+    value: settings.discountCode,
+    suggestEnvVars: true,
+    errors: settings.getErrors('discountCode'),
+    warning: macros.configWarning('discountCode', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Recovery Redirect URL' | t('abandoned-cart'),
+    instructions: 'By default recovered carts will be redirected to shop/cart, use this field if you use something different.<br /><i>Note: it should just be the slug e.g. shop/cart and not the full URL.</i>' | t('abandoned-cart'),
+    name: 'recoveryUrl',
+    value: settings.recoveryUrl,
+    suggestEnvVars: true,
+    suggestAliases: true,
+    errors: settings.getErrors('recoveryUrl'),
+    warning: macros.configWarning('recoveryUrl', 'abandoned-cart'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Blacklisted Emails' | t('abandoned-cart'),
+    instructions: 'Enter emails seperated by a comma that should be ignored.' | t('abandoned-cart'),
+    name: 'blacklist',
+    value: settings.blacklist,
+    suggestEnvVars: true,
+    errors: settings.getErrors('blacklist'),
+    warning: macros.configWarning('blacklist', 'abandoned-cart'),
+}) }}
+
+{% endnamespace %}
+
+{% endblock %}

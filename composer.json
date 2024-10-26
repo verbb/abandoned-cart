@@ -1,38 +1,48 @@
 {
-  "name": "mediabeastnz/craft-commerce-abandoned-cart",
-  "description": "Abandoned Cart for Craft Commerce",
-  "type": "craft-plugin",
-  "version": "2.0.0",
-  "keywords": [
-    "craft",
-    "cms",
-    "commerce",
-    "craft-plugin",
-    "abandoned cart"
-  ],
-  "support": {
-    "docs": "https://github.com/mediabeastnz/craft-commerce-abandoned-cart/blob/master/README.md",
-    "issues": "https://github.com/mediabeastnz/craft-commerce-abandoned-cart/issues"
-  },
-  "license": "proprietary",
-  "authors": [
-    {
-      "name": "Myles",
-      "homepage": "https://github.com/mediabeastnz"
+    "name": "verbb/abandoned-cart",
+    "description": "Send multiple email reminders to customers that have abandoned their carts.",
+    "type": "craft-plugin",
+    "version": "3.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "abandoned-cart"
+    ],
+    "support": {
+        "email": "support@verbb.io",
+        "issues": "https://github.com/verbb/abandoned-cart/issues?state=open",
+        "source": "https://github.com/verbb/abandoned-cart",
+        "docs": "https://github.com/verbb/abandoned-cart",
+        "rss": "https://github.com/verbb/abandoned-cart/commits/v2.atom"
+    },
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Verbb",
+            "homepage": "https://verbb.io"
+        },
+        {
+            "name": "Myles",
+            "homepage": "https://github.com/mediabeastnz"
+        }
+    ],
+    "require": {
+        "php": "^8.0.2",
+        "craftcms/cms": "^4.0.0",
+        "craftcms/commerce": "^4.0.0",
+        "verbb/base": "^2.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "verbb\\abandonedcart\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Abandoned Cart",
+        "handle": "abandoned-cart",
+        "changelogUrl": "https://raw.githubusercontent.com/verbb/abandoned-cart/craft-4/CHANGELOG.md",
+        "class": "verbb\\abandonedcart\\AbandonedCart"
     }
-  ],
-  "require": {
-    "craftcms/cms": "^4.0.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "mediabeastnz\\abandonedcart\\": "src/"
-    }
-  },
-  "extra": {
-    "name": "Abandoned Cart for Craft Commerce",
-    "handle": "abandoned-cart",
-    "changelogUrl": "https://raw.githubusercontent.com/mediabeastnz/craft-commerce-abandoned-cart/master/CHANGELOG.md",
-    "class": "mediabeastnz\\abandonedcart\\AbandonedCart"
-  }
 }

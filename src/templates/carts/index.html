@@ -1,0 +1,105 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+
+{% set crumbs = [
+    { label: craft.abandonedCart.getPluginName() | t('abandoned-cart'), url: url('abandoned-cart') },
+    { label: 'Dashboard' | t('abandoned-cart'), url: url('abandoned-cart/dashboard') },
+] %}
+
+{% set title = 'Dashboard' | t('abandoned-cart') %}
+{% set selectedSubnavItem = 'dashboard' %}
+
+{% block blockContent %}
+
+<div id="carts-vue-admin-table"></div>
+
+{% endblock %}
+
+{% set tableData = [] %}
+
+{% for cart in carts %}
+    {% set user = cart.getUser() %}
+    {% set order = cart.getOrder() %}
+
+    {% set userLink = user ? {
+        title: user.email,
+        cpEditUrl: user.cpEditUrl,
+    } : {} %}
+
+    {% set cartLink = order ? {
+        title: order.shortNumber,
+        cpEditUrl: order.cpEditUrl,
+    } : {} %}
+
+    {% set tableData = tableData | merge([{
+        email: userLink,
+        cart: cartLink,
+        total: order ? order.totalPrice | commerceCurrency(order.currency) : '-',
+        firstReminder: cart.firstReminder,
+        secondReminder: cart.secondReminder,
+        clicked: cart.clicked,
+        status: cart.status,
+        dateUpdated: cart.dateUpdated | datetime('short'),
+    }]) %}
+{% endfor %}
+
+{% js %}
+    var columns = [
+        { name: 'cart', title: Craft.t('abandoned-cart', 'Cart'), callback: function(value) {
+            if (value) {
+                return '<a href="' + value.cpEditUrl + '">' + value.title + '</a>';
+            } else {
+                return '-';
+            }
+        }  },
+        { name: 'email', title: Craft.t('abandoned-cart', 'Customer/Guest'), callback: function(value) {
+            if (value) {
+                return '<a href="' + value.cpEditUrl + '">' + value.title + '</a>';
+            } else {
+                return '-';
+            }
+        }  },
+        { name: 'total', title: Craft.t('abandoned-cart', 'Total') },
+        { name: 'firstReminder', title: Craft.t('abandoned-cart', '1st Reminder'), callback: function(value) {
+            if (value) {
+                return '<span class="status green"></span>' + Craft.t('abandoned-cart', 'Sent');
+            } else {
+                return '<span class="status orange"></span>' + Craft.t('abandoned-cart', 'Not sent');
+            }
+        } },
+        { name: 'secondReminder', title: Craft.t('abandoned-cart', '2nd Reminder'), callback: function(value) {
+            if (value) {
+                return '<span class="status green"></span>' + Craft.t('abandoned-cart', 'Sent');
+            } else {
+                return '<span class="status orange"></span>' + Craft.t('abandoned-cart', 'Not sent');
+            }
+        } },
+        { name: 'clicked', title: Craft.t('abandoned-cart', 'Clicked'), callback: function(value) {
+            if (value) {
+                return '<span class="status green"></span>' + Craft.t('abandoned-cart', 'Clicked');
+            } else {
+                return '<span class="status red"></span>' + Craft.t('abandoned-cart', 'Not clicked');
+            }
+        } },
+        { name: 'status', title: Craft.t('abandoned-cart', 'Status'), callback: function(value) {
+            if (value === 'recovered') {
+                return '<span class="status green"></span>' + Craft.t('abandoned-cart', 'Recovered');
+            } else if (value === 'scheduled') {
+                return '<span class="status orange"></span>' + Craft.t('abandoned-cart', 'Scheduled');
+            } else if (value === 'sent') {
+                return '<span class="status blue"></span>' + Craft.t('abandoned-cart', 'Sent');
+            } else {
+                return '<span class="status red"></span>' + Craft.t('abandoned-cart', 'Expired');
+            }
+        } },
+        { name: 'dateUpdated', title: Craft.t('abandoned-cart', 'Updated') },
+    ];
+
+    new Craft.VueAdminTable({
+        columns: columns,
+        container: '#carts-vue-admin-table',
+        emptyMessage: Craft.t('abandoned-cart', 'No abandoned carts exist yet.'),
+        tableData: {{ tableData | json_encode | raw }},
+    });
+{% endjs %}

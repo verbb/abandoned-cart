@@ -1,0 +1,26 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% requireAdmin %}
+
+{% set crumbs = [
+    { label: 'Abandoned Cart' | t('abandoned-cart'), url: url('abandoned-cart') },
+    { label: 'Settings' | t('app'), url: url('abandoned-cart/settings') },
+] %}
+
+{% set navItems = {
+    general: { label: 'General Settings' | t('abandoned-cart'), url: url('abandoned-cart/settings') },
+} %}
+
+{% set title = 'Settings' | t('abandoned-cart') %}
+{% set docTitle = navItems[selectedNavItem].label ~ ' - ' ~ title %}
+
+{% block sidebar %}
+    {% include '_includes/nav' with {
+        label: title,
+        items: navItems,
+        selectedItem: selectedNavItem,
+    } only %}
+{% endblock %}

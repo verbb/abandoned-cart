@@ -1,23 +1,21 @@
 <?php
-/**
- * @copyright Copyright (c) Myles Derham.
- * @license https://craftcms.github.io/license/
- */
+namespace verbb\abandonedcart\variables;
 
-namespace mediabeastnz\abandonedcart\variables;
-
-use mediabeastnz\abandonedcart\AbandonedCart;
-
-use Craft;
-use craft\web\View;
-
-use yii\base\Behavior;
+use verbb\abandonedcart\AbandonedCart;
 
 class AbandonedCartVariable
 {
-    public function getPluginName()
+    // Public Methods
+    // =========================================================================
+
+    public function getPlugin(): AbandonedCart
+    {
+        return AbandonedCart::$plugin;
+    }
+
+    public function getPluginName(): string
     {
         return AbandonedCart::$plugin->getPluginName();
     }
-
+    
 }

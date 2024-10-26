@@ -1,26 +1,25 @@
 <?php
-/**
- * @copyright Copyright (c) Myles Derham.
- * @license https://craftcms.github.io/license/
- */
-
-namespace mediabeastnz\abandonedcart\records;
+namespace verbb\abandonedcart\records;
 
 use craft\db\ActiveRecord;
-use craft\commerce\elements\Order;
 
 use yii\db\ActiveQueryInterface;
 
-class AbandonedCart extends ActiveRecord
-{
+use craft\commerce\elements\Order;
 
-    // Public Methods
+class Cart extends ActiveRecord
+{
+    // Static Methods
     // =========================================================================
 
     public static function tableName(): string
     {
         return '{{%abandonedcart_carts}}';
     }
+
+
+    // Public Methods
+    // =========================================================================
 
     public function getOrder(): array
     {

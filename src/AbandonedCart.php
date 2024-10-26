@@ -1,167 +1,134 @@
 <?php
-/**
- * @copyright Copyright (c) Myles Derham.
- * @license https://craftcms.github.io/license/
- */
+namespace verbb\abandonedcart;
 
-namespace mediabeastnz\abandonedcart;
-
-use mediabeastnz\abandonedcart\models\Settings;
-use mediabeastnz\abandonedcart\services\Carts;
-use mediabeastnz\abandonedcart\variables\AbandonedCartVariable;
-use mediabeastnz\abandonedcart\widgets\TotalCartsRecovered;
+use verbb\abandonedcart\base\PluginTrait;
+use verbb\abandonedcart\models\Settings;
+use verbb\abandonedcart\variables\AbandonedCartVariable;
 
 use Craft;
 use craft\base\Plugin;
-use craft\services\Dashboard;
-use craft\web\UrlManager;
-use craft\services\Plugins;
-use craft\services\Elements;
-use craft\helpers\UrlHelper;
-use craft\events\PluginEvent;
-use craft\commerce\elements\Order;
 use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
-use craft\events\RegisterComponentTypesEvent;
-use craft\services\UserPermissions;
-use craft\events\RegisterUserPermissionsEvent;
+use craft\web\UrlManager;
 
 use yii\base\Event;
 
+use craft\commerce\elements\Order;
 
 class AbandonedCart extends Plugin
 {
+    // Properties
+    // =========================================================================
 
-    public bool $hasCpSettings = true;
     public bool $hasCpSection = true;
+    public bool $hasCpSettings = true;
+    public string $schemaVersion = '1.0.0';
 
-    public static $plugin;
 
-    public function init()
+    // Traits
+    // =========================================================================
+
+    use PluginTrait;
+
+
+    // Public Methods
+    // =========================================================================
+
+    public function init(): void
     {
         parent::init();
-        
+
         self::$plugin = $this;
 
-        $this->setComponents([
-            'carts' => Carts::class,
-        ]);
+        $this->_setPluginComponents();
+        $this->_setLogging();
+        $this->_registerVariables();
+        $this->_registerCraftEventListeners();
 
-        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
-            $event->rules = array_merge($event->rules, [
-                'abandoned-cart' => 'abandoned-cart/base/index',
-                'abandoned-cart/dashboard' => 'abandoned-cart/base/index',
-                'abandoned-cart/settings' => 'abandoned-cart/base/settings',
-                'abandoned-cart/find-carts' => 'abandoned-cart/base/index',
-                'abandoned-cart/export' => 'abandoned-cart/base/export'
-            ]);
-        });
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            $this->_registerCpRoutes();
+        }
 
-        Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['abandoned-cart-restore'] = '/abandoned-cart/base/restore-cart';
-            }
-        );
-
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    // We were just installed
-                }
-            }
-        );
-
-        Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function(Event $e) {
-            $order = $e->sender;
-            $this->carts->markCartAsRecovered($order);
-        });
-
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
-            $variable = $event->sender;
-            $variable->set('abandonedcart', AbandonedCartVariable::class);
-        });
-
-        Event::on(Dashboard::class, Dashboard::EVENT_REGISTER_WIDGET_TYPES, function(RegisterComponentTypesEvent $event) {
-            $event->types[] = TotalCartsRecovered::class;
-        });
-
-        Event::on(
-            UserPermissions::class,
-            UserPermissions::EVENT_REGISTER_PERMISSIONS,
-            function (RegisterUserPermissionsEvent $event) {
-                $event->permissions[] = [
-                    'heading' => Craft::t('abandoned-cart', 'Abandoned Carts'),
-                    'permissions' => [
-                        'abandoned-cart-manageAbandonedCartsSettings' => [
-                            'label' => Craft::t('abandoned-cart', 'Manage abandoned cart settings'),
-                        ],
-                    ],
-                ];
-            }
-        );
-
-
-        Craft::info(
-            Craft::t(
-                'abandoned-cart',
-                '{name} plugin loaded',
-                ['name' => $this->name]
-            ),
-            __METHOD__
-        );
+        if (Craft::$app->getRequest()->getIsSiteRequest()) {
+            $this->_registerSiteRoutes();
+        }
     }
 
-    public function getPluginName()
+    public function getPluginName(): string
     {
         return Craft::t('abandoned-cart', $this->getSettings()->pluginName);
     }
 
-    public function getSettingsResponse(): mixed
+    public function getCpNavItem(): array
     {
-        $url = \craft\helpers\UrlHelper::cpUrl('abandoned-cart/settings');
-        return \Craft::$app->controller->redirect($url);
-    }
+        $nav = parent::getCpNavItem();
 
-    public function getCpNavItem(): ?array
-    {
-        $navItem = parent::getCpNavItem();
-        $navItem['label'] = $this->getPluginName();
-        
-        if ( Craft::$app->getConfig()->general->allowAdminChanges ) {
-            
-            $navItem['subnav']['dashboard'] = [
-                'label' => Craft::t('app', 'Dashboard'),
-                'url' => 'abandoned-cart/dashboard'
+        $nav['label'] = $this->getPluginName();
+        $nav['url'] = 'abandoned-cart';
+
+        if (Craft::$app->getUser()->checkPermission('accessPlugin-abandoned-cart')) {
+            $nav['subnav']['dashboard'] = [
+                'label' => Craft::t('abandoned-cart', 'Dashboard'),
+                'url' => 'abandoned-cart/dashboard',
             ];
-
-            if (Craft::$app->getUser()->checkPermission('abandoned-cart-manageAbandonedCartsSettings')) {
-                $navItem['subnav']['settings'] = [
-                    'label' => Craft::t('app', 'Settings'),
-                    'url' => 'abandoned-cart/settings'
-                ];
-            }
-            
-            return $navItem;
         }
 
-        $navItem['url'] = 'abandoned-cart/dashboard';
+        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $nav['subnav']['settings'] = [
+                'label' => Craft::t('abandoned-cart', 'Settings'),
+                'url' => 'abandoned-cart/settings',
+            ];
+        }
 
-        return $navItem;
+        return $nav;
     }
 
-    protected function createSettingsModel(): ?\craft\base\Model
+    public function getSettingsResponse(): mixed
+    {
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('abandoned-cart/settings'));
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function createSettingsModel(): Settings
     {
         return new Settings();
     }
 
-    protected function settingsHtml(): ?string
+
+    // Private Methods
+    // =========================================================================
+
+    private function _registerCpRoutes(): void
     {
-        return \Craft::$app->getView()->renderTemplate('abandoned-cart/settings', [
-            'settings' => $this->getSettings()
-        ]);
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
+            $event->rules['abandoned-cart'] = ['template' => 'abandoned-cart/index'];
+            $event->rules['abandoned-cart/dashboard'] = 'abandoned-cart/carts/index';
+            $event->rules['abandoned-cart/settings'] = 'abandoned-cart/plugin/settings';
+        });
+    }
+
+    private function _registerSiteRoutes(): void
+    {
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
+            $event->rules['abandoned-cart-restore'] = 'abandoned-cart/carts/restore-cart';
+        });
+    }
+
+    private function _registerVariables(): void
+    {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
+            $event->sender->set('abandonedCart', AbandonedCartVariable::class);
+        });
+    }
+
+    private function _registerCraftEventListeners(): void
+    {
+        Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function(Event $event) {
+            $this->getCarts()->markCartAsRecovered($event->sender);
+        });
     }
 }

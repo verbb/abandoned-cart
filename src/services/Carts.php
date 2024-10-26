@@ -1,296 +1,266 @@
 <?php
-/**
- * @copyright Copyright (c) Myles Derham.
- * @license https://craftcms.github.io/license/
- */
+namespace verbb\abandonedcart\services;
 
-namespace mediabeastnz\abandonedcart\services;
-
-use mediabeastnz\abandonedcart\records\AbandonedCart as CartRecord;
-use mediabeastnz\abandonedcart\models\AbandonedCart as CartModel;
-use mediabeastnz\abandonedcart\jobs\SendEmailReminder;
-use mediabeastnz\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\events\BeforeMailSend;
+use verbb\abandonedcart\events\CartEvent;
+use verbb\abandonedcart\models\Cart;
+use verbb\abandonedcart\models\Settings;
+use verbb\abandonedcart\queue\jobs\SendEmailReminder;
+use verbb\abandonedcart\records\Cart as CartRecord;
 
 use Craft;
+use craft\base\MemoizableArray;
 use craft\db\Query;
+use craft\helpers\App;
+use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\mail\Message;
+
+use yii\base\Component;
+
+use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order;
+
 use DateInterval;
 use DateTime;
 use DateTimeZone;
-use yii\base\Component;
+use Exception;
+use Throwable;
 
 class Carts extends Component
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_SAVE_CART = 'beforeSaveCart';
+    public const EVENT_AFTER_SAVE_CART = 'afterSaveCart';
+    public const EVENT_BEFORE_MAIL_SEND = 'beforeMailSend';
+
+
+    // Properties
+    // =========================================================================
+
+    private ?MemoizableArray $_carts = null;
+
 
     // Public Methods
     // =========================================================================
 
-    public function getEmailsToSend()
+    public function getAllCarts(): array
     {
-        $testMode = Craft::parseEnv(AbandonedCart::$plugin->getSettings()->testMode);
-        // get abandoned carts
-        $carts = $this->getAbandonedOrders();
-        // create any new carts
-        if($carts->count() > 0) {
-            $this->createNewCarts($carts);
+        return $this->_carts()->all();
+    }
+
+    public function getCartById(int $id): ?Cart
+    {
+        return $this->_carts()->firstWhere('id', $id);
+    }
+
+    public function getCartByOrderId(int $orderId): ?Cart
+    {
+        return $this->_carts()->firstWhere('orderId', $orderId);
+    }
+
+    public function saveCart(Cart $cart, bool $runValidation = true): bool
+    {
+        $isNewCart = !$cart->id;
+
+        // Fire a 'beforeSaveCart' event
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_CART)) {
+            $this->trigger(self::EVENT_BEFORE_SAVE_CART, new CartEvent([
+                'cart' => $cart,
+                'isNew' => $isNewCart,
+            ]));
         }
 
-        // return carts total
-        if (!$testMode) {
-            if ($totalScheduled = $this->scheduleReminders()) {
-                return $totalScheduled;
-            }
-            return 0;
+        if ($runValidation && !$cart->validate()) {
+            Craft::info('Cart not saved due to validation error.', __METHOD__);
+            return false;
         }
+
+        $cartRecord = $this->_getCartRecordById($cart->id);
+        $cartRecord->orderId = $cart->orderId;
+        $cartRecord->email = $cart->email;
+        $cartRecord->clicked = $cart->clicked;
+        $cartRecord->isScheduled = $cart->isScheduled;
+        $cartRecord->firstReminder = $cart->firstReminder;
+        $cartRecord->secondReminder = $cart->secondReminder;
+        $cartRecord->isRecovered = $cart->isRecovered;
+
+        $cartRecord->save(false);
+
+        if (!$cart->id) {
+            $cart->id = $cartRecord->id;
+        }
+
+        // Fire an 'afterSaveCart' event
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_CART)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_CART, new CartEvent([
+                'cart' => $cart,
+                'isNew' => $isNewCart,
+            ]));
+        }
+
         return true;
     }
 
-    public function scheduleReminders()
+    public function getEmailsToSend(): int
     {
-        // get all created abandoned carts that havent been completed
-        // Completed being: reminders have already been sent
-        $carts = CartRecord::find()->where('isScheduled = 0')->all();
+        $carts = $this->getAbandonedOrders();
 
-        $firstDelay = Craft::parseEnv(AbandonedCart::$plugin->getSettings()->firstReminderDelay);
-        $secondDelay = Craft::parseEnv(AbandonedCart::$plugin->getSettings()->secondReminderDelay);
+        if (count($carts)) {
+            $this->createNewCarts($carts);
+        }
+
+        if ($totalScheduled = $this->scheduleReminders()) {
+            return $totalScheduled;
+        }
+
+        return 0;
+    }
+
+    public function getAbandonedOrders(int $start = 1, int $end = 12): array
+    {
+        $blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist();
+        
+        if (!empty($blacklist)) {
+            $blacklist = explode(',', $blacklist);
+        }
+
+        // Find orders that fit the criteria
+        $UTC = new DateTimeZone('UTC');
+        $dateUpdatedStart = new DateTime();
+        $dateUpdatedStart->setTimezone($UTC);
+        $dateUpdatedStart->sub(new DateInterval("PT{$start}H"));
+
+        $dateUpdatedEnd = new DateTime();
+        $dateUpdatedEnd->setTimezone($UTC);
+        $dateUpdatedEnd->sub(new DateInterval("PT{$end}H"));
+
+        $query = Order::find()
+            ->where(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart->format('Y-m-d H:i:s')])
+            ->andWhere(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd->format('Y-m-d H:i:s')])
+            ->andWhere(['>', 'totalPrice', 0])
+            ->andWhere(['=', 'isCompleted', 0])
+            ->andWhere(['!=', 'email', ''])
+            ->orderBy('commerce_orders.[[dateUpdated]] desc');
+
+        if (is_array($blacklist)) {
+            $query->andWhere(['not in', 'email', $blacklist]);
+        }
+
+        return $query->all();
+    }
+
+    public function scheduleReminders(): int
+    {
+        // Get all created abandoned carts that havent been completed. Completed being reminders have already been sent
+        $carts = CartRecord::find()->where(['isScheduled' => 0])->all();
+
+        $firstDelay = AbandonedCart::$plugin->getSettings()->getFirstReminderDelay();
+        $secondDelay = AbandonedCart::$plugin->getSettings()->getSecondReminderDelay();
 
         $firstDelayInSeconds = $firstDelay * 3600;
         $secondDelayInSeconds = $secondDelay * 3600;
 
-        $secondReminderDisabled = Craft::parseEnv(AbandonedCart::$plugin->getSettings()->disableSecondReminder);
+        $secondReminderDisabled = AbandonedCart::$plugin->getSettings()->getDisableSecondReminder();
 
-        if ($carts && ($carts) > 0) {
-            $i = 0;
-            foreach ($carts as $cart) {
+        $i = 0;
 
-                // if it's the 1st time being scheduled then mark as scheduled
-                // and then push it to the queue based on $firstReminderDelay setting
-                if ($cart->firstReminder == 0) {
+        foreach ($carts as $cart) {
+            // if it's the 1st time being scheduled then mark as scheduled
+            // and then push it to the queue based on $firstReminderDelay setting
+            if (!$cart->firstReminder) {
+                Craft::$app->getQueue()->delay($firstDelayInSeconds)->push(new SendEmailReminder([
+                    'cartId' => $cart->id,
+                    'reminder' => 1,
+                ]));
 
-                    Craft::$app->queue->delay($firstDelayInSeconds)->push(new SendEmailReminder([
-                        'cartId' => $cart->id,
-                        'reminder' => 1
-                    ]));
+                $cart->isScheduled = true;
+                $cart->save(false);
 
-                    $cart->isScheduled = 1;
-                    $cart->save();
-
-                    $i++;
-
+                $i++;
+            } else if (!$cart->secondReminder && !$secondReminderDisabled) {
                 // if it's the 2nd time being scheduled then mark as scheduled again
                 // and then push it to the queue based on $secondReminderDelay setting
                 // this wont get triggered if 2nd is disabled via settings
-                } elseif ($cart->secondReminder == 0 && !$secondReminderDisabled) {
+                Craft::$app->getQueue()->delay($secondDelayInSeconds)->push(new SendEmailReminder([
+                    'cartId' => $cart->id,
+                    'reminder' => 2,
+                ]));
 
-                    Craft::$app->queue->delay($secondDelayInSeconds)->push(new SendEmailReminder([
-                        'cartId' => $cart->id,
-                        'reminder' => 2
-                    ]));
+                $cart->isScheduled = true;
+                $cart->save(false);
 
-                    $cart->isScheduled = 1;
-                    $cart->save();
-
-                    $i++;
-
-                } else {
-                    // ideally finished carts will be marked as completed/failed and
-                    // no futher emails will be queued.
-                }
+                $i++;
+            } else {
+                // ideally finished carts will be marked as completed/failed and no futher emails will be queued.
             }
-            return $i;
         }
-        return false;
+
+        return $i;
     }
 
-    public function createNewCarts(\craft\commerce\elements\db\OrderQuery $orders)
+    public function createNewCarts(array $orders): void
     {
-        $orders = $orders->all();
-        if ($orders && count($orders) > 0) {
-            foreach ($orders as $order) {
-                // check for existing cart first
-                // if none exist - create a new record
-                $existingCart = CartRecord::find()->where(['orderID' => $order->id])->one();
-                if (!$existingCart) {
-                    $newCart = new CartRecord();
-                    $newCart->orderId = $order->id;
-                    $newCart->email = $order->email;
-                    $newCart->save();
-                }
+        foreach ($orders as $order) {
+            $existingCart = CartRecord::find()->where(['orderId' => $order->id])->one();
+            
+            if (!$existingCart) {
+                $newCart = new CartRecord();
+                $newCart->orderId = $order->id;
+                $newCart->email = $order->email;
+
+                $newCart->save(false);
             }
-            return true;
         }
-        return false;
     }
 
-    // Get all abandoned commerce orders that have been inactive for more than 1hr
-    // But no further back than 12 hours
-    // Note: Commerce::purgeInactiveCartsDuration() may come into play here.
-    public function getAbandonedOrders($start = '1', $end = '12')
+    public function sendMail(Cart $cart, string $subject, ?string $recipient = null, ?string $templatePath = null): bool
     {
-
-        $blacklist = Craft::parseEnv(AbandonedCart::$plugin->getSettings()->blacklist);
-        if (!empty($blacklist)) {
-            $blacklist = explode(',',$blacklist);
-        }
-
-        // Find orders that fit the criteria
-        $UTC = new DateTimeZone("UTC");
-        $dateUpdatedStart = new DateTime();
-        $dateUpdatedStart->setTimezone($UTC);
-        $dateUpdatedStart->sub(new DateInterval('PT'.$start.'H'));
-
-        $dateUpdatedEnd = new DateTime();
-        $dateUpdatedEnd->setTimezone($UTC);
-        $dateUpdatedEnd->sub(new DateInterval('PT'.$end.'H'));
-
-        $carts = Order::find();
-        $carts->where(['<=', 'commerce_orders.dateUpdated', $dateUpdatedStart->format('Y-m-d H:i:s')]);
-        $carts->andWhere(['>=', 'commerce_orders.dateUpdated', $dateUpdatedEnd->format('Y-m-d H:i:s')]);
-        $carts->andWhere('totalPrice > 0');
-        $carts->andWhere('isCompleted = 0');
-        $carts->andWhere('email != ""');
-        if (is_array($blacklist)) {
-            $carts->andWhere(['not in', 'email', $blacklist]);
-        }
-        $carts->orderBy('commerce_orders.dateUpdated desc');
-        $carts->all();
-        return $carts;
-    }
-
-    // TODO: make query more effcient e.g. sub query to get order and customer details
-    public function getAbandonedCarts($limit = null)
-    {
-
-        if ($limit) {
-            $rows = $this->_createAbandonedCartsQuery()->limit($limit)->all();
-        } else {
-            $rows = $this->_createAbandonedCartsQuery()->all();
-        }
-
-        $carts = [];
-
-        foreach ($rows as $row) {
-            $carts[] = new CartModel($row);
-        }
-
-        return $carts;
-    }
-
-    public function getAbandonedCartById(int $id)
-    {
-        $row = $this->_createAbandonedCartsQuery()
-            ->where(['id' => $id])
-            ->one();
-
-        return $row ? new CartModel($row) : null;
-    }
-
-    public function getAbandonedCartsTotal()
-    {
-        return $this->_createAbandonedCartsQuery()->count();
-    }
-
-
-    public function getAbandonedCartsRecovered()
-    {
-        $ids = $this->_createAbandonedCartsQuery()
-            ->select('orderId')
-            ->where(['isRecovered' => 1])
-            ->column();
-        if($ids) {
-            $orders = Order::find()
-                ->where(['commerce_orders.id' => $ids])
-                ->select('SUM(totalPrice) as total')
-                ->column();
-            return $orders[0];
-        }
-        return false;
-    }
-
-    public function getAbandonedCartsRecoveredThisMonth()
-    {
-        $ids = $this->_createAbandonedCartsQuery()
-            ->select('orderId')
-            ->where(['isRecovered' => 1])
-            ->andWhere('MONTH(dateUpdated) = MONTH(CURDATE())')
-            ->column();
-        if($ids) {
-            $orders = Order::find()
-                ->where(['commerce_orders.id' => $ids])
-                ->select('SUM(totalPrice) as total')
-                ->column();
-            return $orders[0];
-        }
-        return false;
-    }
-
-    public function getAbandonedCartsRecoveredCount()
-    {
-        $ids = $this->_createAbandonedCartsQuery()
-            ->select('orderId')
-            ->where(['isRecovered' => 1])
-            ->column();
-        return count($ids);
-        return false;
-    }
-
-    public function getAbandondedCartsConversion()
-    {
-        $recovered = $this->_createAbandonedCartsQuery()->where('isRecovered = 1')->count();
-        $total = $this->getAbandonedCartsTotal();
-        if ($total > 0 && $recovered > 0) {
-            $percent = ($recovered / $total) * 100;
-            return $percent;
-        }
-        return 0;
-    }
-
-    public function getAbandonedCartByOrderId(int $id)
-    {
-        $row = $this->_createAbandonedCartsQuery()
-            ->where(['orderId' => $id])
-            ->one();
-
-        return $row ? new CartModel($row) : null;
-    }
-
-    /**
-     * Send the abandoned cart reminder email.
-     *
-     * @param AbandonedCart $cart
-     * @return bool $result
-     */
-    public function sendMail($cart, $subject, $recipient = null, $templatePath = null): bool
-    {
-        // settings/defaults
         $view = Craft::$app->getView();
         $oldTemplateMode = $view->getTemplateMode();
         $originalLanguage = Craft::$app->language;
 
-        if (strpos($templatePath, "abandoned-cart/emails") !== false) {
+        if (str_starts_with($templatePath, 'abandoned-cart/emails')) {
             $view->setTemplateMode($view::TEMPLATE_MODE_CP);
         } else {
             $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
         }
 
-        // get the order from the cart
-        $order = Order::findOne($cart->orderId);
+        $order = $cart->getOrder();
 
         if (!$order) {
-            $error = Craft::t('app', 'Could not find Order for Abandoned Cart email.');
-            Craft::error($error, __METHOD__);
+            $error = Craft::t('abandoned-cart', 'Could not find Order for Abandoned Cart email.');
+
+            AbandonedCart::error($error);
+
             Craft::$app->language = $originalLanguage;
+
             $view->setTemplateMode($oldTemplateMode);
+
             return false;
         }
 
-        // use order language
+        if (!$order->hasLineItems()) {
+            $warning = Craft::t('abandoned-cart', 'Skipped Abandoned Cart email, Order doesn‘t have Line Items.');
+            
+            AbandonedCart::info($warning);
+
+            Craft::$app->language = $originalLanguage;
+            
+            $view->setTemplateMode($oldTemplateMode);
+            
+            return false;
+        }
+        
         Craft::$app->language = $order->orderLanguage;
 
         $checkoutLink = 'abandoned-cart-restore?number=' . $order->number;
 
-        $discount = Craft::parseEnv(AbandonedCart::$plugin->getSettings()->discountCode);
+        $discount = AbandonedCart::$plugin->getSettings()->getDiscountCode();
+        
         if ($discount) {
             $discountCode = $discount;
             $checkoutLink = $checkoutLink . '&couponCode=' . $discountCode;
@@ -298,66 +268,79 @@ class Carts extends Component
             $discountCode = false;
         }
 
-        // template variables
         $renderVariables = [
             'order' => $order,
             'discount' => $discountCode,
             'currentSite' => $order->orderSite,
-            'checkoutLink' => $checkoutLink
+            'checkoutLink' => $checkoutLink,
         ];
 
         $subject = $view->renderString($subject, $renderVariables);
         $templatePath = $view->renderString($templatePath, $renderVariables);
 
-        // validate that the email template exists
         if (!$view->doesTemplateExist($templatePath)) {
-            $error = Craft::t('app', 'Email template does not exist at “{templatePath}”.', [
+            $error = Craft::t('abandoned-cart', 'Email template does not exist at “{templatePath}”.', [
                 'templatePath' => $templatePath,
             ]);
-            Craft::error($error, __METHOD__);
+
+            AbandonedCart::error($error);
+
             Craft::$app->language = $originalLanguage;
+            
             $view->setTemplateMode($oldTemplateMode);
+            
             return false;
         }
 
-        // set the template as the email body
         $emailBody = $view->renderTemplate($templatePath, $renderVariables);
 
-        // Get from address from site settings
         $settings = Craft::$app->projectConfig->get('email');
 
-        // build the email
-        $newEmail = new Message();
-        $newEmail->setFrom([Craft::parseEnv($settings['fromEmail']) => Craft::parseEnv($settings['fromName'])]);
+        $newEmail = Craft::$app->getMailer()->compose();
+        $newEmail->setFrom([App::parseEnv($settings['fromEmail']) => App::parseEnv($settings['fromName'])]);
         $newEmail->setTo($recipient);
         $newEmail->setSubject($subject);
         $newEmail->setHtmlBody($emailBody);
 
-        // attempt to send
+        $event = new BeforeMailSend([
+            'order' => $order,
+            'message' => $newEmail,
+        ]);
+
+        $newEmail = $event->message;
+
+        $this->trigger(self::EVENT_BEFORE_MAIL_SEND, $event);
+
+        if (!$event->isValid) {
+            return false;
+        }
+
         try {
-            if (!Craft::$app->getMailer()->send($newEmail)) {
-                $error = Craft::t('app', 'Abandoned cart email “{email}” could not be sent for order “{order}”.', [
-                    'order' => $order->id
+            if (!$newEmail->send()) {
+                $error = Craft::t('abandoned-cart', 'Abandoned cart email “{email}” could not be sent for order “{order}”.', [
+                    'order' => $order->id,
                 ]);
 
-                Craft::error($error, __METHOD__);
+                AbandonedCart::error($error);
 
                 Craft::$app->language = $originalLanguage;
+
                 $view->setTemplateMode($oldTemplateMode);
 
                 return false;
             }
-        } catch (\Exception $e) {
-            $error = Craft::t('commerce', 'Abandoned cart email could not be sent for order “{order}”. Error: {error} {file}:{line}', [
+        } catch (Throwable $e) {
+            $error = Craft::t('abandoned-cart', 'Abandoned cart email could not be sent for order “{order}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'order' => $order->id
+                'order' => $order->id,
             ]);
 
-            Craft::error($error, __METHOD__);
+            AbandonedCart::error($error);
 
             Craft::$app->language = $originalLanguage;
+
             $view->setTemplateMode($oldTemplateMode);
 
             return false;
@@ -366,51 +349,99 @@ class Carts extends Component
         return true;
     }
 
-    public function markCartAsRecovered(Order $order)
+    public function markCartAsRecovered(Order $order): void
     {
-        $cart = $this->getAbandonedCartByOrderId($order->id);
-        if ($cart) {
+        if ($cart = $this->getCartByOrderId($order->id)) {
             $cart->isRecovered = true;
-            $cart->save($cart);
+
+            $this->saveCart($cart);
         }
     }
 
-    // Static Methods
-    // =========================================================================
-
-    // Shoutout to @CraftCMS and the FeedMe plugin for this helper function
-    public static function getBrowserName($userAgent)
+    public function restoreCart(Order $order): void
     {
-        if (strpos($userAgent, 'Opera') || strpos($userAgent, 'OPR/')) {
-            return 'Opera';
-        } else if (strpos($userAgent, 'Edge')) {
-            return 'Edge';
-        } else if (strpos($userAgent, 'Chrome')) {
-            return 'Chrome';
-        } else if (strpos($userAgent, 'Safari')) {
-            return 'Safari';
-        } else if (strpos($userAgent, 'Firefox')) {
-            return 'Firefox';
-        } else if (strpos($userAgent, 'MSIE') || strpos($userAgent, 'Trident/7')) {
-            return 'Internet Explorer';
+        if ($cart = $this->getCartByOrderId($order->id)) {
+            $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
+
+            $expiredTime = $cart->dateUpdated;
+            $expiredTime->add(new DateInterval("PT{$expiry}H"));
+            $expiredTimestamp = $expiredTime->getTimestamp();
+
+            $now = new DateTime();
+            $nowTimestamp = $now->getTimestamp();
+
+            if ($nowTimestamp < $expiredTimestamp) {
+                Commerce::getInstance()->getCarts()->forgetCart();
+                $session->set('commerce_cart', $number);
+                $session->setNotice(Craft::t('abandoned-cart', 'Your cart has been restored.'));
+
+                $cart->clicked = true;
+
+                $this->saveCart($cart);
+
+                return true;
+            }
         }
-        return 'Other';
+
+        return false;
     }
+
 
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns a Query object prepped for retrieving Abandoned Carts.
-     *
-     * @return Query The query object.
-     */
-    private function _createAbandonedCartsQuery(): Query
+    private function _carts(): MemoizableArray
     {
-        return (new Query())
-            ->select('*')
-            ->from(['{{%abandonedcart_carts}}'])
-            ->orderBy('dateUpdated desc');
+        if (!isset($this->_carts)) {
+            $this->_carts = new MemoizableArray(
+                $this->_createCartQuery()->all(),
+                fn(array $result) => new Cart($result),
+            );
+        }
+
+        return $this->_carts;
+    }
+
+    private function _createCartQuery(): Query
+    {
+        $query = (new Query())
+            ->select([
+                'id',
+                'orderId',
+                'email',
+                'clicked',
+                'isScheduled',
+                'firstReminder',
+                'secondReminder',
+                'isRecovered',
+                'dateCreated',
+                'dateUpdated',
+                'uid',
+            ])
+            ->from(['{{%abandonedcart_carts}}']);
+
+        if ($blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist()) {
+            $blacklist = explode(',', $blacklist);
+
+            $query->where(['not in', 'email', $blacklist]);
+        }
+
+        return $query;
+    }
+
+    private function _getCartRecordById(int $cartId = null): ?CartRecord
+    {
+        if ($cartId !== null) {
+            $cartRecord = CartRecord::findOne(['id' => $cartId]);
+
+            if (!$cartRecord) {
+                throw new Exception(Craft::t('abandoned-cart', 'No cart exists with the ID “{id}”.', ['id' => $cartId]));
+            }
+        } else {
+            $cartRecord = new CartRecord();
+        }
+
+        return $cartRecord;
     }
 
 }

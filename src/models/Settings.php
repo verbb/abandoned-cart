@@ -1,160 +1,123 @@
 <?php
-/**
- * @copyright Copyright (c) Myles Derham.
- * @license https://craftcms.github.io/license/
- */
-
-namespace mediabeastnz\abandonedcart\models;
+namespace verbb\abandonedcart\models;
 
 use craft\base\Model;
+use craft\helpers\App;
 use craft\helpers\StringHelper;
-use craft\behaviors\EnvAttributeParserBehavior;
 
 class Settings extends Model
 {
-    public $pluginName = 'Abandoned Carts';
+    // Properties
+    // =========================================================================
 
-    public $testMode = false;
+    public string $pluginName = 'Abandoned Carts';
+    public ?string $passKey = null;
+    public ?int $restoreExpiryHours = 48;
+    public ?int $firstReminderDelay = 1;
+    public ?int $secondReminderDelay = 12;
+    public ?string $discountCode = null;
+    public ?string $firstReminderTemplate = 'abandoned-cart/emails/first';
+    public ?string $secondReminderTemplate = 'abandoned-cart/emails/second';
+    public ?string $firstReminderSubject = 'You‘ve left some items in your cart';
+    public ?string $secondReminderSubject = 'Your items are still waiting - don‘t miss out';
+    public ?string $recoveryUrl = 'shop/cart';
+    public bool $disableSecondReminder = false;
+    public ?string $blacklist = null;
 
-    public $passKey;
 
-    public $restoreExpiryHours = '48';
+    // Public Methods
+    // =========================================================================
 
-    public $firstReminderDelay = '1';
+    public function __construct($config = [])
+    {
+        // Handle legacy settings
+        unset($config['testMode']);
 
-    public $secondReminderDelay = '12';
+        parent::__construct($config);
+    }
 
-    public $discountCode;
-
-    public $firstReminderTemplate = 'abandoned-cart/emails/first';
-
-    public $secondReminderTemplate = 'abandoned-cart/emails/second';
-
-    public $firstReminderSubject = "You've left some items in your cart";
-
-    public $secondReminderSubject = "Your items are still waiting - don't miss out";
-
-    public $recoveryUrl = "shop/cart";
-
-    public $disableSecondReminder = false;
-
-    public $blacklist = false;
-
-    public function __construct() 
+    public function init(): void
     {
         if (empty($this->passKey)) {
             $this->passKey = StringHelper::randomString(15);
         }
+
+        parent::init();
     }
 
-    public function getTestMode(): string
+    public function defineRules(): array
     {
-        return Craft::parseEnv($this->testMode);
+        $rules = parent::defineRules();
+        $rules[] = [['pluginName', 'restoreExpiryHours', 'firstReminderDelay', 'secondReminderDelay', 'firstReminderTemplate', 'secondReminderTemplate', 'firstReminderSubject', 'secondReminderSubject', 'recoveryUrl', 'passKey'], 'required'];
+        $rules[] = ['restoreExpiryHours', 'integer', 'min' => 24, 'max' => '168']; // Atleast 24hrs
+        $rules[] = ['firstReminderDelay', 'integer', 'min' => 1, 'max' => 24]; // 1hr +
+        $rules[] = ['secondReminderDelay', 'integer', 'min' => 12, 'max' => 48]; // prevent spam
+
+        return $rules;
     }
 
-    public function getPassKey(): string
+    public function getPassKey(): ?string
     {
-        return Craft::parseEnv($this->passKey);
+        return App::parseEnv($this->passKey);
     }
 
-    public function getPluginName(): string
+    public function getPluginName(): ?string
     {
-        return Craft::parseEnv($this->pluginName);
+        return App::parseEnv($this->pluginName);
     }
 
-    public function getDisableSecondReminder(): string
+    public function getDisableSecondReminder(): ?bool
     {
-        return Craft::parseEnv($this->disableSecondReminder);
+        return App::parseBooleanEnv($this->disableSecondReminder);
     }
 
-    public function getRestoreExpiryHours(): string
+    public function getRestoreExpiryHours(): ?string
     {
-        return Craft::parseEnv($this->restoreExpiryHours);
+        return App::parseEnv($this->restoreExpiryHours);
     }
 
-    public function getFirstReminderDelay(): string
+    public function getFirstReminderDelay(): ?string
     {
-        return Craft::parseEnv($this->firstReminderDelay);
+        return App::parseEnv($this->firstReminderDelay);
     }
 
-    public function getSecondReminderDelay(): string
+    public function getSecondReminderDelay(): ?string
     {
-        return Craft::parseEnv($this->secondReminderDelay);
+        return App::parseEnv($this->secondReminderDelay);
     }
 
-    public function getFirstReminderTemplate(): string
+    public function getFirstReminderTemplate(): ?string
     {
-        return Craft::parseEnv($this->firstReminderTemplate);
+        return App::parseEnv($this->firstReminderTemplate);
     }
 
-    public function getFirstReminderSubject(): string
+    public function getFirstReminderSubject(): ?string
     {
-        return Craft::parseEnv($this->firstReminderSubject);
+        return App::parseEnv($this->firstReminderSubject);
     }
 
-    public function getSecondReminderTemplate(): string
+    public function getSecondReminderTemplate(): ?string
     {
-        return Craft::parseEnv($this->secondReminderTemplate);
+        return App::parseEnv($this->secondReminderTemplate);
     }
 
-    public function getSecondReminderSubject(): string
+    public function getSecondReminderSubject(): ?string
     {
-        return Craft::parseEnv($this->secondReminderSubject);
+        return App::parseEnv($this->secondReminderSubject);
     }
 
-    public function getDiscountCode(): string
+    public function getDiscountCode(): ?string
     {
-        return Craft::parseEnv($this->discountCode);
+        return App::parseEnv($this->discountCode);
     }
 
-    public function getRecoveryUrl(): string
+    public function getRecoveryUrl(): ?string
     {
-        return Craft::parseEnv($this->recoveryUrl);
+        return App::parseEnv($this->recoveryUrl);
     }
 
-    public function getBlacklist(): string
+    public function getBlacklist(): ?string
     {
-        return Craft::parseEnv($this->blacklist);
+        return App::parseEnv($this->blacklist);
     }
-
-    public function behaviors(): array
-    {
-        return [
-            'parser' => [
-                'class' => EnvAttributeParserBehavior::class,
-                'attributes' => [
-                    'passKey',
-                    'restoreExpiryHours',
-                    'firstReminderDelay',
-                    'secondReminderDelay',
-                    'firstReminderTemplate',
-                    'firstReminderSubject',
-                ],
-            ],
-        ];
-    }
-
-    public function rules(): array
-    {
-        return [
-            [[
-                'pluginName',
-                'restoreExpiryHours', 
-                'firstReminderDelay', 
-                'secondReminderDelay',
-                'firstReminderTemplate',
-                'secondReminderTemplate',
-                'firstReminderSubject', 
-                'secondReminderSubject',
-                'recoveryUrl',
-                'passKey'
-            ], 'required'],
-            ['restoreExpiryHours', 'integer', 'min' => 24, 'max' => '168'], // Atleast 24hrs
-            ['firstReminderDelay', 'integer', 'min' => 1, 'max' => 24], // 1hr +
-            ['secondReminderDelay', 'integer', 'min' => 12, 'max' => 48], // prevent spam
-            [['firstReminderTemplate', 'secondReminderTemplate'], 'string'],
-            [['firstReminderSubject', 'secondReminderSubject'], 'string'],
-        ];
-    }
-
 }
