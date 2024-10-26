@@ -358,7 +358,7 @@ class Carts extends Component
         }
     }
 
-    public function restoreCart(Order $order): void
+    public function restoreCart(Order $order): bool
     {
         if ($cart = $this->getCartByOrderId($order->id)) {
             $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
