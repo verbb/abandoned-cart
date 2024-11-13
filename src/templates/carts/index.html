@@ -16,44 +16,16 @@
 
 {% endblock %}
 
-{% set tableData = [] %}
-
-{% for cart in carts %}
-    {% set user = cart.getUser() %}
-    {% set order = cart.getOrder() %}
-
-    {% set userLink = user ? {
-        title: user.email,
-        cpEditUrl: user.cpEditUrl,
-    } : {} %}
-
-    {% set cartLink = order ? {
-        title: order.shortNumber,
-        cpEditUrl: order.cpEditUrl,
-    } : {} %}
-
-    {% set tableData = tableData | merge([{
-        email: userLink,
-        cart: cartLink,
-        total: order ? order.totalPrice | commerceCurrency(order.currency) : '-',
-        firstReminder: cart.firstReminder,
-        secondReminder: cart.secondReminder,
-        clicked: cart.clicked,
-        status: cart.status,
-        dateUpdated: cart.dateUpdated | datetime('short'),
-    }]) %}
-{% endfor %}
-
 {% js %}
     var columns = [
-        { name: 'cart', title: Craft.t('abandoned-cart', 'Cart'), callback: function(value) {
+        { name: 'cart', title: Craft.t('abandoned-cart', 'Cart'), sortField: 'orderId', callback: function(value) {
             if (value) {
                 return '<a href="' + value.cpEditUrl + '">' + value.title + '</a>';
             } else {
                 return '-';
             }
         }  },
-        { name: 'email', title: Craft.t('abandoned-cart', 'Customer/Guest'), callback: function(value) {
+        { name: 'email', title: Craft.t('abandoned-cart', 'Customer/Guest'), sortField: 'email', callback: function(value) {
             if (value) {
                 return '<a href="' + value.cpEditUrl + '">' + value.title + '</a>';
             } else {
@@ -61,21 +33,21 @@
             }
         }  },
         { name: 'total', title: Craft.t('abandoned-cart', 'Total') },
-        { name: 'firstReminder', title: Craft.t('abandoned-cart', '1st Reminder'), callback: function(value) {
+        { name: 'firstReminder', title: Craft.t('abandoned-cart', '1st Reminder'), sortField: 'firstReminder', callback: function(value) {
             if (value) {
                 return '<span class="status green"></span>' + Craft.t('abandoned-cart', 'Sent');
             } else {
                 return '<span class="status orange"></span>' + Craft.t('abandoned-cart', 'Not sent');
             }
         } },
-        { name: 'secondReminder', title: Craft.t('abandoned-cart', '2nd Reminder'), callback: function(value) {
+        { name: 'secondReminder', title: Craft.t('abandoned-cart', '2nd Reminder'), sortField: 'secondReminder', callback: function(value) {
             if (value) {
                 return '<span class="status green"></span>' + Craft.t('abandoned-cart', 'Sent');
             } else {
                 return '<span class="status orange"></span>' + Craft.t('abandoned-cart', 'Not sent');
             }
         } },
-        { name: 'clicked', title: Craft.t('abandoned-cart', 'Clicked'), callback: function(value) {
+        { name: 'clicked', title: Craft.t('abandoned-cart', 'Clicked'), sortField: 'clicked', callback: function(value) {
             if (value) {
                 return '<span class="status green"></span>' + Craft.t('abandoned-cart', 'Clicked');
             } else {
@@ -93,13 +65,15 @@
                 return '<span class="status red"></span>' + Craft.t('abandoned-cart', 'Expired');
             }
         } },
-        { name: 'dateUpdated', title: Craft.t('abandoned-cart', 'Updated') },
+        { name: 'dateUpdated', title: Craft.t('abandoned-cart', 'Updated'), sortField: 'dateUpdated' },
     ];
 
     new Craft.VueAdminTable({
         columns: columns,
         container: '#carts-vue-admin-table',
         emptyMessage: Craft.t('abandoned-cart', 'No abandoned carts exist yet.'),
-        tableData: {{ tableData | json_encode | raw }},
+        tableDataEndpoint: Craft.getActionUrl('abandoned-cart/carts/get-carts'),
+        search: true,
+        perPage: 100,
     });
 {% endjs %}
