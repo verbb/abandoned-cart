@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.0.1 - Unreleased
+
+### Added
+- Carts are now sortable.
+- Carts can be searched.
+- Carts are now lazy-loaded for performance.
+
+### Changed
+- Carts are now paginated.
+- Carts are now listed newest first by default.
+
 ## 4.0.0 - 2024-10-25
 
 ### Changed
