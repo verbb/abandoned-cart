@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.1 - Unreleasd
+## 3.0.1 - Unreleased
 
 ### Added
 - Carts are now sortable.
