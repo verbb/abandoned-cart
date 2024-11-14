@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.1 - Unreleased
+## 4.0.1 - 2024-11-15
 
 ### Added
 - Carts are now sortable.
@@ -10,6 +10,9 @@
 ### Changed
 - Carts are now paginated.
 - Carts are now listed newest first by default.
+
+### Fixed
+- Fix PHP type issues for plugin settings, not working well with `.env` variables.
 
 ## 4.0.0 - 2024-10-25
 
