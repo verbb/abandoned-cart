@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.1 - Unreleased
+## 3.0.1 - 2024-11-15
 
 ### Added
 - Carts are now sortable.
@@ -10,6 +10,9 @@
 ### Changed
 - Carts are now paginated.
 - Carts are now listed newest first by default.
+
+### Fixed
+- Fix PHP type issues for plugin settings, not working well with `.env` variables.
 
 ## 3.0.0 - 2024-10-25
 > {note} The plugin’s package name has changed to `verbb/abandoned-cart`. Abandoned Cart will need be updated to 3.0 from a terminal, by running `composer require verbb/abandoned-cart && composer remove mediabeastnz/craft-commerce-abandoned-cart`.
