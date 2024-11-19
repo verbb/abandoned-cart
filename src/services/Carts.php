@@ -360,6 +360,8 @@ class Carts extends Component
 
     public function restoreCart(Order $order): bool
     {
+        $session = Craft::$app->getSession();
+        
         if ($cart = $this->getCartByOrderId($order->id)) {
             $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
 
