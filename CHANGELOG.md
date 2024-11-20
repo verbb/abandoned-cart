@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.3 - 2024-11-21
+
+### Fixed
+- Fix an error when restoring carts.
+
 ## 3.0.2 - 2024-11-20
 
 ### Fixed
