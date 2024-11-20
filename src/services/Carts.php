@@ -360,6 +360,7 @@ class Carts extends Component
 
     public function restoreCart(Order $order): bool
     {
+        $cartsService = Commerce::getInstance()->getCarts();
         $session = Craft::$app->getSession();
         
         if ($cart = $this->getCartByOrderId($order->id)) {
@@ -373,8 +374,8 @@ class Carts extends Component
             $nowTimestamp = $now->getTimestamp();
 
             if ($nowTimestamp < $expiredTimestamp) {
-                Commerce::getInstance()->getCarts()->forgetCart();
-                $session->set('commerce_cart', $number);
+                $cartsService->forgetCart();
+                $cartsService->setSessionCartNumber($order->number);
                 $session->setNotice(Craft::t('abandoned-cart', 'Your cart has been restored.'));
 
                 $cart->clicked = true;
