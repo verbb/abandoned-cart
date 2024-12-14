@@ -14,6 +14,7 @@ use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\mail\Message;
 
@@ -132,15 +133,18 @@ class Carts extends Component
         $UTC = new DateTimeZone('UTC');
         $dateUpdatedStart = new DateTime();
         $dateUpdatedStart->setTimezone($UTC);
-        $dateUpdatedStart->sub(new DateInterval("PT{$start}H"));
+        $dateUpdatedStart->sub(new DateInterval("PT{$end}H"));
 
         $dateUpdatedEnd = new DateTime();
         $dateUpdatedEnd->setTimezone($UTC);
-        $dateUpdatedEnd->sub(new DateInterval("PT{$end}H"));
+        $dateUpdatedEnd->sub(new DateInterval("PT{$start}H"));
+
+        $dateUpdatedStart = Db::prepareDateForDb($dateUpdatedStart);
+        $dateUpdatedEnd = Db::prepareDateForDb($dateUpdatedEnd);
 
         $query = Order::find()
-            ->where(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart->format('Y-m-d H:i:s')])
-            ->andWhere(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd->format('Y-m-d H:i:s')])
+            ->where(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart])
+            ->andWhere(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd])
             ->andWhere(['>', 'totalPrice', 0])
             ->andWhere(['=', 'isCompleted', 0])
             ->andWhere(['!=', 'email', ''])
