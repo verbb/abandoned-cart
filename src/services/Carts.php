@@ -121,7 +121,7 @@ class Carts extends Component
         return 0;
     }
 
-    public function getAbandonedOrders(int $start = 1, int $end = 12): array
+    public function getAbandonedOrders(int $start = 1, int $end = 24): array
     {
         $blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist();
         
