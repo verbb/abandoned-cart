@@ -28,9 +28,9 @@ return [
 ## Configuration options
 - `pluginName` - If you wish to customise the plugin name.
 - `passKey` - A generated, unique string to increase security against crons being run inadvertently.
-- `restoreExpiryHours` - How long should abandoned cart restore links last for after being sent.
-- `firstReminderDelay` - How long after a cart has been abandoned should the 1st reminder be sent.
-- `secondReminderDelay` - How long after a cart has been abandoned should the 2nd reminder be sent.
+- `restoreExpiryHours` - How many hours should abandoned cart restore links last for after being sent.
+- `firstReminderDelay` - How many hours after a cart has been abandoned should the 1st reminder be sent.
+- `secondReminderDelay` - How many hours after a cart has been abandoned should the 2nd reminder be sent.
 - `discountCode` - Enter the discount code that abandoned carts can use.
 - `firstReminderTemplate` - Use a custom template for the 1st reminder email.
 - `secondReminderTemplate` - Use a custom template for the 2nd reminder email.
