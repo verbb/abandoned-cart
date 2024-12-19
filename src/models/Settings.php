@@ -23,6 +23,7 @@ class Settings extends Model
     public ?string $secondReminderSubject = 'Your items are still waiting - don‘t miss out';
     public ?string $recoveryUrl = 'shop/cart';
     public bool|string|null $disableSecondReminder = false;
+    public bool|string|null $previousOrderRequired = false;
     public ?string $blacklist = null;
 
 

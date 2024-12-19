@@ -204,8 +204,23 @@ class Carts extends Component
 
     public function createNewCarts(array $orders): void
     {
+        $settings = AbandonedCart::$plugin->getSettings();
+
         foreach ($orders as $order) {
             $existingCart = CartRecord::find()->where(['orderId' => $order->id])->one();
+
+            // Check if we require at least one previous completed order for privacy
+            if ($settings->previousOrderRequired) {
+                $previousOrders = Order::find()
+                    ->id('not ' . $order->id)
+                    ->email($order->email)
+                    ->isCompleted()
+                    ->count();
+
+                if (!$previousOrders) {
+                    return;
+                }
+            }
             
             if (!$existingCart) {
                 $newCart = new CartRecord();

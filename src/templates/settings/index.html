@@ -38,6 +38,16 @@
 }) }}
 
 {{ forms.lightswitchField({
+    label: 'Previous Order Required' | t('abandoned-cart'),
+    instructions: 'Whether emails should be sent only if the user has made an order previously.' | t('abandoned-cart'),
+    id: 'previousOrderRequired',
+    name: 'previousOrderRequired',
+    on: settings.previousOrderRequired,
+    errors: settings.getErrors('previousOrderRequired'),
+    warning: macros.configWarning('previousOrderRequired', 'abandoned-cart'),
+}) }}
+
+{{ forms.lightswitchField({
     label: 'Disable 2nd Reminder' | t('abandoned-cart'),
     instructions: 'If disabled only the 1st reminder will be sent.' | t('abandoned-cart'),
     id: 'disableSecondReminder',
