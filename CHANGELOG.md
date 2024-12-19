@@ -1,35 +1,5 @@
 # Changelog
 
-## 4.0.3 - 2024-11-21
-
-### Fixed
-- Fix an error when restoring carts.
-
-## 4.0.2 - 2024-11-20
-
-### Fixed
-- Fix an error when restoring carts.
-
-## 4.0.1 - 2024-11-15
-
-### Added
-- Carts are now sortable.
-- Carts can be searched.
-- Carts are now lazy-loaded for performance.
-
-### Changed
-- Carts are now paginated.
-- Carts are now listed newest first by default.
-
-### Fixed
-- Fix PHP type issues for plugin settings, not working well with `.env` variables.
-
-## 4.0.0 - 2024-10-25
-
-### Changed
-- Now requires Craft 5.0+.
-- Now requires Craft Commerce 5.0+.
-
 ## 3.0.3 - 2024-11-21
 
 ### Fixed
