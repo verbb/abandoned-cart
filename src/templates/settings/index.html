@@ -59,7 +59,7 @@
 
 {{ forms.autosuggestField({
     label: 'Restore Link Expiry' | t('abandoned-cart'),
-    instructions: 'How long should abandoned cart restore links last for after being sent.' | t('abandoned-cart'),
+    instructions: 'How many hours should abandoned cart restore links last for after being sent.' | t('abandoned-cart'),
     name: 'restoreExpiryHours',
     value: settings.restoreExpiryHours,
     placeholder: '48',
@@ -70,7 +70,7 @@
 
 {{ forms.autosuggestField({
     label: '1st Reminder Delay' | t('abandoned-cart'),
-    instructions: 'How long after a cart has been abandoned should the 1st reminder be sent.<br /><i>Note: Carts are marked abandoned 1 hour after no activity.</i>' | t('abandoned-cart'),
+    instructions: 'How many hours after a cart has been abandoned should the 1st reminder be sent.<br /><i>Note: Carts are marked abandoned 1 hour after no activity.</i>' | t('abandoned-cart'),
     name: 'firstReminderDelay',
     value: settings.firstReminderDelay,
     placeholder: '1',
@@ -81,7 +81,7 @@
 
 {{ forms.autosuggestField({
     label: '2nd Reminder Delay' | t('abandoned-cart'),
-    instructions: 'How long after a cart has been abandoned should the 2nd reminder be sent.' | t('abandoned-cart'),
+    instructions: 'How many hours after a cart has been abandoned should the 2nd reminder be sent.' | t('abandoned-cart'),
     name: 'secondReminderDelay',
     value: settings.secondReminderDelay,
     placeholder: '12',

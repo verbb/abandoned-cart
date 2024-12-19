@@ -14,6 +14,7 @@ use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\mail\Message;
 
@@ -120,7 +121,7 @@ class Carts extends Component
         return 0;
     }
 
-    public function getAbandonedOrders(int $start = 1, int $end = 12): array
+    public function getAbandonedOrders(): array
     {
         $blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist();
         
@@ -128,19 +129,21 @@ class Carts extends Component
             $blacklist = explode(',', $blacklist);
         }
 
-        // Find orders that fit the criteria
-        $UTC = new DateTimeZone('UTC');
-        $dateUpdatedStart = new DateTime();
-        $dateUpdatedStart->setTimezone($UTC);
-        $dateUpdatedStart->sub(new DateInterval("PT{$start}H"));
+        // Use Commerce's setting to determine when to classify the start of an abandoned cart.
+        // By default, this is orders 1 hour ago
+        $dateUpdatedStart = Commerce::getInstance()->getCarts()->getActiveCartEdgeDuration();
 
-        $dateUpdatedEnd = new DateTime();
-        $dateUpdatedEnd->setTimezone($UTC);
-        $dateUpdatedEnd->sub(new DateInterval("PT{$end}H"));
+        // Then, match any order in the last 24 hours. Any orders older than that aren't deemed abandoned.
+        // This is to keep our sample size low.
+        $dateUpdatedEnd = new DateTime($dateUpdatedStart);
+        $dateUpdatedEnd->sub(new DateInterval("PT24H"));
+
+        $dateUpdatedStart = Db::prepareDateForDb($dateUpdatedStart);
+        $dateUpdatedEnd = Db::prepareDateForDb($dateUpdatedEnd);
 
         $query = Order::find()
-            ->where(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart->format('Y-m-d H:i:s')])
-            ->andWhere(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd->format('Y-m-d H:i:s')])
+            ->where(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd])
+            ->andWhere(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart])
             ->andWhere(['>', 'totalPrice', 0])
             ->andWhere(['=', 'isCompleted', 0])
             ->andWhere(['!=', 'email', ''])
