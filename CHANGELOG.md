@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.4 - 2025-01-14
+
+### Added
+- Add “Previous Order Required” plugin setting.
+- Allow reminder delays to be 0 (mainly for testing).
+
+### Changed
+- Abandoned carts order-matching now uses Commerce’s `activeCartDuration`.
+- Abandoned Carts are now classified between 1-24 hours ago.
+
+### Fixed
+- Fix order-matching and timezone issues.
+
 ## 3.0.3 - 2024-11-21
 
 ### Fixed
