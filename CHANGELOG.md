@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.5 - 2025-02-03
+
+### Fixed
+- Fix some validation constraints for reminder delays.
+- Fix an error with `AbandonedCart::info`.
+
 ## 3.0.4 - 2025-01-14
 
 ### Added
