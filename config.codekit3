@@ -77,6 +77,25 @@
       "rFN" : 0,
       "uCM" : 0
     },
+    "\/docs\/feature-tour\/usage.md" : {
+      "cB" : 0,
+      "cS" : 0,
+      "eF" : 1,
+      "eL" : 1,
+      "ema" : 1,
+      "eSQ" : 1,
+      "ft" : 4096,
+      "hM" : 0,
+      "oA" : 1,
+      "oAP" : "\/docs\/feature-tour\/usage.html",
+      "oF" : 0,
+      "oFM" : 0,
+      "oS" : 0,
+      "pHT" : 0,
+      "pME" : 1,
+      "rFN" : 0,
+      "uCM" : 0
+    },
     "\/docs\/get-started\/configuration.md" : {
       "cB" : 0,
       "cS" : 0,
@@ -153,25 +172,6 @@
       "rFN" : 0,
       "uCM" : 0
     },
-    "\/docs\/template-guides\/available-variables.md" : {
-      "cB" : 0,
-      "cS" : 0,
-      "eF" : 1,
-      "eL" : 1,
-      "ema" : 1,
-      "eSQ" : 1,
-      "ft" : 4096,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/docs\/template-guides\/available-variables.html",
-      "oF" : 0,
-      "oFM" : 0,
-      "oS" : 0,
-      "pHT" : 0,
-      "pME" : 1,
-      "rFN" : 0,
-      "uCM" : 0
-    },
     "\/LICENSE.md" : {
       "cB" : 0,
       "cS" : 0,
@@ -230,10 +230,24 @@
       "oAP" : "\/src\/base",
       "oF" : 0
     },
+    "\/src\/console\/controllers\/RemindersController.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/console\/controllers\/RemindersController.php",
+      "oF" : 0
+    },
     "\/src\/controllers" : {
       "ft" : 65536,
       "oA" : 1,
       "oAP" : "\/src\/controllers",
+      "oF" : 0
+    },
+    "\/src\/events" : {
+      "ft" : 65536,
+      "oA" : 1,
+      "oAP" : "\/src\/events",
       "oF" : 0
     },
     "\/src\/icon-mask.svg" : {
@@ -268,37 +282,19 @@
       "oAP" : "\/src\/models",
       "oF" : 0
     },
-    "\/src\/resources\/dist" : {
-      "ft" : 65536,
-      "oA" : 1,
-      "oAP" : "\/src\/resources\/dist",
+    "\/src\/queue\/jobs\/SendEmailReminder.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 2,
+      "oAP" : "\/src\/queue\/jobs\/SendEmailReminder.php",
       "oF" : 0
     },
-    "\/src\/resources\/src\/js\/abandoned-cart.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/resources\/dist\/js\/abandoned-cart.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/resources\/src\/scss\/abandoned-cart.scss" : {
-      "aP" : 1,
-      "bl" : 0,
-      "co" : 0,
-      "dP" : 10,
-      "ec" : 1,
-      "ft" : 4,
-      "ma" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/resources\/dist\/css\/abandoned-cart.css",
-      "oF" : 0,
-      "oS" : 3,
-      "pg" : 0,
-      "sct" : 0
+    "\/src\/records" : {
+      "ft" : 65536,
+      "oA" : 1,
+      "oAP" : "\/src\/records",
+      "oF" : 0
     },
     "\/src\/services" : {
       "ft" : 65536,

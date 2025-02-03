@@ -120,9 +120,9 @@ class Settings extends Model
     {
         $rules = parent::defineRules();
         $rules[] = [['pluginName', 'restoreExpiryHours', 'firstReminderDelay', 'secondReminderDelay', 'firstReminderTemplate', 'secondReminderTemplate', 'firstReminderSubject', 'secondReminderSubject', 'recoveryUrl', 'passKey'], 'required'];
-        $rules[] = [['restoreExpiryHours'], 'integer', 'min' => 24, 'max' => '168'];
-        $rules[] = [['firstReminderDelay'], 'integer', 'min' => 0, 'max' => 24];
-        $rules[] = [['secondReminderDelay'], 'integer', 'min' => 0, 'max' => 48];
+        $rules[] = [['restoreExpiryHours'], 'integer'];
+        $rules[] = [['firstReminderDelay'], 'integer', 'min' => 0];
+        $rules[] = [['secondReminderDelay'], 'integer', 'min' => 0];
 
         return $rules;
     }
