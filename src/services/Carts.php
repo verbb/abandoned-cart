@@ -19,6 +19,7 @@ use craft\helpers\Json;
 use craft\mail\Message;
 
 use yii\base\Component;
+use yii\db\Expression;
 
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order;
@@ -123,12 +124,6 @@ class Carts extends Component
 
     public function getAbandonedOrders(): array
     {
-        $blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist();
-        
-        if (!empty($blacklist)) {
-            $blacklist = explode(',', $blacklist);
-        }
-
         // Use Commerce's setting to determine when to classify the start of an abandoned cart.
         // By default, this is orders 1 hour ago
         $dateUpdatedStart = Commerce::getInstance()->getCarts()->getActiveCartEdgeDuration();
@@ -145,13 +140,11 @@ class Carts extends Component
             ->where(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd])
             ->andWhere(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart])
             ->andWhere(['>', 'totalPrice', 0])
-            ->andWhere(['=', 'isCompleted', 0])
+            ->andWhere(['=', 'isCompleted', false])
             ->andWhere(['!=', 'email', ''])
             ->orderBy('commerce_orders.[[dateUpdated]] desc');
 
-        if (is_array($blacklist)) {
-            $query->andWhere(['not in', 'email', $blacklist]);
-        }
+        $this->applyBlacklistToQuery($query);
 
         return $query->all();
     }
@@ -407,6 +400,42 @@ class Carts extends Component
         return false;
     }
 
+    public function applyBlacklistToQuery(ElementQueryInterface|Query $query): void
+    {
+        $blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist();
+
+        if (!$blacklist) {
+            return;
+        }
+
+        $fullEmails = [];
+        $domains = [];
+
+        // Split emails and domains so we can filter the query
+        foreach ($blacklist as $item) {
+            if (str_contains($item, '@')) {
+                $fullEmails[] = $item;
+            } else {
+                $domains[] = $item;
+            }
+        }
+
+        if ($fullEmails) {
+            $query->andWhere(['not in', 'email', $fullEmails]);
+        }
+
+        if ($domains) {
+            $conditions = ['and'];
+
+            foreach ($domains as $domain) {
+                // Using LOWER() for case-insensitive match
+                $conditions[] = ['not like', new Expression('LOWER([[email]])'), "@{$domain}"];
+            }
+
+            $query->andWhere($conditions);
+        }
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -441,11 +470,7 @@ class Carts extends Component
             ])
             ->from(['{{%abandonedcart_carts}}']);
 
-        if ($blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist()) {
-            $blacklist = explode(',', $blacklist);
-
-            $query->where(['not in', 'email', $blacklist]);
-        }
+        $this->applyBlacklistToQuery($query);
 
         return $query;
     }

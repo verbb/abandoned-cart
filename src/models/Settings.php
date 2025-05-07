@@ -25,6 +25,7 @@ class Settings extends Model
     public bool|string|null $disableSecondReminder = false;
     public bool|string|null $previousOrderRequired = false;
     public ?string $blacklist = null;
+    public bool $includeBlacklisted = true;
 
 
     // Public Methods
@@ -107,9 +108,20 @@ class Settings extends Model
         return App::parseEnv($this->recoveryUrl);
     }
 
-    public function getBlacklist(): ?string
+    public function getBlacklist(): array
     {
-        return App::parseEnv($this->blacklist);
+        $items = App::parseEnv($this->blacklist);
+
+        if (is_string($items)) {
+            $items = array_map('trim', explode(',', $items));
+        }
+
+        if (!is_array($items)) {
+            return [];
+        }
+
+        // Normalize: trim, lowercase, remove empties, dedupe
+        return array_values(array_unique(array_filter(array_map('strtolower', array_map('trim', $items)))));
     }
 
 

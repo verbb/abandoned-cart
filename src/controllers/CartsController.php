@@ -36,15 +36,13 @@ class CartsController extends Controller
 
     public function actionIndex(): Response
     {
-        $carts = AbandonedCart::$plugin->getCarts()->getAllCarts();
-
-        return $this->renderTemplate('abandoned-cart/carts', [
-            'carts' => $carts,
-        ]);
+        return $this->renderTemplate('abandoned-cart/carts');
     }
 
     public function actionFindCarts(): Response
     {
+        $session = Craft::$app->getSession();
+
         $requestPasskey = $this->request->getParam('passkey');
         $passKey = AbandonedCart::$plugin->getSettings()->getPassKey();
 
@@ -52,7 +50,7 @@ class CartsController extends Controller
             $abandonedCarts = AbandonedCart::$plugin->getCarts()->getEmailsToSend();
 
             if ($abandonedCarts) {
-                Craft::$app->getSession()->setNotice(Craft::t('abandoned-cart', '{num} abandoned carts were queued.', ['num' => $abandonedCarts]));
+                $session->setNotice(Craft::t('abandoned-cart', '{num} abandoned carts were queued.', ['num' => $abandonedCarts]));
             }
             
             return Craft::$app->controller->redirect(UrlHelper::cpUrl('abandoned-cart'));
@@ -63,6 +61,8 @@ class CartsController extends Controller
 
     public function actionRestoreCart()
     {
+        $session = Craft::$app->getSession();
+
         $number = $this->request->getParam('number');
         $order = Order::find()->number($number)->one();
 
@@ -93,6 +93,10 @@ class CartsController extends Controller
             ->from(['carts' => '{{%abandonedcart_carts}}'])
             ->select(['*'])
             ->orderBy(['id' => SORT_DESC]);
+
+        if (!AbandonedCart::$plugin->getSettings()->includeBlacklisted) {
+            AbandonedCart::$plugin->getCarts()->applyBlacklistToQuery($query);
+        }
 
         if ($search) {
             $likeOperator = Craft::$app->getDb()->getIsPgsql() ? 'ILIKE' : 'LIKE';
