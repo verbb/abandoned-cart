@@ -156,8 +156,8 @@
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'Blacklisted Emails' | t('abandoned-cart'),
-    instructions: 'Enter emails seperated by a comma that should be ignored.' | t('abandoned-cart'),
+    label: 'Blacklisted Emails/Domains' | t('abandoned-cart'),
+    instructions: 'Enter emails or domains seperated by a comma that should be ignored.' | t('abandoned-cart'),
     name: 'blacklist',
     value: settings.blacklist,
     suggestEnvVars: true,
