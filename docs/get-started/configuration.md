@@ -21,6 +21,7 @@ return [
         'recoveryUrl' => 'shop/cart',
         'disableSecondReminder' => false,
         'blacklist' => null,
+        'includeBlacklisted' => true,
     ],
 ];
 ```
@@ -38,7 +39,8 @@ return [
 - `secondReminderSubject` - The subject for the 2nd reminder email.
 - `recoveryUrl` - By default recovered carts will be redirected to shop/cart, use this field if you use something different.
 - `disableSecondReminder` - If disabled only the 1st reminder will be sent.
-- `blacklist` - Enter emails seperated by a comma that should be ignored.
+- `blacklist` - Enter emails or domains seperated by a comma that should be ignored.
+- `includeBlacklisted` - Whether blacklisted carts should be included in the Dashboard.
 
 
 ## Control Panel

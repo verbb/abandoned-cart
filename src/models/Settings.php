@@ -25,6 +25,7 @@ class Settings extends Model
     public bool|string|null $disableSecondReminder = false;
     public bool|string|null $previousOrderRequired = false;
     public ?string $blacklist = null;
+    public bool $includeBlacklisted = true;
 
 
     // Public Methods

@@ -144,7 +144,7 @@ class Carts extends Component
             ->andWhere(['!=', 'email', ''])
             ->orderBy('commerce_orders.[[dateUpdated]] desc');
 
-        $this->_applyBlacklistToQuery($query);
+        $this->applyBlacklistToQuery($query);
 
         return $query->all();
     }
@@ -400,6 +400,42 @@ class Carts extends Component
         return false;
     }
 
+    public function applyBlacklistToQuery(ElementQueryInterface|Query $query): void
+    {
+        $blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist();
+
+        if (!$blacklist) {
+            return;
+        }
+
+        $fullEmails = [];
+        $domains = [];
+
+        // Split emails and domains so we can filter the query
+        foreach ($blacklist as $item) {
+            if (str_contains($item, '@')) {
+                $fullEmails[] = $item;
+            } else {
+                $domains[] = $item;
+            }
+        }
+
+        if ($fullEmails) {
+            $query->andWhere(['not in', 'email', $fullEmails]);
+        }
+
+        if ($domains) {
+            $conditions = ['and'];
+
+            foreach ($domains as $domain) {
+                // Using LOWER() for case-insensitive match
+                $conditions[] = ['not like', new Expression('LOWER([[email]])'), "@{$domain}"];
+            }
+
+            $query->andWhere($conditions);
+        }
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -434,7 +470,7 @@ class Carts extends Component
             ])
             ->from(['{{%abandonedcart_carts}}']);
 
-        $this->_applyBlacklistToQuery($query);
+        $this->applyBlacklistToQuery($query);
 
         return $query;
     }
@@ -452,42 +488,6 @@ class Carts extends Component
         }
 
         return $cartRecord;
-    }
-
-    private function _applyBlacklistToQuery(ElementQueryInterface|Query $query): void
-    {
-        $blacklist = AbandonedCart::$plugin->getSettings()->getBlacklist();
-
-        if (!$blacklist) {
-            return;
-        }
-
-        $fullEmails = [];
-        $domains = [];
-
-        // Split emails and domains so we can filter the query
-        foreach ($blacklist as $item) {
-            if (str_contains($item, '@')) {
-                $fullEmails[] = $item;
-            } else {
-                $domains[] = $item;
-            }
-        }
-
-        if ($fullEmails) {
-            $query->andWhere(['not in', 'email', $fullEmails]);
-        }
-
-        if ($domains) {
-            $conditions = ['and'];
-
-            foreach ($domains as $domain) {
-                // Using LOWER() for case-insensitive match
-                $conditions[] = ['not like', new Expression('LOWER([[email]])'), "%@{$domain}"];
-            }
-
-            $query->andWhere($conditions);
-        }
     }
 
 }

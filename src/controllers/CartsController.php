@@ -36,11 +36,7 @@ class CartsController extends Controller
 
     public function actionIndex(): Response
     {
-        $carts = AbandonedCart::$plugin->getCarts()->getAllCarts();
-
-        return $this->renderTemplate('abandoned-cart/carts', [
-            'carts' => $carts,
-        ]);
+        return $this->renderTemplate('abandoned-cart/carts');
     }
 
     public function actionFindCarts(): Response
@@ -97,6 +93,10 @@ class CartsController extends Controller
             ->from(['carts' => '{{%abandonedcart_carts}}'])
             ->select(['*'])
             ->orderBy(['id' => SORT_DESC]);
+
+        if (!AbandonedCart::$plugin->getSettings()->includeBlacklisted) {
+            AbandonedCart::$plugin->getCarts()->applyBlacklistToQuery($query);
+        }
 
         if ($search) {
             $likeOperator = Craft::$app->getDb()->getIsPgsql() ? 'ILIKE' : 'LIKE';
