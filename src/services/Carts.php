@@ -145,7 +145,7 @@ class Carts extends Component
             ->where(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd])
             ->andWhere(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart])
             ->andWhere(['>', 'totalPrice', 0])
-            ->andWhere(['=', 'isCompleted', 0])
+            ->andWhere(['=', 'isCompleted', false])
             ->andWhere(['!=', 'email', ''])
             ->orderBy('commerce_orders.[[dateUpdated]] desc');
 
