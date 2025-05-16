@@ -89,6 +89,13 @@ class CartsController extends Controller
         $search = $this->request->getParam('search');
         $offset = ($page - 1) * $limit;
 
+        // Ensure that we update any abandoned carts
+        $carts = AbandonedCart::$plugin->getCarts()->getAbandonedOrders();
+
+        if (count($carts)) {
+            AbandonedCart::$plugin->getCarts()->createNewCarts($carts);
+        }
+
         $query = (new Query())
             ->from(['carts' => '{{%abandonedcart_carts}}'])
             ->select(['*'])
