@@ -89,6 +89,7 @@ class Carts extends Component
         $cartRecord->firstReminder = $cart->firstReminder;
         $cartRecord->secondReminder = $cart->secondReminder;
         $cartRecord->isRecovered = $cart->isRecovered;
+        $cartRecord->isSent = $cart->isSent;
 
         $cartRecord->save(false);
 
@@ -357,6 +358,10 @@ class Carts extends Component
             return false;
         }
 
+        $cart->isSent = true;
+        
+        $this->saveCart($cart);
+
         return true;
     }
 
@@ -464,6 +469,7 @@ class Carts extends Component
                 'firstReminder',
                 'secondReminder',
                 'isRecovered',
+                'isSent',
                 'dateCreated',
                 'dateUpdated',
                 'uid',

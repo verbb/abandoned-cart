@@ -41,6 +41,7 @@ class Install extends Migration
             'firstReminder' => $this->boolean()->defaultValue(false),
             'secondReminder' => $this->boolean()->defaultValue(false),
             'isRecovered' => $this->boolean()->defaultValue(false),
+            'isSent' => $this->boolean()->defaultValue(false),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

@@ -37,6 +37,7 @@ class Cart extends Model
     public bool $firstReminder = false;
     public bool $secondReminder = false;
     public bool $isRecovered = false;
+    public bool $isSent = false;
     public ?DateTime $dateCreated = null;
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;
@@ -76,6 +77,10 @@ class Cart extends Model
             return self::STATUS_RECOVERED;
         }
 
+        if ($this->isSent) {
+            return self::STATUS_SENT;
+        }
+
         $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
         $expiredTime = $this->dateUpdated;
         $expiredTime->add(new DateInterval("PT{$expiry}H"));
@@ -84,10 +89,10 @@ class Cart extends Model
         $now = new DateTime();
         $nowTimestamp = $now->getTimestamp();
 
-        if ($nowTimestamp < $expiredTimestamp) {
-            return self::STATUS_SENT;
+        if ($nowTimestamp > $expiredTimestamp) {
+            return self::STATUS_EXPIRED;
         }
 
-        return self::STATUS_EXPIRED;
+        return self::STATUS_SCHEDULED;
     }
 }
