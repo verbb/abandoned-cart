@@ -49,6 +49,18 @@
 - Now requires Craft 5.0+.
 - Now requires Craft Commerce 5.0+.
 
+## 3.0.6 - 2025-02-20
+
+### Added
+- Add `isSent` to carts for a more deterministic way of knowing it has been sent.
+- Add `includeBlacklisted` plugin setting.
+- Add the ability to use domains as blacklisted items.
+
+### Fixed
+- Fix new abandoned carts not being updated when viewing the dashboard.
+- Fix an error when trying to recover an expired cart.
+- Fixed an error for Postgres. (thanks @boboldehampsink).
+
 ## 3.0.5 - 2025-02-03
 
 ### Fixed
