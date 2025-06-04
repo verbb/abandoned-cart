@@ -110,7 +110,7 @@ class CartsController extends Controller
 
             $query->andWhere([
                 'or',
-                [$likeOperator, 'logs.email', '%' . str_replace(' ', '%', $search) . '%', false],
+                [$likeOperator, '[[email]]', '%' . str_replace(' ', '%', $search) . '%', false],
             ]);
         }
 
