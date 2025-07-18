@@ -62,6 +62,14 @@
 - Now requires Craft 5.0+.
 - Now requires Craft Commerce 5.0+.
 
+## 3.0.7 - 2025-07-18
+
+### Changed
+- Update English translations.
+
+### Fixed
+- Fix an error when searching carts.
+
 ## 3.0.6 - 2025-02-20
 
 ### Added
@@ -118,6 +126,7 @@
 - Fix PHP type issues for plugin settings, not working well with `.env` variables.
 
 ## 3.0.0 - 2024-10-25
+
 > {note} The plugin’s package name has changed to `verbb/abandoned-cart`. Abandoned Cart will need be updated to 3.0 from a terminal, by running `composer require verbb/abandoned-cart && composer remove mediabeastnz/craft-commerce-abandoned-cart`.
 
 ### Changed
@@ -181,7 +190,7 @@
 
 ### Added
 - Added multi-site to email templates (Thanks @billmn for the PR).
-- `find-carts` route can be triggered without being logged in (still requires passKey)  
+- `find-carts` route can be triggered without being logged in (still requires passKey)
 
 ## 1.6.3 - 2020-12-02
 
@@ -245,6 +254,7 @@
 - Now tested with Craft 3.4+ and Commerce 3.0+
 
 ## 1.3.6 - 2019-04-10
+
 ### Fixed
 - Minor fix from @billythekid for reocvery url not being set for incomplete orders.
 
