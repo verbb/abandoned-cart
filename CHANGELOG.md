@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.7 - 2025-07-18
+
+### Changed
+- Update English translations.
+
+### Fixed
+- Fix an error when searching carts.
+
 ## 3.0.6 - 2025-02-20
 
 ### Added
