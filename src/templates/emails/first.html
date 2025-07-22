@@ -3,7 +3,7 @@
     <head>
         <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
         <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
-        <title>{{ currentSite.name }}- Complete your purchase</title>
+        <title>{{ currentSite.name }}- {{ 'Complete your purchase' | t }}</title>
         <!-- 
             The style block is collapsed on page load to save you some scrolling.
             Postmark automatically inlines all CSS properties for maximum email client 
@@ -344,7 +344,7 @@
         {# {% if cart is not defined %}
             {% set cart = craft.commerce.carts.cart %}
         {% endif %} #}
-        <span class="preheader">You left some items in your cart, click the link below to continue where you left off</span>
+        <span class="preheader">{{ 'You left some items in your cart, click the link below to continue where you left off' | t }}</span>
         <table cellpadding="0" cellspacing="0" class="email-wrapper" width="100%">
             <tr>
                 <td align="center">
@@ -353,7 +353,7 @@
                             <td class="email-masthead">
                                 <a href="{{ siteUrl }}" class="email-masthead_name">
                                     {{ currentSite.name }}
-                                    - Complete your purchase
+                                    - {{ 'Complete your purchase' | t }}
                                 </a>
                             </td>
                         </tr>
@@ -364,8 +364,8 @@
                                     <!-- Body content -->
                                     <tr>
                                         <td class="content-cell">
-                                            <h1>Hi there,</h1>
-                                            <p>It looks like you left some items in your cart, avoid missing out by completing your order.</p>
+                                            <h1>{{ 'Hi there,' | t }}</h1>
+                                            <p>{{ 'It looks like you left some items in your cart, avoid missing out by completing your order.' | t }}</p>
                                             {% if discount %}
                                             {% set discountDetails = craft.commerce.discounts.discountByCode(discount) %}
                                             <!-- Discount/Incentive -->
@@ -395,7 +395,7 @@
                                             <table cellpadding="0" cellspacing="0" class="purchase" width="100%">
                                                 <tr>
                                                     <td>
-                                                        <h3>Your cart</h3>
+                                                        <h3>{{ 'Your cart' | t }}</h3>
                                                     </td>
                                                     <td></tr>
                                                     <tr>
@@ -403,10 +403,10 @@
                                                             <table cellpadding="0" cellspacing="0" class="purchase_content" width="100%">
                                                                 <tr>
                                                                     <th class="purchase_heading">
-                                                                        <p>Item</p>
+                                                                        <p>{{ 'Item' | t }}</p>
                                                                     </th>
                                                                     <th class="purchase_heading">
-                                                                        <p class="align-right">Quantity</p>
+                                                                        <p class="align-right">{{ 'Quantity' | t }}</p>
                                                                     </th>
                                                                 </tr>
                                                                 {% for item in order.lineItems %}
@@ -430,7 +430,7 @@
                                                         <table border="0" cellspacing="0" cellpadding="0">
                                                             <tr>
                                                             <td>
-                                                                <a href="{{ siteUrl ~ checkoutLink }}" class="button button--green" target="_blank">Complete my order</a>
+                                                                <a href="{{ siteUrl ~ checkoutLink }}" class="button button--green" target="_blank">{{ 'Complete my order' | t }}</a>
                                                             </td>
                                                             </tr>
                                                         </table>
@@ -444,8 +444,7 @@
                                             <table class="body-sub">
                                                 <tr>
                                                     <td>
-                                                        <p class="sub">You've received this email because you started the checkout process on
-                                                            {{ currentSite.name }}. Contact us if you no longer want to receive these types of emails.</p>
+                                                        <p class="sub">{{ 'You‘ve received this email because you started the checkout process on {site}. Contact us if you no longer want to receive these types of emails.' | t({ site: currentSite.name }) }}</p>
                                                     </td>
                                                 </tr>
                                             </table>
@@ -459,8 +458,7 @@
                                 <table align="center" cellpadding="0" cellspacing="0" class="email-footer" width="570">
                                     <tr>
                                         <td align="center" class="content-cell">
-                                            <p class="sub align-center">&copy;
-                                                {{ currentSite.name }}. All rights reserved.</p>
+                                            <p class="sub align-center">&copy; {{ currentSite.name }}. {{ 'All rights reserved.' | t }}</p>
                                             <p class="sub align-center">
                                                 {{ currentSite.name }}
                                             </p>
