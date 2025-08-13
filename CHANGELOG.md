@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.8 - 2025-08-12
+
+### Fixed
+- Fix lack of translation support in emails.
+
 ## 3.0.7 - 2025-07-18
 
 ### Changed
