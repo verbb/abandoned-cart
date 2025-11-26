@@ -77,10 +77,6 @@ class Cart extends Model
             return self::STATUS_RECOVERED;
         }
 
-        if ($this->isSent) {
-            return self::STATUS_SENT;
-        }
-
         $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
         $expiredTime = $this->dateUpdated;
         $expiredTime->add(new DateInterval("PT{$expiry}H"));
@@ -91,6 +87,10 @@ class Cart extends Model
 
         if ($nowTimestamp > $expiredTimestamp) {
             return self::STATUS_EXPIRED;
+        }
+
+        if ($this->isSent) {
+            return self::STATUS_SENT;
         }
 
         return self::STATUS_SCHEDULED;
