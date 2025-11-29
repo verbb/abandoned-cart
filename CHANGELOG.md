@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.9 - 2025-11-29
+
+### Changed
+- The “Expired” status now shows even if a recovery email has been sent.
+
 ## 4.0.8 - 2025-08-13
 
 ### Fixed
