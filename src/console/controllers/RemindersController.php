@@ -16,27 +16,51 @@ class RemindersController extends Controller
 
     public $defaultAction = 'scheduleEmails';
 
+    /**
+     * @var bool Whether CLI output should be muted.
+     */
+    public bool $silent = false;
+
 
     // Public Methods
     // =========================================================================
+
+    public function options($actionID): array
+    {
+        $options = parent::options($actionID);
+        $options[] = 'silent';
+        
+        return $options;
+    }
 
     /**
      * Finds all abandoned carts and sends reminder
      */
     public function actionScheduleEmails(): int
     {
-        $this->stdout('Abandoned Cart: Finding carts' . PHP_EOL, Console::FG_YELLOW);
+        $this->_stdout('Abandoned Cart: Finding carts' . PHP_EOL, Console::FG_YELLOW);
         
         $cartCount = AbandonedCart::$plugin->getCarts()->getEmailsToSend();
         
         if ($cartCount) {
-            $this->stdout('Carts Found: ' . $cartCount . PHP_EOL, Console::FG_GREEN);
+            $this->_stdout('Carts Found: ' . $cartCount . PHP_EOL, Console::FG_GREEN);
         } else {
-            $this->stdout('No carts were found' . PHP_EOL, Console::FG_RED);
+            $this->_stdout('No carts were found' . PHP_EOL, Console::FG_RED);
         }
         
-        $this->stdout('Abandoned Cart: Job completed' . PHP_EOL, Console::FG_YELLOW);
+        $this->_stdout('Abandoned Cart: Job completed' . PHP_EOL, Console::FG_YELLOW);
         
         return ExitCode::OK;
+    }
+
+    
+    // Private Methods
+    // =========================================================================
+
+    private function _stdout(string $string, ...$format): void
+    {
+        if (!$this->silent) {
+            $this->stdout($string, ...$format);
+        }
     }
 }
