@@ -80,6 +80,11 @@
 - Now requires Craft 5.0+.
 - Now requires Craft Commerce 5.0+.
 
+## 3.0.10 - 2026-01-15
+
+### Added
+- Add `silent` option to `reminders/schedule-emails` console command.
+
 ## 3.0.9 - 2025-11-29
 
 ### Changed
