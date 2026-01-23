@@ -1,4 +1,4 @@
-<p align="center"><img src="https://verbb.imgix.net/plugins/abandoned-cart/abandoned-cart-icon.svg" width="100" height="100" alt="Abandoned Cart icon"></p>
+<p align="center"><img src="https://assets.verbb.io/plugins/abandoned-cart/abandoned-cart-icon.svg" width="100" height="100" alt="Abandoned Cart icon"></p>
 <h1 align="center">Abandoned Cart for Craft CMS</h1>
 
 Abandoned Cart is a Craft CMS plugin that provides the ability to send multiple email reminders to customers that have abandoned their carts. This is a proven way to increase what would normally be lost revenue.
