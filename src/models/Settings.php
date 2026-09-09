@@ -131,6 +131,7 @@ class Settings extends Model
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
+        $rules[] = [['pluginName'], 'trim'];
         $rules[] = [['pluginName', 'restoreExpiryHours', 'firstReminderDelay', 'secondReminderDelay', 'firstReminderTemplate', 'secondReminderTemplate', 'firstReminderSubject', 'secondReminderSubject', 'recoveryUrl', 'passKey'], 'required'];
         $rules[] = [['restoreExpiryHours'], 'integer'];
         $rules[] = [['firstReminderDelay'], 'integer', 'min' => 0];
