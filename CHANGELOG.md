@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix discount codes in the bundled reminder email templates for Craft Commerce 5.
+
 ## 4.0.12 - 2026-09-14
 
 ### Changed

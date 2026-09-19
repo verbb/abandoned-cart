@@ -3,11 +3,13 @@
 
 Abandoned Cart is a Craft CMS plugin that provides the ability to send multiple email reminders to customers that have abandoned their carts. This is a proven way to increase what would normally be lost revenue.
 
+Target reminders by customer history or guest status, and exclude individual email addresses or entire domains when required.
+
 ## Documentation
 Visit the [Abandoned Cart Plugin page](https://verbb.io/craft-plugins/abandoned-cart) for all documentation, guides, pricing and developer resources.
 
 ## Credit & Thanks
-Originally created by [Myles Beardsmore](https://github.com/mediabeastnz).
+Originally created by Myles Beardsmore.
 
 ## Support
 Get in touch with us via the [Abandoned Cart Support page](https://verbb.io/craft-plugins/abandoned-cart/support) or by [creating a Github issue](https://github.com/verbb/abandoned-cart/issues)
