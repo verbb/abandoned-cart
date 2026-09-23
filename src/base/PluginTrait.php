@@ -4,6 +4,7 @@ namespace verbb\abandonedcart\base;
 use verbb\abandonedcart\AbandonedCart;
 use verbb\abandonedcart\services\Carts;
 use verbb\abandonedcart\services\Service;
+use verbb\abandonedcart\services\Templates;
 
 use Craft;
 
@@ -34,6 +35,7 @@ trait PluginTrait
             'components' => [
                 'carts' => Carts::class,
                 'service' => Service::class,
+                'templates' => Templates::class,
             ],
         ];
     }
@@ -50,6 +52,11 @@ trait PluginTrait
     public function getService(): Service
     {
         return $this->get('service');
+    }
+
+    public function getTemplates(): Templates
+    {
+        return $this->get('templates');
     }
 
 }

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Render reminder email subjects and template-path expressions in Twig sandbox.
+
 ## 4.0.13 - 2026-09-20
 
 ### Fixed

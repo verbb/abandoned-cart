@@ -287,8 +287,8 @@ class Carts extends Component
             'checkoutLink' => $checkoutLink,
         ];
 
-        $subject = $view->renderString($subject, $renderVariables);
-        $templatePath = $view->renderString($templatePath, $renderVariables);
+        $subject = AbandonedCart::$plugin->getTemplates()->renderSandboxedString($subject, $renderVariables);
+        $templatePath = AbandonedCart::$plugin->getTemplates()->renderSandboxedString($templatePath, $renderVariables);
 
         if (!$view->doesTemplateExist($templatePath)) {
             $error = Craft::t('abandoned-cart', 'Email template does not exist at “{templatePath}”.', [
