@@ -25,6 +25,25 @@ use craft\commerce\elements\Order;
 
 class CartsController extends Controller
 {
+    // Constants
+    // =========================================================================
+
+    private const MAX_PAGE_SIZE = 100;
+
+    private const SORT_FIELDS = [
+        'orderId' => 'carts.orderId',
+        'email' => 'carts.email',
+        'firstReminder' => 'carts.firstReminder',
+        'secondReminder' => 'carts.secondReminder',
+        'clicked' => 'carts.clicked',
+        'dateUpdated' => 'carts.dateUpdated',
+    ];
+
+    private const SORT_DIRECTIONS = [
+        'asc' => SORT_ASC,
+        'desc' => SORT_DESC,
+    ];
+
     // Properties
     // =========================================================================
 
@@ -36,6 +55,8 @@ class CartsController extends Controller
 
     public function actionIndex(): Response
     {
+        $this->_requireDashboardAccess();
+
         return $this->renderTemplate('abandoned-cart/carts');
     }
 
@@ -81,12 +102,18 @@ class CartsController extends Controller
 
     public function actionGetCarts(): Response
     {
+        $this->_requireDashboardAccess();
         $this->requireAcceptsJson();
 
-        $page = $this->request->getParam('page', 1);
+        $page = $this->_getPositiveIntegerParam('page', 1);
         $sort = $this->request->getParam('sort');
-        $limit = $this->request->getParam('per_page', 10);
+        $limit = min($this->_getPositiveIntegerParam('per_page', 10), self::MAX_PAGE_SIZE);
         $search = $this->request->getParam('search');
+
+        if (($page - 1) > intdiv(PHP_INT_MAX, $limit)) {
+            throw new BadRequestHttpException('The page parameter is too large.');
+        }
+
         $offset = ($page - 1) * $limit;
 
         // Ensure that we update any abandoned carts
@@ -99,7 +126,7 @@ class CartsController extends Controller
         $query = (new Query())
             ->from(['carts' => '{{%abandonedcart_carts}}'])
             ->select(['*'])
-            ->orderBy(['id' => SORT_DESC]);
+            ->orderBy(['carts.id' => SORT_DESC]);
 
         if (!AbandonedCart::$plugin->getSettings()->includeBlacklisted) {
             AbandonedCart::$plugin->getCarts()->applyBlacklistToQuery($query);
@@ -119,14 +146,7 @@ class CartsController extends Controller
         $query->limit($limit);
         $query->offset($offset);
 
-        if ($sort) {
-            $sortField = $sort[0]['sortField'] ?? null;
-            $direction = $sort[0]['direction'] ?? null;
-
-            if ($sortField && $direction) {
-                $query->orderBy($sortField . ' ' . $direction);
-            }
-        }
+        $this->_applySort($query, $sort);
 
         $carts = $query->all();
 
@@ -154,6 +174,65 @@ class CartsController extends Controller
         return $this->asJson([
             'pagination' => AdminTable::paginationLinks($page, $total, $limit),
             'data' => $tableData,
+        ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _requireDashboardAccess(): void
+    {
+        $this->requireCpRequest();
+        $this->requirePermission('accessPlugin-abandoned-cart');
+    }
+
+    private function _getPositiveIntegerParam(string $name, int $default): int
+    {
+        $value = $this->request->getParam($name, $default);
+
+        if (is_int($value) && $value > 0) {
+            return $value;
+        }
+
+        if (is_string($value) && preg_match('/^[1-9][0-9]*$/D', $value)) {
+            $integer = filter_var($value, FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1],
+            ]);
+
+            if ($integer !== false) {
+                return $integer;
+            }
+        }
+
+        throw new BadRequestHttpException("The $name parameter must be a positive integer.");
+    }
+
+    private function _applySort(Query $query, mixed $sort): void
+    {
+        if (!$sort) {
+            return;
+        }
+
+        if (!is_array($sort) || !isset($sort[0]) || !is_array($sort[0])) {
+            throw new BadRequestHttpException('The sort parameter is invalid.');
+        }
+
+        $sortField = $sort[0]['sortField'] ?? null;
+        $direction = $sort[0]['direction'] ?? null;
+
+        if (!is_string($sortField) || !isset(self::SORT_FIELDS[$sortField]) || !is_string($direction)) {
+            throw new BadRequestHttpException('The sort parameter is invalid.');
+        }
+
+        $direction = strtolower($direction);
+
+        if (!isset(self::SORT_DIRECTIONS[$direction])) {
+            throw new BadRequestHttpException('The sort parameter is invalid.');
+        }
+
+        $query->orderBy([
+            self::SORT_FIELDS[$sortField] => self::SORT_DIRECTIONS[$direction],
         ]);
     }
 }

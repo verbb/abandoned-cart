@@ -5,6 +5,9 @@
 ### Changed
 - Route plugin settings through the plugin’s authorized settings controller.
 
+### Fixed
+- Fixed a high-severity database query vulnerability.
+
 ## 4.0.14 - 2026-09-23
 
 ### Changed
