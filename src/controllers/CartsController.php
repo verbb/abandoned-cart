@@ -85,12 +85,17 @@ class CartsController extends Controller
         $session = Craft::$app->getSession();
 
         $number = $this->request->getParam('number');
-        $order = Order::find()->number($number)->one();
+        $order = null;
 
-        if ($order && !$order->isCompleted){
-            if (!AbandonedCart::$plugin->getCarts()->restoreCart($order)) {
-                $session->setNotice(Craft::t('abandoned-cart', "Your cart couldn't be restored, it may have expired."));
-            }
+        if (is_string($number) && trim($number) !== '') {
+            $order = Order::find()
+                ->andWhere(['commerce_orders.number' => $number])
+                ->isCompleted(false)
+                ->one();
+        }
+
+        if (!$order || !AbandonedCart::$plugin->getCarts()->restoreCart($order)) {
+            $session->setError(Craft::t('abandoned-cart', "Your cart couldn't be restored, it may have expired."));
         }
         
         if ($recoveryUrl = AbandonedCart::$plugin->getSettings()->getRecoveryUrl()) {

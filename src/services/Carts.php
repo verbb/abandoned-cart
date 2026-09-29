@@ -376,6 +376,10 @@ class Carts extends Component
 
     public function restoreCart(Order $order): bool
     {
+        if ($order->isCompleted) {
+            return false;
+        }
+
         $cartsService = Commerce::getInstance()->getCarts();
         $session = Craft::$app->getSession();
         

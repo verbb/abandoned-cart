@@ -7,6 +7,7 @@
 
 ### Fixed
 - Fixed a high-severity database query vulnerability.
+- Fixed a moderate-severity authorization bypass vulnerability.
 
 ## 4.0.14 - 2026-09-23
 
