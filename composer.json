@@ -1,6 +1,6 @@
 {
     "name": "verbb/abandoned-cart",
-    "description": "Send multiple email reminders to customers that have abandoned their carts.",
+    "description": "A Craft CMS plugin for recovering abandoned Craft Commerce carts with email reminders.",
     "type": "craft-plugin",
     "version": "4.0.14",
     "keywords": [
