@@ -5,6 +5,8 @@ A responsive email template is included but can be overwritten with your own if 
 
 The email the customer receives includes a link that restores their cart. The plugin also uses this to detect clicks. The recorded click helps you distinguish a sent reminder from one the customer followed.
 
+![An abandoned cart's reminder and recovery activity](../../screenshots/cart-activity.png)
+
 Discounts can also be included in emails. Create a discount code in Craft Commerce and enter that code in
 Abandoned Carts settings.
 
@@ -40,6 +42,8 @@ Replace both paths with the PHP executable and `craft` file for your installatio
 ## Test a Reminder and Recovery
 
 On a test installation, add a purchasable item to a cart and enter an email address you can read during checkout. Leave the order incomplete and stop changing the cart. Check your reminder settings, email templates and `recoveryUrl` first; the recovery destination should be your actual cart page.
+
+![An abandoned cart recovery email](../../screenshots/recovery-email.png)
 
 Allow the active-cart duration to pass, run the scheduler and inspect Craft's queue for the delayed reminder. Wait for its delay and process the queue. Open the received email and follow its recovery link before `restoreExpiryHours` elapses. The destination should show the same cart items. If you configured a discount, check that Commerce accepts it for this cart rather than assuming that including a code makes the order eligible.
 

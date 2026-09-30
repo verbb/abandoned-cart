@@ -9,7 +9,7 @@ Each reminder can include a secure restoration link that rebuilds the customer's
 
 Optional expiry settings keep old restoration links from remaining valid indefinitely.
 
-![Current abandoned-cart activity with reminder, click and recovery states.](../screenshots/output/feature-tour/cart-activity.png)
+![Current abandoned-cart activity with reminder, click and recovery states.](../screenshots/cart-activity.png)
 
 <!-- feature-section-end -->
 
@@ -20,7 +20,7 @@ Choose when the first reminder is sent and add a second follow-up when it suits 
 
 Scheduled checks can run from a cron command or a secured web request, making the plugin suitable for different hosting setups.
 
-![Abandoned Cart reminder timing, expiry and email settings in Craft 5.](../screenshots/output/feature-tour/reminder-settings.png)
+![Abandoned Cart reminder timing, expiry and email settings in Craft 5.](../screenshots/reminder-settings.png)
 
 <!-- feature-section-end -->
 
@@ -29,7 +29,7 @@ Scheduled checks can run from a cron command or a secured web request, making th
 
 Responsive email templates are included to get you started, but the subject lines, templates and recovery destination remain under your control. Keep every message focused on the products the customer left behind.
 
-![The bundled recovery email with cart items, a discount and a checkout link.](../screenshots/output/feature-tour/recovery-email.png)
+![The bundled recovery email with cart items, a discount and a checkout link.](../screenshots/recovery-email.png)
 <!-- feature-section-end -->
 
 <!-- feature-grid -->
