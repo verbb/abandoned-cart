@@ -67,17 +67,25 @@ class CartsController extends Controller
         $requestPasskey = $this->request->getParam('passkey');
         $passKey = AbandonedCart::$plugin->getSettings()->getPassKey();
 
-        if ($requestPasskey === $passKey) {
-            $abandonedCarts = AbandonedCart::$plugin->getCarts()->getEmailsToSend();
-
-            if ($abandonedCarts) {
-                $session->setNotice(Craft::t('abandoned-cart', '{num} abandoned carts were queued.', ['num' => $abandonedCarts]));
-            }
-
-            return Craft::$app->controller->redirect(UrlHelper::cpUrl('abandoned-cart'));
+        if (
+            !is_string($passKey) ||
+            trim($passKey) === '' ||
+            !is_string($requestPasskey) ||
+            trim($requestPasskey) === '' ||
+            !hash_equals($passKey, $requestPasskey)
+        ) {
+            throw new ForbiddenHttpException(
+                'User is not authorized to perform this action, or key mismatch from settings.',
+            );
         }
 
-        throw new ForbiddenHttpException('User is not authorized to perform this action, or key mismatch from settings.');
+        $abandonedCarts = AbandonedCart::$plugin->getCarts()->getEmailsToSend();
+
+        if ($abandonedCarts) {
+            $session->setNotice(Craft::t('abandoned-cart', '{num} abandoned carts were queued.', ['num' => $abandonedCarts]));
+        }
+
+        return Craft::$app->controller->redirect(UrlHelper::cpUrl('abandoned-cart'));
     }
 
     public function actionRestoreCart()

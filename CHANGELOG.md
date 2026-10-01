@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a low-severity improper authentication vulnerability.
+
 ## 4.0.15 - 2026-09-30
 
 ### Changed
