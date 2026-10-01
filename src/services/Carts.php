@@ -178,7 +178,7 @@ class Carts extends Component
                 $cart->save(false);
 
                 $i++;
-            } else if (!$cart->secondReminder && !$secondReminderDisabled) {
+            } elseif (!$cart->secondReminder && !$secondReminderDisabled) {
                 // if it's the 2nd time being scheduled then mark as scheduled again
                 // and then push it to the queue based on $secondReminderDelay setting
                 // this wont get triggered if 2nd is disabled via settings
@@ -218,7 +218,7 @@ class Carts extends Component
                     return;
                 }
             }
-            
+
             if (!$existingCart) {
                 $newCart = new CartRecord();
                 $newCart->orderId = $order->id;
@@ -257,22 +257,22 @@ class Carts extends Component
 
         if (!$order->hasLineItems()) {
             $warning = Craft::t('abandoned-cart', 'Skipped Abandoned Cart email, Order doesn‘t have Line Items.');
-            
+
             AbandonedCart::info($warning);
 
             Craft::$app->language = $originalLanguage;
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
-        
+
         Craft::$app->language = $order->orderLanguage;
 
         $checkoutLink = 'abandoned-cart-restore?number=' . $order->number;
 
         $discount = AbandonedCart::$plugin->getSettings()->getDiscountCode();
-        
+
         if ($discount) {
             $discountCode = $discount;
             $checkoutLink = $checkoutLink . '&couponCode=' . $discountCode;
@@ -298,9 +298,9 @@ class Carts extends Component
             AbandonedCart::error($error);
 
             Craft::$app->language = $originalLanguage;
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
 
@@ -359,7 +359,7 @@ class Carts extends Component
         }
 
         $cart->isSent = true;
-        
+
         $this->saveCart($cart);
 
         return true;
@@ -382,7 +382,7 @@ class Carts extends Component
 
         $cartsService = Commerce::getInstance()->getCarts();
         $session = Craft::$app->getSession();
-        
+
         if ($cart = $this->getCartByOrderId($order->id)) {
             $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
 

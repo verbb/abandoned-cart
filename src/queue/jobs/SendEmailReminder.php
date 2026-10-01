@@ -21,8 +21,8 @@ class SendEmailReminder extends BaseJob
     public function execute($queue): void
     {
         $totalSteps = 1;
-        
-        for ($step = 0; $step < $totalSteps; $step++) { 
+
+        for ($step = 0; $step < $totalSteps; $step++) {
             $cart = AbandonedCart::$plugin->getCarts()->getCartById($this->cartId);
 
             $firstTemplate = AbandonedCart::$plugin->getSettings()->getFirstReminderTemplate();
@@ -30,7 +30,7 @@ class SendEmailReminder extends BaseJob
             $firstSubject = AbandonedCart::$plugin->getSettings()->getFirstReminderSubject();
             $secondSubject = AbandonedCart::$plugin->getSettings()->getSecondReminderSubject();
             $secondReminderDisabled = AbandonedCart::$plugin->getSettings()->getDisableSecondReminder();
-            
+
             if ($cart && !$cart->isRecovered) {
                 // First Reminder
                 if ($this->reminder == 1) {

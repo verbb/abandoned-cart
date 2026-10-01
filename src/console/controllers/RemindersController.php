@@ -29,7 +29,7 @@ class RemindersController extends Controller
     {
         $options = parent::options($actionID);
         $options[] = 'silent';
-        
+
         return $options;
     }
 
@@ -39,21 +39,21 @@ class RemindersController extends Controller
     public function actionScheduleEmails(): int
     {
         $this->_stdout('Abandoned Cart: Finding carts' . PHP_EOL, Console::FG_YELLOW);
-        
+
         $cartCount = AbandonedCart::$plugin->getCarts()->getEmailsToSend();
-        
+
         if ($cartCount) {
             $this->_stdout('Carts Found: ' . $cartCount . PHP_EOL, Console::FG_GREEN);
         } else {
             $this->_stdout('No carts were found' . PHP_EOL, Console::FG_RED);
         }
-        
+
         $this->_stdout('Abandoned Cart: Job completed' . PHP_EOL, Console::FG_YELLOW);
-        
+
         return ExitCode::OK;
     }
 
-    
+
     // Private Methods
     // =========================================================================
 

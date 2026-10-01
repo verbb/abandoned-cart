@@ -73,7 +73,7 @@ class CartsController extends Controller
             if ($abandonedCarts) {
                 $session->setNotice(Craft::t('abandoned-cart', '{num} abandoned carts were queued.', ['num' => $abandonedCarts]));
             }
-            
+
             return Craft::$app->controller->redirect(UrlHelper::cpUrl('abandoned-cart'));
         }
 
@@ -97,11 +97,11 @@ class CartsController extends Controller
         if (!$order || !AbandonedCart::$plugin->getCarts()->restoreCart($order)) {
             $session->setError(Craft::t('abandoned-cart', "Your cart couldn't be restored, it may have expired."));
         }
-        
+
         if ($recoveryUrl = AbandonedCart::$plugin->getSettings()->getRecoveryUrl()) {
             return $this->redirect($recoveryUrl);
         }
-        
+
         return $this->redirect('shop/cart');
     }
 

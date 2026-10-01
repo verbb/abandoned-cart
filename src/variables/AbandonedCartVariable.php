@@ -17,5 +17,5 @@ class AbandonedCartVariable
     {
         return AbandonedCart::$plugin->getPluginName();
     }
-    
+
 }
