@@ -38,6 +38,7 @@ class Cart extends Model
     public bool $secondReminder = false;
     public bool $isRecovered = false;
     public bool $isSent = false;
+    public ?DateTime $dateLastSent = null;
     public ?DateTime $dateCreated = null;
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;
@@ -77,15 +78,13 @@ class Cart extends Model
             return self::STATUS_RECOVERED;
         }
 
-        $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
-        $expiredTime = $this->dateUpdated;
-        $expiredTime->add(new DateInterval("PT{$expiry}H"));
-        $expiredTimestamp = $expiredTime->getTimestamp();
+        $expiresAt = $this->getRecoveryExpiresAt();
 
-        $now = new DateTime();
-        $nowTimestamp = $now->getTimestamp();
+        if (!$expiresAt && $this->dateUpdated) {
+            $expiresAt = $this->_getExpiresAt($this->dateUpdated);
+        }
 
-        if ($nowTimestamp > $expiredTimestamp) {
+        if ($expiresAt && new DateTime() >= $expiresAt) {
             return self::STATUS_EXPIRED;
         }
 
@@ -94,5 +93,34 @@ class Cart extends Model
         }
 
         return self::STATUS_SCHEDULED;
+    }
+
+    public function getRecoveryExpiresAt(): ?DateTime
+    {
+        if (!$this->dateLastSent) {
+            return null;
+        }
+
+        return $this->_getExpiresAt($this->dateLastSent);
+    }
+
+    public function getIsRecoveryAvailable(?DateTime $now = null): bool
+    {
+        $expiresAt = $this->getRecoveryExpiresAt();
+
+        return $expiresAt !== null && ($now ?? new DateTime()) < $expiresAt;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getExpiresAt(DateTime $anchor): DateTime
+    {
+        $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
+        $expiresAt = clone $anchor;
+        $expiresAt->add(new DateInterval("PT{$expiry}H"));
+
+        return $expiresAt;
     }
 }

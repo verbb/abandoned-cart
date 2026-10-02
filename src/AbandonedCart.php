@@ -24,7 +24,7 @@ class AbandonedCart extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '2.1.0';
+    public string $schemaVersion = '2.2.0';
 
 
     // Traits

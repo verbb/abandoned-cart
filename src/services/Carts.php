@@ -465,6 +465,9 @@ class Carts extends Component
             return false;
         }
 
+        // Persist the immutable expiry anchor before sending so a delivered link is always recoverable.
+        $this->_markRecoveryLinkAsIssued($cart);
+
         try {
             if (!$newEmail->send()) {
                 $error = Craft::t('abandoned-cart', 'Abandoned cart email “{email}” could not be sent for order “{order}”.', [
@@ -520,16 +523,7 @@ class Carts extends Component
         $session = Craft::$app->getSession();
 
         if ($cart = $this->getCartByOrderId($order->id)) {
-            $expiry = AbandonedCart::$plugin->getSettings()->getRestoreExpiryHours();
-
-            $expiredTime = $cart->dateUpdated;
-            $expiredTime->add(new DateInterval("PT{$expiry}H"));
-            $expiredTimestamp = $expiredTime->getTimestamp();
-
-            $now = new DateTime();
-            $nowTimestamp = $now->getTimestamp();
-
-            if ($nowTimestamp < $expiredTimestamp) {
+            if ($cart->getIsRecoveryAvailable()) {
                 $cartsService->forgetCart();
                 $cartsService->setSessionCartNumber($order->number);
                 $session->setNotice(Craft::t('abandoned-cart', 'Your cart has been restored.'));
@@ -615,8 +609,11 @@ class Carts extends Component
         $cartRecord->secondReminder = $cart->secondReminder;
         $cartRecord->isRecovered = $cart->isRecovered;
         $cartRecord->isSent = $cart->isSent;
+        $cartRecord->dateLastSent = $cart->dateLastSent;
 
-        $cartRecord->save(false);
+        if (!$cartRecord->save(false)) {
+            return false;
+        }
 
         if (!$cart->id) {
             $cart->id = $cartRecord->id;
@@ -658,6 +655,7 @@ class Carts extends Component
                 'secondReminder',
                 'isRecovered',
                 'isSent',
+                'dateLastSent',
                 'dateCreated',
                 'dateUpdated',
                 'uid',
@@ -708,9 +706,36 @@ class Carts extends Component
 
     private function _markCartAsSent(Cart $cart): void
     {
+        $this->_updateCartAfterEvent(
+            $cart,
+            static function(Cart $cart): void {
+                $cart->isSent = true;
+            },
+            Craft::t('abandoned-cart', 'Could not mark abandoned cart email as sent.'),
+        );
+    }
+
+    private function _markRecoveryLinkAsIssued(Cart $cart): void
+    {
+        $dateLastSent = new DateTime();
+
+        $this->_updateCartAfterEvent(
+            $cart,
+            static function(Cart $cart) use ($dateLastSent): void {
+                $cart->dateLastSent = $dateLastSent;
+            },
+            Craft::t('abandoned-cart', 'Could not record the abandoned cart recovery expiry.'),
+        );
+    }
+
+    private function _updateCartAfterEvent(Cart $cart, callable $prepareForSave, string $error): void
+    {
         if (!$cart->id) {
-            $cart->isSent = true;
-            $this->_saveCart($cart, true);
+            $prepareForSave($cart);
+
+            if (!$this->_saveCart($cart, true, $prepareForSave)) {
+                throw new Exception($error);
+            }
 
             return;
         }
@@ -726,10 +751,10 @@ class Carts extends Component
             }
 
             $cart->setAttributes($currentCart->getAttributes(), false);
-            $cart->isSent = true;
+            $prepareForSave($cart);
 
-            if (!$this->_saveCart($cart, true)) {
-                throw new Exception(Craft::t('abandoned-cart', 'Could not mark abandoned cart email as sent.'));
+            if (!$this->_saveCart($cart, true, $prepareForSave)) {
+                throw new Exception($error);
             }
 
             $transaction->commit();

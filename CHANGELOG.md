@@ -6,6 +6,7 @@
 - Fixed a moderate-severity improper control of interaction frequency vulnerability.
 - Fixed a moderate-severity race condition vulnerability.
 - Fixed a moderate-severity credential exposure vulnerability.
+- Fixed a low-severity capability expiration vulnerability.
 
 ## 4.0.16 - 2026-10-02
 
