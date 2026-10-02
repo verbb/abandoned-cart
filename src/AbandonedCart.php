@@ -9,6 +9,7 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
+use craft\services\Gc;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 
@@ -23,7 +24,7 @@ class AbandonedCart extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '2.0.1';
+    public string $schemaVersion = '2.1.0';
 
 
     // Traits
@@ -43,6 +44,7 @@ class AbandonedCart extends Plugin
 
         $this->_registerVariables();
         $this->_registerCraftEventListeners();
+        $this->_registerGarbageCollection();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
@@ -127,6 +129,13 @@ class AbandonedCart extends Plugin
     {
         Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function(Event $event) {
             $this->getCarts()->markCartAsRecovered($event->sender);
+        });
+    }
+
+    private function _registerGarbageCollection(): void
+    {
+        Event::on(Gc::class, Gc::EVENT_RUN, function() {
+            $this->getCarts()->purgeExpiredCarts();
         });
     }
 }

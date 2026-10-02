@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a moderate-severity improper control of interaction frequency vulnerability.
+
 ## 4.0.16 - 2026-10-02
 
 ### Changed

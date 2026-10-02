@@ -57,6 +57,30 @@ How many hours after a cart has been abandoned should the 2nd reminder be sent.
 :::
 
 ::: reference
+### `recipientCooldownHours`
+
+**Type:** `int|string|null` · **Default:** `24`
+
+How many hours a recipient must wait before another reminder sequence can be created. Recipient matching ignores surrounding whitespace and letter case, and an unfinished sequence always remains exclusive.
+:::
+
+::: reference
+### `maxEnrollmentsPerRun`
+
+**Type:** `int|string|null` · **Default:** `100`
+
+The maximum number of new reminder sequences that can be created each time abandoned carts are processed.
+:::
+
+::: reference
+### `staleRecordRetentionDays`
+
+**Type:** `int|string|null` · **Default:** `90`
+
+How many days inactive abandoned cart records should be retained. Cleanup never shortens configured reminder delays or restore-link expiry.
+:::
+
+::: reference
 ### `discountCode`
 
 **Type:** `string|null` · **Default:** `null`

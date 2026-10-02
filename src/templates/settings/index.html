@@ -54,6 +54,39 @@
     }) }}
 
     {{ forms.autosuggestField({
+        label: 'Recipient Cooldown' | t('abandoned-cart'),
+        instructions: 'How many hours a recipient must wait before another reminder sequence can be created. An unfinished sequence always remains exclusive.' | t('abandoned-cart'),
+        name: 'recipientCooldownHours',
+        value: settings.recipientCooldownHours,
+        placeholder: '24',
+        suggestEnvVars: true,
+        errors: settings.getErrors('recipientCooldownHours'),
+        warning: macros.configWarning('recipientCooldownHours', 'abandoned-cart'),
+    }) }}
+
+    {{ forms.autosuggestField({
+        label: 'Maximum Enrollments Per Run' | t('abandoned-cart'),
+        instructions: 'The maximum number of new reminder sequences that can be created each time abandoned carts are processed.' | t('abandoned-cart'),
+        name: 'maxEnrollmentsPerRun',
+        value: settings.maxEnrollmentsPerRun,
+        placeholder: '100',
+        suggestEnvVars: true,
+        errors: settings.getErrors('maxEnrollmentsPerRun'),
+        warning: macros.configWarning('maxEnrollmentsPerRun', 'abandoned-cart'),
+    }) }}
+
+    {{ forms.autosuggestField({
+        label: 'Stale Record Retention' | t('abandoned-cart'),
+        instructions: 'How many days inactive abandoned cart records should be retained. Records are always kept through configured reminder delays and restore-link expiry.' | t('abandoned-cart'),
+        name: 'staleRecordRetentionDays',
+        value: settings.staleRecordRetentionDays,
+        placeholder: '90',
+        suggestEnvVars: true,
+        errors: settings.getErrors('staleRecordRetentionDays'),
+        warning: macros.configWarning('staleRecordRetentionDays', 'abandoned-cart'),
+    }) }}
+
+    {{ forms.autosuggestField({
         label: 'Restore Link Expiry' | t('abandoned-cart'),
         instructions: 'How many hours should abandoned cart restore links last for after being sent.' | t('abandoned-cart'),
         name: 'restoreExpiryHours',

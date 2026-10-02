@@ -16,6 +16,9 @@ class Settings extends Model
     public int|string|null $restoreExpiryHours = 48;
     public int|string|null $firstReminderDelay = 1;
     public int|string|null $secondReminderDelay = 12;
+    public int|string|null $recipientCooldownHours = 24;
+    public int|string|null $maxEnrollmentsPerRun = 100;
+    public int|string|null $staleRecordRetentionDays = 90;
     public ?string $discountCode = null;
     public ?string $firstReminderTemplate = 'abandoned-cart/emails/first';
     public ?string $secondReminderTemplate = 'abandoned-cart/emails/second';
@@ -78,6 +81,21 @@ class Settings extends Model
         return App::parseEnv($this->secondReminderDelay);
     }
 
+    public function getRecipientCooldownHours(): int
+    {
+        return $this->_getPositiveIntegerSetting($this->recipientCooldownHours, 24, 8760);
+    }
+
+    public function getMaxEnrollmentsPerRun(): int
+    {
+        return $this->_getPositiveIntegerSetting($this->maxEnrollmentsPerRun, 100, 1000);
+    }
+
+    public function getStaleRecordRetentionDays(): int
+    {
+        return $this->_getPositiveIntegerSetting($this->staleRecordRetentionDays, 90, 3650);
+    }
+
     public function getFirstReminderTemplate(): ?string
     {
         return App::parseEnv($this->firstReminderTemplate);
@@ -132,10 +150,13 @@ class Settings extends Model
     {
         $rules = parent::defineRules();
         $rules[] = [['pluginName'], 'trim'];
-        $rules[] = [['pluginName', 'restoreExpiryHours', 'firstReminderDelay', 'secondReminderDelay', 'firstReminderTemplate', 'secondReminderTemplate', 'firstReminderSubject', 'secondReminderSubject', 'recoveryUrl', 'passKey'], 'required'];
+        $rules[] = [['pluginName', 'restoreExpiryHours', 'firstReminderDelay', 'secondReminderDelay', 'recipientCooldownHours', 'maxEnrollmentsPerRun', 'staleRecordRetentionDays', 'firstReminderTemplate', 'secondReminderTemplate', 'firstReminderSubject', 'secondReminderSubject', 'recoveryUrl', 'passKey'], 'required'];
         $rules[] = [['restoreExpiryHours'], 'integer'];
         $rules[] = [['firstReminderDelay'], 'integer', 'min' => 0];
         $rules[] = [['secondReminderDelay'], 'integer', 'min' => 0];
+        $rules[] = [['recipientCooldownHours'], 'integer', 'min' => 1, 'max' => 8760];
+        $rules[] = [['maxEnrollmentsPerRun'], 'integer', 'min' => 1, 'max' => 1000];
+        $rules[] = [['staleRecordRetentionDays'], 'integer', 'min' => 1, 'max' => 3650];
 
         return $rules;
     }
@@ -152,6 +173,9 @@ class Settings extends Model
                     'restoreExpiryHours',
                     'firstReminderDelay',
                     'secondReminderDelay',
+                    'recipientCooldownHours',
+                    'maxEnrollmentsPerRun',
+                    'staleRecordRetentionDays',
                     'firstReminderTemplate',
                     'firstReminderSubject',
                     'secondReminderTemplate',
@@ -162,5 +186,24 @@ class Settings extends Model
                 ],
             ],
         ];
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getPositiveIntegerSetting(int|string|null $value, int $default, int $maximum): int
+    {
+        $value = App::parseEnv($value);
+
+        if (is_string($value) && preg_match('/^[1-9][0-9]*$/D', $value)) {
+            $value = filter_var($value, FILTER_VALIDATE_INT);
+        }
+
+        if (!is_int($value) || $value < 1) {
+            return $default;
+        }
+
+        return min($value, $maximum);
     }
 }

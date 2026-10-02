@@ -12,6 +12,7 @@ use verbb\abandonedcart\records\Cart as CartRecord;
 use Craft;
 use craft\base\MemoizableArray;
 use craft\db\Query;
+use craft\elements\db\ElementQueryInterface;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
@@ -20,6 +21,7 @@ use craft\mail\Message;
 
 use yii\base\Component;
 use yii\db\Expression;
+use yii\db\IntegrityException;
 
 use craft\commerce\Plugin as Commerce;
 use craft\commerce\elements\Order;
@@ -34,6 +36,9 @@ class Carts extends Component
 {
     // Constants
     // =========================================================================
+
+    private const PURGE_BATCH_SIZE = 1000;
+    private const QUEUE_DELAY_GRACE_HOURS = 24;
 
     public const EVENT_BEFORE_SAVE_CART = 'beforeSaveCart';
     public const EVENT_AFTER_SAVE_CART = 'afterSaveCart';
@@ -110,6 +115,8 @@ class Carts extends Component
 
     public function getEmailsToSend(): int
     {
+        $this->purgeExpiredCarts();
+
         $carts = $this->getAbandonedOrders();
 
         if (count($carts)) {
@@ -125,6 +132,8 @@ class Carts extends Component
 
     public function getAbandonedOrders(): array
     {
+        $settings = AbandonedCart::$plugin->getSettings();
+
         // Use Commerce's setting to determine when to classify the start of an abandoned cart.
         // By default, this is orders 1 hour ago
         $dateUpdatedStart = Commerce::getInstance()->getCarts()->getActiveCartEdgeDuration();
@@ -137,12 +146,24 @@ class Carts extends Component
         $dateUpdatedStart = Db::prepareDateForDb($dateUpdatedStart);
         $dateUpdatedEnd = Db::prepareDateForDb($dateUpdatedEnd);
 
+        $existingOrderIds = (new Query())
+            ->select(['orderId'])
+            ->from(['{{%abandonedcart_carts}}']);
+
+        $activeRecipients = (new Query())
+            ->select([new Expression('LOWER(TRIM([[carts.email]]))')])
+            ->from(['carts' => '{{%abandonedcart_carts}}'])
+            ->where($this->_recipientBlockingCondition());
+
         $query = Order::find()
             ->where(['>=', '[[commerce_orders.dateUpdated]]', $dateUpdatedEnd])
             ->andWhere(['<=', '[[commerce_orders.dateUpdated]]', $dateUpdatedStart])
             ->andWhere(['>', 'totalPrice', 0])
             ->andWhere(['=', 'isCompleted', false])
             ->andWhere(['!=', 'email', ''])
+            ->andWhere(['not in', '[[commerce_orders.id]]', $existingOrderIds])
+            ->andWhere(['not in', new Expression('LOWER(TRIM([[commerce_orders.email]]))'), $activeRecipients])
+            ->limit($settings->getMaxEnrollmentsPerRun())
             ->orderBy('commerce_orders.[[dateUpdated]] desc');
 
         $this->applyBlacklistToQuery($query);
@@ -202,9 +223,25 @@ class Carts extends Component
     public function createNewCarts(array $orders): void
     {
         $settings = AbandonedCart::$plugin->getSettings();
+        $maxEnrollments = $settings->getMaxEnrollmentsPerRun();
+        $enrollments = 0;
 
         foreach ($orders as $order) {
+            if ($enrollments >= $maxEnrollments) {
+                break;
+            }
+
             $existingCart = CartRecord::find()->where(['orderId' => $order->id])->one();
+
+            if ($existingCart) {
+                continue;
+            }
+
+            $recipientKey = $this->_normalizeRecipient($order->email);
+
+            if ($recipientKey === '') {
+                continue;
+            }
 
             // Check if we require at least one previous completed order for privacy
             if ($settings->previousOrderRequired) {
@@ -215,18 +252,66 @@ class Carts extends Component
                     ->count();
 
                 if (!$previousOrders) {
-                    return;
+                    continue;
                 }
             }
 
-            if (!$existingCart) {
-                $newCart = new CartRecord();
-                $newCart->orderId = $order->id;
-                $newCart->email = $order->email;
+            $recipientIsBlocked = CartRecord::find()
+                ->where(['=', new Expression('LOWER(TRIM([[email]]))'), $recipientKey])
+                ->andWhere($this->_recipientBlockingCondition())
+                ->exists();
 
-                $newCart->save(false);
+            if ($recipientIsBlocked) {
+                continue;
             }
+
+            CartRecord::updateAll(['recipientKey' => null], $this->_recipientReleaseCondition($recipientKey));
+
+            $newCart = new CartRecord();
+            $newCart->orderId = $order->id;
+            $newCart->email = $recipientKey;
+            $newCart->recipientKey = $recipientKey;
+
+            try {
+                $newCart->save(false);
+            } catch (IntegrityException $e) {
+                if (CartRecord::find()->where(['recipientKey' => $recipientKey])->exists()) {
+                    continue;
+                }
+
+                throw $e;
+            }
+
+            $enrollments++;
         }
+    }
+
+    public function purgeExpiredCarts(): int
+    {
+        $settings = AbandonedCart::$plugin->getSettings();
+        $retentionHours = max(
+            $settings->getStaleRecordRetentionDays() * 24,
+            $settings->getRecipientCooldownHours(),
+            (int)$settings->getRestoreExpiryHours(),
+            (int)$settings->getFirstReminderDelay() + self::QUEUE_DELAY_GRACE_HOURS,
+            $settings->getDisableSecondReminder() ? 0 : (int)$settings->getSecondReminderDelay() + self::QUEUE_DELAY_GRACE_HOURS,
+        );
+
+        $cutoff = new DateTime();
+        $cutoff->sub(new DateInterval("PT{$retentionHours}H"));
+
+        $expiredIds = CartRecord::find()
+            ->select(['id'])
+            ->where(['<', 'dateUpdated', Db::prepareDateForDb($cutoff)])
+            ->orderBy(['id' => SORT_ASC])
+            ->limit(self::PURGE_BATCH_SIZE)
+            ->column();
+
+        if (!$expiredIds) {
+            return 0;
+        }
+
+        return CartRecord::deleteAll(['id' => $expiredIds]);
     }
 
     public function sendMail(Cart $cart, string $subject, ?string $recipient = null, ?string $templatePath = null): bool
@@ -483,6 +568,69 @@ class Carts extends Component
         $this->applyBlacklistToQuery($query);
 
         return $query;
+    }
+
+    private function _normalizeRecipient(?string $email): string
+    {
+        return mb_strtolower(trim($email ?? ''));
+    }
+
+    private function _recipientBlockingCondition(): array
+    {
+        $settings = AbandonedCart::$plugin->getSettings();
+        $pendingReminderCondition = ['firstReminder' => false];
+
+        if (!$settings->getDisableSecondReminder()) {
+            $pendingReminderCondition = [
+                'or',
+                $pendingReminderCondition,
+                ['secondReminder' => false],
+            ];
+        }
+
+        return [
+            'or',
+            ['>=', 'dateCreated', Db::prepareDateForDb($this->_recipientCooldownStart())],
+            [
+                'and',
+                ['isRecovered' => false],
+                $pendingReminderCondition,
+            ],
+        ];
+    }
+
+    private function _recipientReleaseCondition(string $recipientKey): array
+    {
+        $settings = AbandonedCart::$plugin->getSettings();
+        $completedReminderCondition = ['firstReminder' => true];
+
+        if (!$settings->getDisableSecondReminder()) {
+            $completedReminderCondition = [
+                'and',
+                $completedReminderCondition,
+                ['secondReminder' => true],
+            ];
+        }
+
+        return [
+            'and',
+            ['recipientKey' => $recipientKey],
+            ['<', 'dateCreated', Db::prepareDateForDb($this->_recipientCooldownStart())],
+            [
+                'or',
+                ['isRecovered' => true],
+                $completedReminderCondition,
+            ],
+        ];
+    }
+
+    private function _recipientCooldownStart(): DateTime
+    {
+        $hours = AbandonedCart::$plugin->getSettings()->getRecipientCooldownHours();
+        $date = new DateTime();
+        $date->sub(new DateInterval("PT{$hours}H"));
+
+        return $date;
     }
 
     private function _getCartRecordById(int $cartId = null): ?CartRecord

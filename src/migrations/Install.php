@@ -36,6 +36,7 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'orderId' => $this->integer()->notNull(),
             'email' => $this->string()->notNull()->defaultValue(''),
+            'recipientKey' => $this->string(),
             'clicked' => $this->boolean()->defaultValue(false),
             'isScheduled' => $this->boolean()->defaultValue(false),
             'firstReminder' => $this->boolean()->defaultValue(false),
@@ -51,6 +52,7 @@ class Install extends Migration
     public function createIndexes(): void
     {
         $this->createIndex(null, '{{%abandonedcart_carts}}', ['orderId'], false);
+        $this->createIndex('abandonedcart_carts_recipientKey_unq', '{{%abandonedcart_carts}}', ['recipientKey'], true);
     }
 
     public function createForeignKeys(): void
