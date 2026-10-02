@@ -29,7 +29,7 @@ The name displayed for the plugin in the control panel.
 
 **Type:** `string|null` · **Default:** `null`
 
-A generated, unique string to increase security against crons being run inadvertently. A unique key is generated when this value is empty.
+A generated bearer credential for the optional HTTP scheduler endpoint. Send it only in the `Authorization` header; the console scheduler does not use it. A unique key is generated when this value is empty.
 :::
 
 ::: reference

@@ -20,24 +20,28 @@ The first reminder delay starts when the scheduler picks up the cart. For exampl
 ## Setup
 The first step is to monitor carts when they turn into an abandoned state, and alert the owner of that cart about it.
 
-To do this, you will either need to manually trigger this monitoring, or schedule it via a cron job.
-
-### Manual Trigger
-To manually trigger abandoned-cart detection, use the following URL. Replace `example.com` with your site’s domain and `YOUR_PASS_KEY` with the configured pass key. If your installation uses a different action URL prefix, use that prefix in place of `/actions`.
-
-```
-https://example.com/actions/abandoned-cart/carts/find-carts?passkey=YOUR_PASS_KEY
-```
-
-When visiting this endpoint, eligible carts are scheduled as delayed jobs. Craft must also process its queue for the emails to be sent.
+Use the console command from a cron job where possible. An authenticated HTTP trigger is also available when the command line is not practical.
 
 ### Cron Job
-An alternative is to use a Cron Job to automate this process from the command line.
+Use a Cron Job to automate abandoned-cart detection from the command line.
 
 ```shell
 */5 * * * * /path/to/php /path/to/project/craft abandoned-cart/reminders/schedule-emails
 ```
 Replace both paths with the PHP executable and `craft` file for your installation. Scheduling reminders and running Craft's queue are separate jobs; configure both on your server.
+
+### HTTP Trigger
+If the scheduler must be invoked over HTTP, send a POST request with the configured pass key in the `Authorization` header. Replace `example.com` with your site’s domain and `YOUR_PASS_KEY` with the configured pass key. If your installation uses a different action URL prefix, use that prefix in place of `/actions`.
+
+```shell
+curl --fail --request POST \
+  --header "Authorization: Bearer YOUR_PASS_KEY" \
+  https://example.com/actions/abandoned-cart/carts/find-carts
+```
+
+The endpoint does not accept the pass key in the URL or request body. If an earlier configuration used `?passkey=`, rotate that pass key after upgrading because it may remain in logs or browser history.
+
+When the scheduler runs, eligible carts are scheduled as delayed jobs. Craft must also process its queue for the emails to be sent.
 
 ## Test a Reminder and Recovery
 

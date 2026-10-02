@@ -17,6 +17,7 @@ use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -53,6 +54,16 @@ class CartsController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function beforeAction($action): bool
+    {
+        // This machine endpoint authenticates with a bearer credential instead of a browser CSRF token.
+        if ($action->id === 'find-carts') {
+            $this->enableCsrfValidation = false;
+        }
+
+        return parent::beforeAction($action);
+    }
+
     public function actionIndex(): Response
     {
         $this->_requireDashboardAccess();
@@ -62,9 +73,23 @@ class CartsController extends Controller
 
     public function actionFindCarts(): Response
     {
+        // Reject method overrides so the scheduler cannot be reached through a credential-bearing GET request.
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            throw new MethodNotAllowedHttpException('Method Not Allowed. This URL can only handle POST requests.');
+        }
+
+        $this->requirePostRequest();
+
+        if (
+            array_key_exists('passkey', $this->request->getQueryParams()) ||
+            array_key_exists('passkey', $this->request->getBodyParams())
+        ) {
+            throw new BadRequestHttpException('Scheduler passkeys must be sent using the Authorization header.');
+        }
+
         $session = Craft::$app->getSession();
 
-        $requestPasskey = $this->request->getParam('passkey');
+        $requestPasskey = $this->_getBearerPasskey();
         $passKey = AbandonedCart::$plugin->getSettings()->getPassKey();
 
         if (
@@ -193,6 +218,23 @@ class CartsController extends Controller
 
     // Private Methods
     // =========================================================================
+
+    private function _getBearerPasskey(): ?string
+    {
+        $authorizationHeaders = $this->request->getHeaders()->get('Authorization', [], false);
+
+        if (count($authorizationHeaders) !== 1) {
+            return null;
+        }
+
+        $authorization = $authorizationHeaders[0];
+
+        if (!is_string($authorization) || !preg_match('~\ABearer +([^\s,]+)\z~iD', $authorization, $matches)) {
+            return null;
+        }
+
+        return $matches[1];
+    }
 
     private function _requireDashboardAccess(): void
     {
