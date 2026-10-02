@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed a moderate-severity improper control of interaction frequency vulnerability.
+- Fixed a moderate-severity race condition vulnerability.
 
 ## 4.0.16 - 2026-10-02
 

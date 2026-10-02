@@ -71,46 +71,7 @@ class Carts extends Component
 
     public function saveCart(Cart $cart, bool $runValidation = true): bool
     {
-        $isNewCart = !$cart->id;
-
-        // Fire a 'beforeSaveCart' event
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_CART)) {
-            $this->trigger(self::EVENT_BEFORE_SAVE_CART, new CartEvent([
-                'cart' => $cart,
-                'isNew' => $isNewCart,
-            ]));
-        }
-
-        if ($runValidation && !$cart->validate()) {
-            Craft::info('Cart not saved due to validation error.', __METHOD__);
-            return false;
-        }
-
-        $cartRecord = $this->_getCartRecordById($cart->id);
-        $cartRecord->orderId = $cart->orderId;
-        $cartRecord->email = $cart->email;
-        $cartRecord->clicked = $cart->clicked;
-        $cartRecord->isScheduled = $cart->isScheduled;
-        $cartRecord->firstReminder = $cart->firstReminder;
-        $cartRecord->secondReminder = $cart->secondReminder;
-        $cartRecord->isRecovered = $cart->isRecovered;
-        $cartRecord->isSent = $cart->isSent;
-
-        $cartRecord->save(false);
-
-        if (!$cart->id) {
-            $cart->id = $cartRecord->id;
-        }
-
-        // Fire an 'afterSaveCart' event
-        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_CART)) {
-            $this->trigger(self::EVENT_AFTER_SAVE_CART, new CartEvent([
-                'cart' => $cart,
-                'isNew' => $isNewCart,
-            ]));
-        }
-
-        return true;
+        return $this->_saveCart($cart, $runValidation);
     }
 
     public function getEmailsToSend(): int
@@ -173,7 +134,7 @@ class Carts extends Component
 
     public function scheduleReminders(): int
     {
-        // Get all created abandoned carts that havent been completed. Completed being reminders have already been sent
+        // Get all created abandoned carts that haven't been completed. Completed means reminders have already been sent.
         $carts = CartRecord::find()->where(['isScheduled' => 0])->all();
 
         $firstDelay = AbandonedCart::$plugin->getSettings()->getFirstReminderDelay();
@@ -187,37 +148,129 @@ class Carts extends Component
         $i = 0;
 
         foreach ($carts as $cart) {
-            // if it's the 1st time being scheduled then mark as scheduled
-            // and then push it to the queue based on $firstReminderDelay setting
+            $reminder = null;
+            $delay = null;
+
             if (!$cart->firstReminder) {
-                Craft::$app->getQueue()->delay($firstDelayInSeconds)->push(new SendEmailReminder([
-                    'cartId' => $cart->id,
-                    'reminder' => 1,
-                ]));
-
-                $cart->isScheduled = true;
-                $cart->save(false);
-
-                $i++;
+                $reminder = 1;
+                $delay = $firstDelayInSeconds;
             } elseif (!$cart->secondReminder && !$secondReminderDisabled) {
-                // if it's the 2nd time being scheduled then mark as scheduled again
-                // and then push it to the queue based on $secondReminderDelay setting
-                // this wont get triggered if 2nd is disabled via settings
-                Craft::$app->getQueue()->delay($secondDelayInSeconds)->push(new SendEmailReminder([
-                    'cartId' => $cart->id,
-                    'reminder' => 2,
-                ]));
-
-                $cart->isScheduled = true;
-                $cart->save(false);
-
-                $i++;
-            } else {
-                // ideally finished carts will be marked as completed/failed and no futher emails will be queued.
+                $reminder = 2;
+                $delay = $secondDelayInSeconds;
             }
+
+            if ($reminder === null || !$this->claimReminderForScheduling($cart->id, $reminder)) {
+                continue;
+            }
+
+            try {
+                Craft::$app->getQueue()->delay($delay)->push(new SendEmailReminder([
+                    'cartId' => $cart->id,
+                    'reminder' => $reminder,
+                ]));
+            } catch (Throwable $e) {
+                $this->releaseReminderScheduleClaim($cart->id, $reminder);
+
+                throw $e;
+            }
+
+            $this->touchReminderScheduleClaim($cart->id, $reminder);
+
+            $i++;
         }
 
         return $i;
+    }
+
+    public function claimReminderForScheduling(int $cartId, int $reminder): bool
+    {
+        $condition = $this->_reminderClaimCondition($cartId, $reminder, false);
+
+        if ($condition === null) {
+            return false;
+        }
+
+        $updated = CartRecord::updateAll(['isScheduled' => true], $condition);
+
+        if ($updated) {
+            $this->_carts = null;
+        }
+
+        return $updated === 1;
+    }
+
+    public function releaseReminderScheduleClaim(int $cartId, int $reminder): void
+    {
+        $condition = $this->_reminderClaimCondition($cartId, $reminder, true, false);
+
+        if ($condition === null) {
+            return;
+        }
+
+        if (CartRecord::updateAll(['isScheduled' => false], $condition)) {
+            $this->_carts = null;
+        }
+    }
+
+    public function touchReminderScheduleClaim(int $cartId, int $reminder): void
+    {
+        $condition = $this->_reminderClaimCondition($cartId, $reminder, true);
+
+        if ($condition === null) {
+            return;
+        }
+
+        if (CartRecord::updateAll(['dateUpdated' => Db::prepareDateForDb(new DateTime())], $condition)) {
+            $this->_carts = null;
+        }
+    }
+
+    public function claimReminderForSending(int $cartId, int $reminder): ?Cart
+    {
+        if ($reminder !== 1 && $reminder !== 2) {
+            return null;
+        }
+
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
+
+        try {
+            $cart = $this->_getCartForUpdate($cartId);
+
+            if (!$cart || !$this->_canClaimReminderForSending($cart, $reminder)) {
+                $transaction->commit();
+
+                return null;
+            }
+
+            $prepareForSave = function(Cart $cart) use ($reminder): void {
+                $cart->isScheduled = false;
+                $cart->firstReminder = true;
+
+                if ($reminder === 2) {
+                    $cart->secondReminder = true;
+                }
+            };
+
+            $prepareForSave($cart);
+
+            if (!$this->_saveCart($cart, true, $prepareForSave)) {
+                throw new Exception(Craft::t('abandoned-cart', 'Could not claim abandoned cart reminder.'));
+            }
+
+            $claimedCart = $this->_getFreshCartById($cartId);
+
+            $transaction->commit();
+            $this->_carts = null;
+
+            return $claimedCart && !$claimedCart->isRecovered ? $claimedCart : null;
+        } catch (Throwable $e) {
+            if ($transaction->isActive) {
+                $transaction->rollBack();
+            }
+
+            throw $e;
+        }
     }
 
     public function createNewCarts(array $orders): void
@@ -443,9 +496,7 @@ class Carts extends Component
             return false;
         }
 
-        $cart->isSent = true;
-
-        $this->saveCart($cart);
+        $this->_markCartAsSent($cart);
 
         return true;
     }
@@ -453,9 +504,9 @@ class Carts extends Component
     public function markCartAsRecovered(Order $order): void
     {
         if ($cart = $this->getCartByOrderId($order->id)) {
-            $cart->isRecovered = true;
-
-            $this->saveCart($cart);
+            $this->_updateCartState($cart->id, function(Cart $cart): void {
+                $cart->isRecovered = true;
+            });
         }
     }
 
@@ -483,9 +534,9 @@ class Carts extends Component
                 $cartsService->setSessionCartNumber($order->number);
                 $session->setNotice(Craft::t('abandoned-cart', 'Your cart has been restored.'));
 
-                $cart->clicked = true;
-
-                $this->saveCart($cart);
+                $this->_updateCartState($cart->id, function(Cart $cart): void {
+                    $cart->clicked = true;
+                });
 
                 return true;
             }
@@ -534,6 +585,54 @@ class Carts extends Component
     // Private Methods
     // =========================================================================
 
+    private function _saveCart(Cart $cart, bool $runValidation, ?callable $prepareForSave = null): bool
+    {
+        $isNewCart = !$cart->id;
+
+        // Fire a 'beforeSaveCart' event
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_CART)) {
+            $this->trigger(self::EVENT_BEFORE_SAVE_CART, new CartEvent([
+                'cart' => $cart,
+                'isNew' => $isNewCart,
+            ]));
+        }
+
+        if ($prepareForSave) {
+            $prepareForSave($cart);
+        }
+
+        if ($runValidation && !$cart->validate()) {
+            Craft::info('Cart not saved due to validation error.', __METHOD__);
+            return false;
+        }
+
+        $cartRecord = $this->_getCartRecordById($cart->id);
+        $cartRecord->orderId = $cart->orderId;
+        $cartRecord->email = $cart->email;
+        $cartRecord->clicked = $cart->clicked;
+        $cartRecord->isScheduled = $cart->isScheduled;
+        $cartRecord->firstReminder = $cart->firstReminder;
+        $cartRecord->secondReminder = $cart->secondReminder;
+        $cartRecord->isRecovered = $cart->isRecovered;
+        $cartRecord->isSent = $cart->isSent;
+
+        $cartRecord->save(false);
+
+        if (!$cart->id) {
+            $cart->id = $cartRecord->id;
+        }
+
+        // Fire an 'afterSaveCart' event
+        if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_CART)) {
+            $this->trigger(self::EVENT_AFTER_SAVE_CART, new CartEvent([
+                'cart' => $cart,
+                'isNew' => $isNewCart,
+            ]));
+        }
+
+        return true;
+    }
+
     private function _carts(): MemoizableArray
     {
         if (!isset($this->_carts)) {
@@ -546,7 +645,7 @@ class Carts extends Component
         return $this->_carts;
     }
 
-    private function _createCartQuery(): Query
+    private function _createCartQuery(bool $applyBlacklist = true): Query
     {
         $query = (new Query())
             ->select([
@@ -565,9 +664,116 @@ class Carts extends Component
             ])
             ->from(['{{%abandonedcart_carts}}']);
 
-        $this->applyBlacklistToQuery($query);
+        if ($applyBlacklist) {
+            $this->applyBlacklistToQuery($query);
+        }
 
         return $query;
+    }
+
+    private function _getFreshCartById(int $cartId, bool $applyBlacklist = true): ?Cart
+    {
+        $result = $this->_createCartQuery($applyBlacklist)
+            ->andWhere(['id' => $cartId])
+            ->one();
+
+        return $result ? new Cart($result) : null;
+    }
+
+    private function _getCartForUpdate(int $cartId, bool $applyBlacklist = true): ?Cart
+    {
+        $command = $this->_createCartQuery($applyBlacklist)
+            ->andWhere(['id' => $cartId])
+            ->createCommand();
+        $params = $command->params;
+        $command->setSql($command->getSql() . ' FOR UPDATE');
+        $command->bindValues($params);
+        $result = $command->queryOne();
+
+        return $result ? new Cart($result) : null;
+    }
+
+    private function _canClaimReminderForSending(Cart $cart, int $reminder): bool
+    {
+        if ($cart->isRecovered || !$cart->isScheduled) {
+            return false;
+        }
+
+        if ($reminder === 1) {
+            return !$cart->firstReminder;
+        }
+
+        return $cart->firstReminder && !$cart->secondReminder;
+    }
+
+    private function _markCartAsSent(Cart $cart): void
+    {
+        if (!$cart->id) {
+            $cart->isSent = true;
+            $this->_saveCart($cart, true);
+
+            return;
+        }
+
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
+
+        try {
+            $currentCart = $this->_getCartForUpdate($cart->id, false);
+
+            if (!$currentCart) {
+                throw new Exception(Craft::t('abandoned-cart', 'No cart exists with the ID “{id}”.', ['id' => $cart->id]));
+            }
+
+            $cart->setAttributes($currentCart->getAttributes(), false);
+            $cart->isSent = true;
+
+            if (!$this->_saveCart($cart, true)) {
+                throw new Exception(Craft::t('abandoned-cart', 'Could not mark abandoned cart email as sent.'));
+            }
+
+            $transaction->commit();
+            $this->_carts = null;
+        } catch (Throwable $e) {
+            if ($transaction->isActive) {
+                $transaction->rollBack();
+            }
+
+            throw $e;
+        }
+    }
+
+    private function _updateCartState(int $cartId, callable $update): bool
+    {
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
+
+        try {
+            $cart = $this->_getCartForUpdate($cartId, false);
+
+            if (!$cart) {
+                $transaction->commit();
+
+                return false;
+            }
+
+            $update($cart);
+
+            if (!$this->_saveCart($cart, true)) {
+                throw new Exception(Craft::t('abandoned-cart', 'Could not update abandoned cart.'));
+            }
+
+            $transaction->commit();
+            $this->_carts = null;
+
+            return true;
+        } catch (Throwable $e) {
+            if ($transaction->isActive) {
+                $transaction->rollBack();
+            }
+
+            throw $e;
+        }
     }
 
     private function _normalizeRecipient(?string $email): string
@@ -631,6 +837,33 @@ class Carts extends Component
         $date->sub(new DateInterval("PT{$hours}H"));
 
         return $date;
+    }
+
+    private function _reminderClaimCondition(int $cartId, int $reminder, bool $isScheduled, bool $requireUnrecovered = true): ?array
+    {
+        $condition = [
+            'id' => $cartId,
+            'isScheduled' => $isScheduled,
+        ];
+
+        if ($requireUnrecovered) {
+            $condition['isRecovered'] = false;
+        }
+
+        if ($reminder === 1) {
+            $condition['firstReminder'] = false;
+
+            return $condition;
+        }
+
+        if ($reminder === 2) {
+            $condition['firstReminder'] = true;
+            $condition['secondReminder'] = false;
+
+            return $condition;
+        }
+
+        return null;
     }
 
     private function _getCartRecordById(int $cartId = null): ?CartRecord
