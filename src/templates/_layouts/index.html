@@ -1,6 +1,6 @@
 {% extends parentLayout ?? '_layouts/cp' %}
 
-{% do view.registerAssetBundle('verbb\\abandonedcart\\assetbundles\\AbandonedCartAsset') %}
+{% do view.registerAssetBundle('verbb\\abandonedcart\\web\\assets\\cp\\AbandonedCartAsset') %}
 
 {% if title is not defined %}
     {% set title = 'Abandoned Cart' | t('abandoned-cart') %}
