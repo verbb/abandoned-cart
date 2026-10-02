@@ -328,7 +328,10 @@ class Carts extends Component
             try {
                 $newCart->save(false);
             } catch (IntegrityException $e) {
-                if (CartRecord::find()->where(['recipientKey' => $recipientKey])->exists()) {
+                if ($this->_isDuplicateKeyException($e) && (
+                    CartRecord::find()->where(['orderId' => $order->id])->exists() ||
+                    CartRecord::find()->where(['recipientKey' => $recipientKey])->exists()
+                )) {
                     continue;
                 }
 
@@ -804,6 +807,14 @@ class Carts extends Component
     private function _normalizeRecipient(?string $email): string
     {
         return mb_strtolower(trim($email ?? ''));
+    }
+
+    private function _isDuplicateKeyException(IntegrityException $exception): bool
+    {
+        $sqlState = $exception->errorInfo[0] ?? null;
+        $driverCode = (int)($exception->errorInfo[1] ?? 0);
+
+        return $sqlState === '23505' || ($sqlState === '23000' && $driverCode === 1062);
     }
 
     private function _recipientBlockingCondition(): array

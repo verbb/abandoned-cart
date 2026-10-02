@@ -52,7 +52,7 @@ class Install extends Migration
 
     public function createIndexes(): void
     {
-        $this->createIndex(null, '{{%abandonedcart_carts}}', ['orderId'], false);
+        $this->createIndex('abandonedcart_carts_orderId_unq', '{{%abandonedcart_carts}}', ['orderId'], true);
         $this->createIndex('abandonedcart_carts_recipientKey_unq', '{{%abandonedcart_carts}}', ['recipientKey'], true);
     }
 

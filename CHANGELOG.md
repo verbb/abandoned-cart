@@ -7,6 +7,7 @@
 - Fixed a moderate-severity race condition vulnerability.
 - Fixed a moderate-severity credential exposure vulnerability.
 - Fixed a low-severity capability expiration vulnerability.
+- Fixed a low-severity race condition vulnerability.
 
 ## 4.0.16 - 2026-10-02
 
