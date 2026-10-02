@@ -170,6 +170,31 @@ namespace {
 
     class Craft
     {
+        public static mixed $app = null;
+    }
+
+    class FixtureDb
+    {
+        public function __construct(public bool $isMysql)
+        {
+        }
+
+        public function getIsMysql(): bool
+        {
+            return $this->isMysql;
+        }
+    }
+
+    class FixtureApp
+    {
+        public function __construct(public FixtureDb $db)
+        {
+        }
+
+        public function getDb(): FixtureDb
+        {
+            return $this->db;
+        }
     }
 
     class FixtureSettings
@@ -216,6 +241,15 @@ namespace {
     AbandonedCart::$plugin = new FixturePlugin(new FixtureSettings());
     $service = new Carts();
     $order = (object)['id' => 42, 'email' => ' Customer@Example.com '];
+
+    $normalizedRecipientExpression = new ReflectionMethod(Carts::class, '_normalizedRecipientExpression');
+    Craft::$app = new FixtureApp(new FixtureDb(true));
+    $mysqlExpression = $normalizedRecipientExpression->invoke($service, 'commerce_orders.email');
+    check('MySQL recipient comparison uses a collation-independent binary value', $mysqlExpression->expression === 'CAST(LOWER(TRIM([[commerce_orders.email]])) AS BINARY)');
+
+    Craft::$app = new FixtureApp(new FixtureDb(false));
+    $postgresExpression = $normalizedRecipientExpression->invoke($service, 'commerce_orders.email');
+    check('PostgreSQL recipient comparison retains its native normalized text value', $postgresExpression->expression === 'LOWER(TRIM([[commerce_orders.email]]))');
 
     CartRecord::$collision = 'order';
     CartRecord::$orderExists = false;

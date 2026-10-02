@@ -112,7 +112,7 @@ class Carts extends Component
             ->from(['{{%abandonedcart_carts}}']);
 
         $activeRecipients = (new Query())
-            ->select([new Expression('LOWER(TRIM([[carts.email]]))')])
+            ->select([$this->_normalizedRecipientExpression('carts.email')])
             ->from(['carts' => '{{%abandonedcart_carts}}'])
             ->where($this->_recipientBlockingCondition());
 
@@ -123,7 +123,7 @@ class Carts extends Component
             ->andWhere(['=', 'isCompleted', false])
             ->andWhere(['!=', 'email', ''])
             ->andWhere(['not in', '[[commerce_orders.id]]', $existingOrderIds])
-            ->andWhere(['not in', new Expression('LOWER(TRIM([[commerce_orders.email]]))'), $activeRecipients])
+            ->andWhere(['not in', $this->_normalizedRecipientExpression('commerce_orders.email'), $activeRecipients])
             ->limit($settings->getMaxEnrollmentsPerRun())
             ->orderBy('commerce_orders.[[dateUpdated]] desc');
 
@@ -807,6 +807,17 @@ class Carts extends Component
     private function _normalizeRecipient(?string $email): string
     {
         return mb_strtolower(trim($email ?? ''));
+    }
+
+    private function _normalizedRecipientExpression(string $column): Expression
+    {
+        $expression = "LOWER(TRIM([[$column]]))";
+
+        if (Craft::$app->getDb()->getIsMysql()) {
+            $expression = "CAST($expression AS BINARY)";
+        }
+
+        return new Expression($expression);
     }
 
     private function _isDuplicateKeyException(IntegrityException $exception): bool

@@ -8,6 +8,7 @@
 - Fixed a moderate-severity credential exposure vulnerability.
 - Fixed a low-severity capability expiration vulnerability.
 - Fixed a low-severity race condition vulnerability.
+- Fixed an error when finding abandoned carts on MySQL databases with mixed collations.
 
 ## 4.0.16 - 2026-10-02
 
