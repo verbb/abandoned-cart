@@ -5,7 +5,6 @@ use verbb\abandonedcart\AbandonedCart;
 
 use Craft;
 use craft\db\Migration;
-use craft\helpers\MigrationHelper;
 
 class Install extends Migration
 {
@@ -71,7 +70,7 @@ class Install extends Migration
     public function dropForeignKeys(): void
     {
         if ($this->db->tableExists('{{%abandonedcart_carts}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%abandonedcart_carts}}', $this);
+            $this->dropForeignKeyIfExists('{{%abandonedcart_carts}}', 'orderId');
         }
     }
 }
