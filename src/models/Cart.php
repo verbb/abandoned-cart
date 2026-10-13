@@ -32,6 +32,7 @@ class Cart extends Model
     public ?int $id = null;
     public ?int $orderId = null;
     public ?string $email = null;
+    public ?string $recipientKey = null;
     public bool $clicked = false;
     public bool $isScheduled = false;
     public bool $firstReminder = false;

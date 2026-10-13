@@ -5,6 +5,9 @@
 ### Changed
 - Updated Craft API usage to avoid deprecated calls.
 
+### Fixed
+- Fixed an error when loading the cart list and dashboard after an abandoned cart has been recorded. ([#103](https://github.com/verbb/abandoned-cart/issues/103))
+
 ## 4.0.18 - 2026-10-07
 
 ### Changed
