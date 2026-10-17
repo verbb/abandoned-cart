@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.11 - 2026-10-17
 
 ### Fixed
 - Fixed an error applying cart blacklist conditions to element queries.
