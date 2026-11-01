@@ -463,6 +463,7 @@ class Carts extends Component
             try {
                 if (!$newEmail->send()) {
                     $error = Craft::t('abandoned-cart', 'Abandoned cart email “{email}” could not be sent for order “{order}”.', [
+                        'email' => $recipient,
                         'order' => $order->id,
                     ]);
 
@@ -586,6 +587,7 @@ class Carts extends Component
 
         if ($runValidation && !$cart->validate()) {
             Craft::info('Cart not saved due to validation error.', __METHOD__);
+
             return false;
         }
 
