@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed changes to the message in the `beforeMailSend` event not being used when sending abandoned cart emails.
+
 ## 4.0.19 - 2026-10-15
 
 ### Changed

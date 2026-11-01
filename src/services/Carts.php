@@ -460,13 +460,13 @@ class Carts extends Component
             'message' => $newEmail,
         ]);
 
-        $newEmail = $event->message;
-
         $this->trigger(self::EVENT_BEFORE_MAIL_SEND, $event);
 
         if (!$event->isValid) {
             return false;
         }
+
+        $newEmail = $event->message;
 
         // Persist the immutable expiry anchor before sending so a delivered link is always recoverable.
         $this->_markRecoveryLinkAsIssued($cart);
