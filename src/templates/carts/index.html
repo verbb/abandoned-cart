@@ -19,14 +19,16 @@
 {% js %}
     var columns = [
         { name: 'cart', title: Craft.t('abandoned-cart', 'Cart'), sortField: 'orderId', callback: function(value) {
-            if (value) {
+            if (value && value.cpEditUrl) {
                 return '<a href="' + value.cpEditUrl + '">' + value.title + '</a>';
             } else {
                 return '-';
             }
         }  },
         { name: 'email', title: Craft.t('abandoned-cart', 'Customer/Guest'), sortField: 'email', callback: function(value) {
-            if (value) {
+            if (typeof value === 'string') {
+                return Craft.escapeHtml(value);
+            } else if (value && value.cpEditUrl) {
                 return '<a href="' + value.cpEditUrl + '">' + value.title + '</a>';
             } else {
                 return '-';

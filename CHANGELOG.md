@@ -6,6 +6,7 @@
 - Fixed changes to the message in the `beforeMailSend` event not being used when sending abandoned cart emails.
 - Fixed the app language and template mode not being restored after an abandoned cart email was sent or cancelled by the `beforeMailSend` event, which could affect later queue jobs.
 - Fixed the log message for an abandoned cart email that couldn’t be sent not including the recipient’s email.
+- Fixed the dashboard showing “undefined” links for guest customers and for carts whose order no longer exists.
 
 ## 4.0.19 - 2026-10-15
 
