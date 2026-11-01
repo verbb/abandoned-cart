@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed changes to the message in the `beforeMailSend` event not being used when sending abandoned cart emails.
+- Fixed the app language and template mode not being restored after an abandoned cart email was sent or cancelled by the `beforeMailSend` event, which could affect later queue jobs.
 
 ## 4.0.19 - 2026-10-15
 

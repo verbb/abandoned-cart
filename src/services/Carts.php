@@ -376,135 +376,121 @@ class Carts extends Component
         $oldTemplateMode = $view->getTemplateMode();
         $originalLanguage = Craft::$app->language;
 
-        if (str_starts_with($templatePath, 'abandoned-cart/emails')) {
-            $view->setTemplateMode($view::TEMPLATE_MODE_CP);
-        } else {
-            $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
-        }
+        try {
+            if (str_starts_with($templatePath, 'abandoned-cart/emails')) {
+                $view->setTemplateMode($view::TEMPLATE_MODE_CP);
+            } else {
+                $view->setTemplateMode($view::TEMPLATE_MODE_SITE);
+            }
 
-        $order = $cart->getOrder();
+            $order = $cart->getOrder();
 
-        if (!$order) {
-            $error = Craft::t('abandoned-cart', 'Could not find Order for Abandoned Cart email.');
+            if (!$order) {
+                $error = Craft::t('abandoned-cart', 'Could not find Order for Abandoned Cart email.');
 
-            AbandonedCart::error($error);
+                AbandonedCart::error($error);
 
-            Craft::$app->language = $originalLanguage;
+                return false;
+            }
 
-            $view->setTemplateMode($oldTemplateMode);
+            if (!$order->hasLineItems()) {
+                $warning = Craft::t('abandoned-cart', 'Skipped Abandoned Cart email, Order doesn‘t have Line Items.');
 
-            return false;
-        }
+                AbandonedCart::info($warning);
 
-        if (!$order->hasLineItems()) {
-            $warning = Craft::t('abandoned-cart', 'Skipped Abandoned Cart email, Order doesn‘t have Line Items.');
+                return false;
+            }
 
-            AbandonedCart::info($warning);
+            Craft::$app->language = $order->orderLanguage;
 
-            Craft::$app->language = $originalLanguage;
+            $checkoutLink = 'abandoned-cart-restore?number=' . $order->number;
 
-            $view->setTemplateMode($oldTemplateMode);
+            $discount = AbandonedCart::$plugin->getSettings()->getDiscountCode();
 
-            return false;
-        }
+            if ($discount) {
+                $discountCode = $discount;
+                $checkoutLink = $checkoutLink . '&couponCode=' . $discountCode;
+            } else {
+                $discountCode = false;
+            }
 
-        Craft::$app->language = $order->orderLanguage;
+            $renderVariables = [
+                'order' => $order,
+                'discount' => $discountCode,
+                'currentSite' => $order->orderSite,
+                'checkoutLink' => $checkoutLink,
+            ];
 
-        $checkoutLink = 'abandoned-cart-restore?number=' . $order->number;
+            $subject = AbandonedCart::$plugin->getTemplates()->renderSandboxedString($subject, $renderVariables);
+            $templatePath = AbandonedCart::$plugin->getTemplates()->renderSandboxedString($templatePath, $renderVariables);
 
-        $discount = AbandonedCart::$plugin->getSettings()->getDiscountCode();
+            if (!$view->doesTemplateExist($templatePath)) {
+                $error = Craft::t('abandoned-cart', 'Email template does not exist at “{templatePath}”.', [
+                    'templatePath' => $templatePath,
+                ]);
 
-        if ($discount) {
-            $discountCode = $discount;
-            $checkoutLink = $checkoutLink . '&couponCode=' . $discountCode;
-        } else {
-            $discountCode = false;
-        }
+                AbandonedCart::error($error);
 
-        $renderVariables = [
-            'order' => $order,
-            'discount' => $discountCode,
-            'currentSite' => $order->orderSite,
-            'checkoutLink' => $checkoutLink,
-        ];
+                return false;
+            }
 
-        $subject = AbandonedCart::$plugin->getTemplates()->renderSandboxedString($subject, $renderVariables);
-        $templatePath = AbandonedCart::$plugin->getTemplates()->renderSandboxedString($templatePath, $renderVariables);
+            $emailBody = $view->renderTemplate($templatePath, $renderVariables);
 
-        if (!$view->doesTemplateExist($templatePath)) {
-            $error = Craft::t('abandoned-cart', 'Email template does not exist at “{templatePath}”.', [
-                'templatePath' => $templatePath,
+            $settings = Craft::$app->projectConfig->get('email');
+
+            $newEmail = Craft::$app->getMailer()->compose();
+            $newEmail->setFrom([App::parseEnv($settings['fromEmail']) => App::parseEnv($settings['fromName'])]);
+            $newEmail->setTo($recipient);
+            $newEmail->setSubject($subject);
+            $newEmail->setHtmlBody($emailBody);
+
+            $event = new BeforeMailSend([
+                'order' => $order,
+                'message' => $newEmail,
             ]);
 
-            AbandonedCart::error($error);
+            $this->trigger(self::EVENT_BEFORE_MAIL_SEND, $event);
 
-            Craft::$app->language = $originalLanguage;
+            if (!$event->isValid) {
+                return false;
+            }
 
-            $view->setTemplateMode($oldTemplateMode);
+            $newEmail = $event->message;
 
-            return false;
-        }
+            // Persist the immutable expiry anchor before sending so a delivered link is always recoverable.
+            $this->_markRecoveryLinkAsIssued($cart);
 
-        $emailBody = $view->renderTemplate($templatePath, $renderVariables);
+            try {
+                if (!$newEmail->send()) {
+                    $error = Craft::t('abandoned-cart', 'Abandoned cart email “{email}” could not be sent for order “{order}”.', [
+                        'order' => $order->id,
+                    ]);
 
-        $settings = Craft::$app->projectConfig->get('email');
+                    AbandonedCart::error($error);
 
-        $newEmail = Craft::$app->getMailer()->compose();
-        $newEmail->setFrom([App::parseEnv($settings['fromEmail']) => App::parseEnv($settings['fromName'])]);
-        $newEmail->setTo($recipient);
-        $newEmail->setSubject($subject);
-        $newEmail->setHtmlBody($emailBody);
-
-        $event = new BeforeMailSend([
-            'order' => $order,
-            'message' => $newEmail,
-        ]);
-
-        $this->trigger(self::EVENT_BEFORE_MAIL_SEND, $event);
-
-        if (!$event->isValid) {
-            return false;
-        }
-
-        $newEmail = $event->message;
-
-        // Persist the immutable expiry anchor before sending so a delivered link is always recoverable.
-        $this->_markRecoveryLinkAsIssued($cart);
-
-        try {
-            if (!$newEmail->send()) {
-                $error = Craft::t('abandoned-cart', 'Abandoned cart email “{email}” could not be sent for order “{order}”.', [
+                    return false;
+                }
+            } catch (Throwable $e) {
+                $error = Craft::t('abandoned-cart', 'Abandoned cart email could not be sent for order “{order}”. Error: {error} {file}:{line}', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
                     'order' => $order->id,
                 ]);
 
                 AbandonedCart::error($error);
 
-                Craft::$app->language = $originalLanguage;
-
-                $view->setTemplateMode($oldTemplateMode);
-
                 return false;
             }
-        } catch (Throwable $e) {
-            $error = Craft::t('abandoned-cart', 'Abandoned cart email could not be sent for order “{order}”. Error: {error} {file}:{line}', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'order' => $order->id,
-            ]);
 
-            AbandonedCart::error($error);
+            $this->_markCartAsSent($cart);
 
+            return true;
+        } finally {
+            // Restore the language and template mode on every exit, including cancelled and successful sends.
             Craft::$app->language = $originalLanguage;
-
             $view->setTemplateMode($oldTemplateMode);
-
-            return false;
         }
-
-        $this->_markCartAsSent($cart);
-
-        return true;
     }
 
     public function markCartAsRecovered(Order $order): void
