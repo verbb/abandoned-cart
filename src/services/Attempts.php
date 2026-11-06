@@ -3,6 +3,7 @@ namespace verbb\abandonedcart\services;
 
 use verbb\abandonedcart\AbandonedCart;
 use verbb\abandonedcart\db\Table;
+use verbb\abandonedcart\events\BeforeMailSend;
 use verbb\abandonedcart\events\SendEvent;
 use verbb\abandonedcart\models\Attempt;
 use verbb\abandonedcart\models\CartSummary;
@@ -20,6 +21,7 @@ use craft\helpers\StringHelper;
 use DateInterval;
 use DateTime;
 use Throwable;
+use yii\base\Event;
 
 use craft\commerce\elements\Order;
 
@@ -296,6 +298,19 @@ class Attempts extends Component
                 if (!$event->isValid) {
                     return $this->_cancel($attempt, Craft::t('abandoned-cart', 'a plugin or module cancelled it'));
                 }
+            }
+
+            // 4.x handlers keep working while compatibility mode is on.
+            if (AbandonedCart::$plugin->getSettings()->compatibilityMode && Event::hasHandlers(Carts::class, Carts::EVENT_BEFORE_MAIL_SEND)) {
+                Craft::$app->getDeprecator()->log('Carts::EVENT_BEFORE_MAIL_SEND', 'Abandoned Cart’s `Carts::EVENT_BEFORE_MAIL_SEND` event is deprecated. Listen to `Attempts::EVENT_BEFORE_SEND` instead.');
+                $legacyEvent = new BeforeMailSend(['order' => $order, 'message' => $message]);
+                Event::trigger(Carts::class, Carts::EVENT_BEFORE_MAIL_SEND, $legacyEvent);
+
+                if (!$legacyEvent->isValid) {
+                    return $this->_cancel($attempt, Craft::t('abandoned-cart', 'a plugin or module cancelled it'));
+                }
+
+                $message = $legacyEvent->message;
             }
 
             $sent = $message->send();
