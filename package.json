@@ -1,0 +1,18 @@
+{
+    "name": "abandoned-cart-cp",
+    "version": "5.0.0-alpha.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@verbb/plugin-kit-web": "^2.1.0",
+        "lit": "^3.3.3"
+    },
+    "devDependencies": {
+        "typescript": "^5.7.3",
+        "vite": "^8.3.5"
+    }
+}
