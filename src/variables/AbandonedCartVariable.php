@@ -19,6 +19,11 @@ class AbandonedCartVariable
         return AbandonedCart::$plugin->getSettings();
     }
 
+    public function getCurrency(): string
+    {
+        return AbandonedCart::$plugin->getReports()->getCurrency();
+    }
+
     public function getSequences(): array
     {
         return AbandonedCart::$plugin->getSequences()->getAllSequences();

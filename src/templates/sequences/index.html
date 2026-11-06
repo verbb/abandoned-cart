@@ -1,0 +1,122 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set title = 'Sequences' | t('abandoned-cart') %}
+{% set selectedSubnavItem = 'sequences' %}
+{% set crumbs = [{ label: title, url: url('abandoned-cart/sequences') }] %}
+{% set canManage = currentUser.can('abandonedCart-manageSequences') %}
+{% set formatter = craft.app.formatter %}
+
+{% macro presetButton(preset) %}
+    <form method="post" class="ac-preset">
+        {{ csrfInput() }}
+        {{ actionInput('abandoned-cart/sequences/create') }}
+        {{ hiddenInput('preset', preset.handle) }}
+        <button type="submit" class="ac-preset__button">
+            <strong>{{ preset.name }}</strong>
+            {% if preset.emails | length %}
+                <span class="ac-mini-timeline" aria-hidden="true">
+                    {% for email in preset.emails %}<i></i>{% if not loop.last %}<em></em>{% endif %}{% endfor %}
+                </span>
+            {% endif %}
+            <span class="light">{{ preset.description }}</span>
+        </button>
+    </form>
+{% endmacro %}
+
+{% block actionButton %}
+    {% if canManage %}
+        <pk-dialog label="{{ 'Start From a Preset' | t('abandoned-cart') }}" size="lg" class="ac-preset-dialog">
+            <pk-button slot="trigger" variant="primary" icon="plus">{{ 'New Sequence' | t('abandoned-cart') }}</pk-button>
+            <p class="light">{{ 'The new sequence is a copy you can change freely, and it stays off until you turn it on.' | t('abandoned-cart') }}</p>
+            <div class="ac-presets">
+                {% for preset in presets %}
+                    {{ _self.presetButton(preset) }}
+                {% endfor %}
+                {{ _self.presetButton({ handle: '', name: 'Blank Sequence' | t('abandoned-cart'), description: 'An empty sequence. Add up to five emails.' | t('abandoned-cart'), emails: [] }) }}
+            </div>
+        </pk-dialog>
+    {% endif %}
+{% endblock %}
+
+{# The list sits on the page background, like Craft's own card lists. #}
+{% block main %}
+    <div class="content-grid__main">
+        <div id="content" class="ac-unpaned">{{ block('blockContent') }}</div>
+    </div>
+{% endblock %}
+
+{% block blockContent %}
+    <div class="ac-callout ac-callout--info">
+        {% if isFresh %}
+            <p>{{ '**Everyone Else** is ready with three reminders and catches every abandoned cart. Check the emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') | md(inlineOnly=true) }}</p>
+        {% else %}
+            <p>{{ 'Each abandoned cart gets one sequence: the first one it matches, from the top. Carts that match none get **Everyone Else**.' | t('abandoned-cart') | md(inlineOnly=true) }}</p>
+        {% endif %}
+    </div>
+
+    <div class="ac-seq-list" data-ac-sequences{% if not canManage %} data-readonly{% endif %}>
+        {% for item in sequences %}
+            {% set sequence = item.sequence %}
+            {% set stats = item.stats %}
+            <div class="ac-seq{{ sequence.isFallback ? ' ac-seq--fallback' }}" data-id="{{ sequence.id }}">
+                <span class="ac-seq__grip{{ sequence.isFallback or not canManage ? ' invisible' }}" title="{{ 'Drag to change the order' | t('abandoned-cart') }}" aria-hidden="true">{{ svg('@appicons/move.svg') }}</span>
+                <span class="ac-seq__order" aria-hidden="true">{% if sequence.isFallback %}{{ svg('@appicons/check.svg') }}{% else %}{{ loop.index }}{% endif %}</span>
+                <div class="ac-seq__main">
+                    <a class="ac-seq__name" href="{{ sequence.cpEditUrl }}">{{ sequence.name }}</a>
+                    <div class="ac-seq__who">{{ item.audience }}</div>
+                </div>
+                <div class="ac-mini-timeline" aria-label="{{ '{count, plural, =1{1 email} other{# emails}}' | t('abandoned-cart', { count: item.schedule | length }) }}">
+                    {% for step in item.schedule %}
+                        <span><i></i>{{ step.short }}</span>{% if not loop.last %}<em></em>{% endif %}
+                    {% else %}
+                        <span class="light">{{ 'No emails yet' | t('abandoned-cart') }}</span>
+                    {% endfor %}
+                </div>
+                <div class="ac-seq__stats">
+                    {% if stats and stats.entered %}
+                        <strong>{{ formatter.asCurrency(stats.revenue, craft.abandonedCart.getCurrency()) }}</strong>
+                        <span class="light">· {{ '{rate} recovered' | t('abandoned-cart', { rate: formatter.asPercent(stats.rate, 1) }) }}</span>
+                    {% elseif not sequence.enabled %}
+                        {% if isFresh %}
+                            <a href="{{ url('abandoned-cart') }}">{{ 'Finish setup' | t('abandoned-cart') }}</a>
+                        {% else %}
+                            <span class="light">{{ 'Off' | t('abandoned-cart') }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="light">{{ 'No carts yet' | t('abandoned-cart') }}</span>
+                    {% endif %}
+                </div>
+                {{ forms.lightswitch({
+                    name: 'enabled-' ~ sequence.id,
+                    on: sequence.enabled,
+                    small: true,
+                    disabled: not canManage,
+                    labelledBy: false,
+                    describedBy: false,
+                    inputAttributes: { 'aria-label': (sequence.enabled ? '{name} is on' : '{name} is off') | t('abandoned-cart', { name: sequence.name }) },
+                    containerAttributes: { data: { 'ac-toggle': sequence.id } },
+                }) }}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if canManage and not isFresh %}
+        <p class="light ac-hint">{{ 'Drag to change the order. It applies to new carts straight away.' | t('abandoned-cart') }}</p>
+    {% endif %}
+
+    {% if isFresh and canManage %}
+        <div class="ac-card ac-fresh-presets">
+            <div class="ac-card__head">
+                <h2>{{ 'Sequence Presets' | t('abandoned-cart') }}</h2>
+                <span class="light">{{ 'Each creates a new sequence, off, above Everyone Else' | t('abandoned-cart') }}</span>
+            </div>
+            <div class="ac-presets">
+                {% for preset in presets | filter(p => p.handle != 'threeReminders') %}
+                    {{ _self.presetButton(preset) }}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

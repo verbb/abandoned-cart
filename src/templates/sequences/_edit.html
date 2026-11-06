@@ -1,0 +1,254 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'abandoned-cart/_macros' as acMacros %}
+
+{% set title = sequence.name %}
+{% set selectedSubnavItem = 'sequences' %}
+{% set crumbs = [{ label: 'Sequences' | t('abandoned-cart'), url: url('abandoned-cart/sequences') }] %}
+{% set canManage = currentUser.can('abandonedCart-manageSequences') %}
+{% set fullPageForm = canManage %}
+{% set formatter = craft.app.formatter %}
+{% set currency = craft.abandonedCart.getCurrency() %}
+{% set settings = audienceSettings ?? sequence.audienceSettings %}
+
+{% block contextMenu %}
+    <pk-status-label status="{{ sequence.enabled ? 'active' : 'inactive' }}" class="ac-title-status">{{ sequence.enabled ? 'On' | t('abandoned-cart') : 'Off' | t('abandoned-cart') }}</pk-status-label>
+{% endblock %}
+
+{% block actionButton %}
+    {% if canManage %}
+        <div class="btngroup">
+            <button type="submit" class="btn submit">{{ 'Save' | t('app') }}</button>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block blockContent %}
+    {{ actionInput('abandoned-cart/sequences/save') }}
+    {{ redirectInput(sequence.cpEditUrl) }}
+    {{ hiddenInput('sequenceId', sequence.id) }}
+
+    <div class="ac-card">
+        {{ forms.textField({
+            first: true,
+            label: 'Name' | t('app'),
+            instructions: 'What this sequence will be called in the control panel.' | t('abandoned-cart'),
+            id: 'name',
+            name: 'name',
+            value: sequence.name,
+            errors: sequence.getErrors('name'),
+            required: true,
+            disabled: not canManage,
+        }) }}
+    </div>
+
+    <div class="ac-card">
+        <div class="ac-card__head">
+            <h2>{{ 'Who Gets This Sequence' | t('abandoned-cart') }}</h2>
+        </div>
+
+        {% if sequence.isFallback %}
+            <p class="light">{{ 'Every cart that doesn’t match a sequence above. Everyone Else is always last, so most stores only need this one.' | t('abandoned-cart') }}</p>
+        {% else %}
+            {{ hiddenInput('audienceType', sequence.audienceType, { 'data-ac-audience-input': true }) }}
+            <div class="ac-audiences" role="radiogroup" aria-label="{{ 'Audience' | t('abandoned-cart') }}">
+                {% for type, audience in audiences %}
+                    <button type="button" class="ac-audience" role="radio" aria-checked="{{ sequence.audienceType == type ? 'true' : 'false' }}" data-ac-audience="{{ type }}"{% if not canManage %} disabled{% endif %}>
+                        <strong>{{ audience.label }}</strong>
+                        <span>{{ audience.description }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+
+            <div class="ac-audience-detail" data-ac-audience-detail="all"{% if sequence.audienceType != 'all' %} hidden{% endif %}>
+                <p class="light">{{ 'No rules. Every cart can get this sequence, so carts it takes never reach sequences further down.' | t('abandoned-cart') }}</p>
+            </div>
+
+            <div class="ac-audience-detail" data-ac-audience-detail="cartValue"{% if sequence.audienceType != 'cartValue' %} hidden{% endif %}>
+                <div class="ac-inline">
+                    <span>{{ 'Cart total is' | t('abandoned-cart') }}</span>
+                    {{ forms.select({ name: 'audienceSettings[operator]', value: settings.operator ?? 'atLeast', options: [
+                        { label: 'at least' | t('abandoned-cart'), value: 'atLeast' },
+                        { label: 'less than' | t('abandoned-cart'), value: 'lessThan' },
+                        { label: 'between' | t('abandoned-cart'), value: 'between' },
+                    ] }) }}
+                    {{ forms.text({ name: 'audienceSettings[amount]', value: settings.amount ?? '', type: 'number', min: 0, step: 'any', size: 8, placeholder: '200' }) }}
+                    <span data-ac-between{% if (settings.operator ?? '') != 'between' %} hidden{% endif %}>{{ 'and' | t('abandoned-cart') }} {{ forms.text({ name: 'audienceSettings[maxAmount]', value: settings.maxAmount ?? '', type: 'number', min: 0, step: 'any', size: 8 }) }}</span>
+                    <span class="light">{{ currency }}</span>
+                </div>
+            </div>
+
+            <div class="ac-audience-detail" data-ac-audience-detail="returning"{% if sequence.audienceType != 'returning' %} hidden{% endif %}>
+                <div class="ac-inline">
+                    <span>{{ 'Customer has at least' | t('abandoned-cart') }}</span>
+                    {{ forms.select({ name: 'audienceSettings[minOrders]', value: settings.minOrders ?? 1, options: [1, 2, 3, 5, 10] }) }}
+                    <span>{{ 'completed orders' | t('abandoned-cart') }}</span>
+                </div>
+            </div>
+
+            <div class="ac-audience-detail" data-ac-audience-detail="firstTime"{% if sequence.audienceType != 'firstTime' %} hidden{% endif %}>
+                <p class="light">{{ 'Customers with no completed orders, including guests.' | t('abandoned-cart') }}</p>
+            </div>
+
+            <div class="ac-audience-detail" data-ac-audience-detail="products"{% if sequence.audienceType != 'products' %} hidden{% endif %}>
+                <div class="ac-inline">
+                    <span>{{ 'Cart contains' | t('abandoned-cart') }}</span>
+                    {{ forms.select({ name: 'audienceSettings[match]', value: settings.match ?? 'any', options: [
+                        { label: 'any of these products' | t('abandoned-cart'), value: 'any' },
+                        { label: 'all of these products' | t('abandoned-cart'), value: 'all' },
+                    ] }) }}
+                </div>
+                {{ forms.elementSelect({
+                    id: 'productIds',
+                    name: 'audienceSettings[productIds]',
+                    elementType: 'craft\\commerce\\elements\\Product',
+                    elements: products,
+                    limit: null,
+                }) }}
+            </div>
+
+            <div class="ac-audience-detail" data-ac-audience-detail="custom"{% if sequence.audienceType != 'custom' %} hidden{% endif %}>
+                {{ conditionHtml | raw }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="ac-card">
+        <div class="ac-card__head">
+            <h2>{{ 'Emails' | t('abandoned-cart') }}</h2>
+            <span class="light">{{ 'Sending stops as soon as the customer buys or unsubscribes' | t('abandoned-cart') }}</span>
+        </div>
+
+        <ol class="ac-timeline" data-ac-timeline>
+            <li class="ac-tl ac-tl--start">
+                <span class="ac-tl__node" aria-hidden="true">{{ svg('@appicons/shopping-cart.svg') }}</span>
+                <div class="ac-tl__body"><strong>{{ 'Cart abandoned' | t('abandoned-cart') }}</strong> <span class="light">· {{ 'no changes for {time}' | t('abandoned-cart', { time: editorConfig.abandonedAfter }) }}</span></div>
+            </li>
+            {% for step in schedule %}
+                {% set email = step.email %}
+                {% set stats = emailStats[email.id] ?? null %}
+                {% if canManage and not loop.first %}
+                    <li class="ac-tl ac-tl--add">
+                        <span class="ac-tl__node" aria-hidden="true"></span>
+                        <div class="ac-tl__body"><button type="button" class="ac-add-between" data-ac-add-email="{{ email.position }}">{{ '+ Add email here' | t('abandoned-cart') }}</button></div>
+                    </li>
+                {% endif %}
+                <li class="ac-tl ac-tl--email" data-ac-email-row="{{ email.id }}">
+                    <span class="ac-tl__node" aria-hidden="true">{{ svg('@appicons/envelope.svg') }}</span>
+                    <div class="ac-tl__body">
+                        <div class="ac-tl__wait">{{ email.delayMinutes ? '{time} later' | t('abandoned-cart', { time: step.after }) : 'Straight away' | t('abandoned-cart') }}</div>
+                        <button type="button" class="ac-email-card" data-ac-edit-email="{{ email.id }}">
+                            <span class="ac-email-card__text">
+                                <span class="ac-email-card__subject">{{ email.subject }}</span>
+                                <span class="ac-email-card__preview">{{ email.previewText ?: email.heading }}</span>
+                            </span>
+                            <span class="ac-email-card__stats">
+                                {% if stats and stats.sent %}
+                                    <strong>{{ formatter.asPercent(stats.clickRate ?? 0) }}</strong>{{ 'clicked' | t('abandoned-cart') }}
+                                {% else %}
+                                    <span class="light">{{ 'Not sent yet' | t('abandoned-cart') }}</span>
+                                {% endif %}
+                            </span>
+                            <span class="ac-email-card__meta">
+                                <span class="ac-chip">{{ email.emailTemplate.name ?? 'Default' | t('abandoned-cart') }}</span>
+                                {% if email.discountCode %}<span class="ac-chip ac-chip--accent">{{ 'Discount: {code}' | t('abandoned-cart', { code: email.discountCode }) }}</span>{% endif %}
+                            </span>
+                        </button>
+                    </div>
+                </li>
+            {% endfor %}
+            <li class="ac-tl ac-tl--end">
+                <span class="ac-tl__node" aria-hidden="true">{{ svg('@appicons/check.svg') }}</span>
+                <div class="ac-tl__body">
+                    {% if canManage %}
+                        <button type="button" class="ac-add-between" data-ac-add-email="{{ (schedule | length) + 1 }}"{% if schedule | length >= editorConfig.maxEmails %} disabled{% endif %}>{{ '+ Add email' | t('abandoned-cart') }}</button>
+                    {% endif %}
+                    <span class="light ac-hint">{{ schedule | length >= editorConfig.maxEmails ? 'That’s the maximum of {max} emails.' | t('abandoned-cart', { max: editorConfig.maxEmails }) : 'Up to {max}. Two or three works best for most stores.' | t('abandoned-cart', { max: editorConfig.maxEmails }) }}</span>
+                </div>
+            </li>
+        </ol>
+    </div>
+
+    {{ tag('div', { hidden: true, data: { 'ac-sequence-editor': editorConfig } }) }}
+{% endblock %}
+
+{% block details %}
+    <div class="meta ac-meta">
+        {{ forms.lightswitchField({
+            label: 'Sequence Is On' | t('abandoned-cart'),
+            instructions: 'Off stops new carts entering and holds unsent emails. Turning back on only picks up carts abandoned from then.' | t('abandoned-cart'),
+            id: 'enabled',
+            name: 'enabled',
+            on: sequence.enabled,
+            disabled: not canManage,
+        }) }}
+    </div>
+
+    <div class="meta read-only ac-meta">
+        <div class="data">
+            <h5 class="heading">{{ 'In Recovery Now' | t('abandoned-cart') }}</h5>
+            <div class="value">{{ '{count, plural, =1{1 cart} other{# carts}}' | t('abandoned-cart', { count: inRecovery }) }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Last 30 Days' | t('abandoned-cart') }}</h5>
+            <div class="value">
+                {% if sequenceStats %}
+                    {{ formatter.asCurrency(sequenceStats.revenue, currency) }} · {{ formatter.asPercent(sequenceStats.rate, 1) }}
+                {% else %}
+                    <span class="light">—</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Last Changed' | t('abandoned-cart') }}</h5>
+            <div class="value">{{ sequence.dateUpdated ? sequence.dateUpdated | datetime('short') : '—' }}</div>
+        </div>
+    </div>
+
+    {% if isSiteMulti %}
+        <div class="meta ac-meta">
+            {{ forms.checkboxSelectField({
+                label: 'Sites' | t('app'),
+                instructions: 'Carts from these sites can get this sequence. Leave all unchecked for every site.' | t('abandoned-cart'),
+                name: 'siteIds',
+                options: craft.app.sites.allSites | map(site => { label: site.name, value: site.id }),
+                values: sequence.siteIds,
+                showAllOption: false,
+            }) }}
+        </div>
+    {% endif %}
+
+    <div class="meta ac-meta" data-ac-overrides>
+        {{ forms.lightswitchField({
+            label: 'Override Recovery Defaults' | t('abandoned-cart'),
+            instructions: 'Use different timing or a different return page for this sequence.' | t('abandoned-cart'),
+            id: 'overrideDefaults',
+            name: 'overrideDefaults',
+            on: sequence.hasOverrides(),
+            toggle: 'ac-overrides',
+            disabled: not canManage,
+        }) }}
+
+        <div id="ac-overrides"{% if not sequence.hasOverrides() %} class="hidden"{% endif %}>
+            {{ acMacros.durationField({ label: 'Abandoned After' | t('abandoned-cart'), name: 'abandonedAfterMinutes', minutes: sequence.abandonedAfterMinutes ?? craft.abandonedCart.getSettings().abandonedAfterMinutes }) }}
+            {{ forms.textField({ label: 'Return Page' | t('abandoned-cart'), name: 'returnUrl', value: sequence.returnUrl, placeholder: craft.abandonedCart.getSettings().returnUrl }) }}
+            {{ acMacros.durationField({ label: 'Recovery Ends After' | t('abandoned-cart'), name: 'recoveryWindowMinutes', minutes: sequence.recoveryWindowMinutes ?? craft.abandonedCart.getSettings().recoveryWindowMinutes, units: ['hours', 'days'] }) }}
+            {{ acMacros.durationField({ label: 'Attribution Window' | t('abandoned-cart'), name: 'attributionWindowMinutes', minutes: sequence.attributionWindowMinutes ?? craft.abandonedCart.getSettings().attributionWindowMinutes, units: ['hours', 'days'] }) }}
+            {{ acMacros.durationField({ label: 'Contact Limit' | t('abandoned-cart'), name: 'contactLimitMinutes', minutes: sequence.contactLimitMinutes ?? craft.abandonedCart.getSettings().contactLimitMinutes, units: ['hours', 'days'] }) }}
+        </div>
+    </div>
+
+    <div class="meta ac-meta ac-tester" data-ac-cart-tester="{{ sequence.id }}">
+        <h5 class="heading">{{ 'Try It With a Real Cart' | t('abandoned-cart') }}</h5>
+        <p class="light">{{ 'Check whether a cart would get this sequence, and why.' | t('abandoned-cart') }}</p>
+        <div class="select fullwidth"><select data-ac-cart-select aria-label="{{ 'Cart' | t('abandoned-cart') }}"><option value="">{{ 'Choose a cart…' | t('abandoned-cart') }}</option></select></div>
+        <p class="ac-tester__result" data-ac-cart-result aria-live="polite"></p>
+    </div>
+
+    {% if canManage and not sequence.isFallback %}
+        <div class="meta ac-meta">
+            <button type="button" class="btn small" data-ac-delete-sequence="{{ sequence.id }}" data-confirm="{{ 'Delete “{name}”? Carts in it stop getting its emails. Their history stays.' | t('abandoned-cart', { name: sequence.name }) }}">{{ 'Delete Sequence' | t('abandoned-cart') }}</button>
+        </div>
+    {% endif %}
+{% endblock %}

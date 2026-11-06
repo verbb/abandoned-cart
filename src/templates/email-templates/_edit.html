@@ -1,0 +1,95 @@
+{% extends 'abandoned-cart/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+
+{% requireAdmin false %}
+
+{% set selectedTab = 'email-templates' %}
+{% set fullPageForm = true %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set pageTitle = isNew ? 'New Email Template' | t('abandoned-cart') : template.name %}
+{% set crumbs = [
+    { label: 'Email Templates' | t('abandoned-cart'), url: url('abandoned-cart/settings/email-templates') },
+] %}
+
+{% block blockContent %}
+    <h2>{{ pageTitle }}</h2>
+    {{ actionInput('abandoned-cart/email-templates/save') }}
+    {{ redirectInput('abandoned-cart/settings/email-templates') }}
+    {% if template.id %}{{ hiddenInput('templateId', template.id) }}{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: 'Name' | t('app'),
+        instructions: 'What this template will be called in the control panel.' | t('abandoned-cart'),
+        id: 'name',
+        name: 'name',
+        value: template.name,
+        errors: template.getErrors('name'),
+        autofocus: true,
+        required: true,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Handle' | t('app'),
+        instructions: 'How you’ll refer to this template in code.' | t('abandoned-cart'),
+        id: 'handle',
+        name: 'handle',
+        class: 'code',
+        autocorrect: false,
+        autocapitalize: false,
+        value: template.handle,
+        errors: template.getErrors('handle'),
+        required: true,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.autosuggestField({
+        label: 'HTML Template' | t('abandoned-cart'),
+        instructions: 'A template in your site’s templates folder. Leave blank to use the bundled design.' | t('abandoned-cart'),
+        id: 'htmlTemplate',
+        name: 'htmlTemplate',
+        suggestions: craft.cp.getTemplateSuggestions(),
+        value: template.htmlTemplate,
+        class: 'code',
+        errors: template.getErrors('htmlTemplate'),
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.autosuggestField({
+        label: 'Plain Text Template' | t('abandoned-cart'),
+        instructions: 'Optional. Leave blank and the plain text version is made from the HTML.' | t('abandoned-cart'),
+        id: 'textTemplate',
+        name: 'textTemplate',
+        suggestions: craft.cp.getTemplateSuggestions(),
+        value: template.textTemplate,
+        class: 'code',
+        errors: template.getErrors('textTemplate'),
+        disabled: readOnly,
+    }) }}
+
+    {% if isNew %}
+        {{ forms.lightswitchField({
+            label: 'Copy Templates' | t('abandoned-cart'),
+            instructions: 'Copy the bundled design to these paths, so you start from a working template. Existing files are never overwritten.' | t('abandoned-cart'),
+            id: 'copyTemplates',
+            name: 'copyTemplates',
+            on: true,
+        }) }}
+    {% endif %}
+
+    {{ forms.lightswitchField({
+        label: 'Default Template' | t('abandoned-cart'),
+        instructions: 'Emails that don’t choose a template use this one.' | t('abandoned-cart'),
+        id: 'isDefault',
+        name: 'isDefault',
+        on: template.isDefault,
+        errors: template.getErrors('isDefault'),
+        disabled: readOnly or template.isDefault,
+    }) }}
+
+    <div class="ac-callout">
+        <p>{{ 'Templates receive `subject`, `previewText`, `heading`, `message`, `buttonLabel`, `discountCode`, `cart`, `order`, `site`, `storeName`, `storeAddress`, `recoverUrl` and `unsubscribeUrl`. Use them, or write your own content in Twig.' | t('abandoned-cart') | md(inlineOnly=true) }}</p>
+    </div>
+{% endblock %}

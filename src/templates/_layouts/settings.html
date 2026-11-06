@@ -1,0 +1,37 @@
+{% extends 'verbb-base/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% do view.registerAssetBundle('verbb\\abandonedcart\\web\\assets\\cp\\AbandonedCartAsset') %}
+
+{% set selectedSubnavItem = 'settings' %}
+
+{% set crumbs = (currentUser.admin ? [
+    { label: 'Settings' | t('app'), url: url('settings') },
+    { label: 'Plugins' | t('app'), url: url('settings/plugins') },
+    { label: craft.abandonedCart.getPluginName(), url: url('abandoned-cart/settings') },
+] : [
+    { label: craft.abandonedCart.getPluginName(), url: url('abandoned-cart') },
+]) | merge(crumbs ?? []) %}
+
+{% set pageTabs = {} %}
+{% if currentUser.admin %}
+    {% set pageTabs = pageTabs | merge({
+        general: { title: 'General Settings' | t('abandoned-cart'), url: url('abandoned-cart/settings') },
+        'email-templates': { title: 'Email Templates' | t('abandoned-cart'), url: url('abandoned-cart/settings/email-templates') },
+    }) %}
+{% endif %}
+{% if currentUser.admin or currentUser.can('abandonedCart-viewSystemStatus') %}
+    {% set pageTabs = pageTabs | merge({
+        'system-status': { title: 'System Status' | t('abandoned-cart'), url: url('abandoned-cart/settings/system-status') },
+    }) %}
+{% endif %}
+
+{% set pageTitle = pageTitle ?? false %}
+{% if title is not defined and pageTitle %}
+    {% set title = pageTitle %}
+{% endif %}
+
+{% block settingsMeta %}
+{% endblock %}

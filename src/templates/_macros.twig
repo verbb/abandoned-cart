@@ -1,0 +1,54 @@
+{% macro durationField(config) %}
+    {#
+        A number and a unit, posted as `{name}[value]` and `{name}[unit]` and stored in minutes.
+        config: label, instructions, name, minutes, allowBlank (for overrides), placeholder, units (subset of minutes/hours/days), warning
+    #}
+    {% import '_includes/forms' as forms %}
+    {% set units = config.units ?? ['minutes', 'hours', 'days'] %}
+    {% set minutes = config.minutes %}
+    {% set unit = 'minutes' %}
+    {% set value = minutes %}
+    {% if minutes is not null and minutes != '' %}
+        {% if 'days' in units and minutes > 0 and minutes % 1440 == 0 %}
+            {% set unit = 'days' %}{% set value = minutes // 1440 %}
+        {% elseif 'hours' in units and minutes > 0 and minutes % 60 == 0 %}
+            {% set unit = 'hours' %}{% set value = minutes // 60 %}
+        {% endif %}
+    {% elseif units | length %}
+        {% set unit = units | last %}
+    {% endif %}
+    {% set labels = { minutes: 'minutes' | t('abandoned-cart'), hours: 'hours' | t('abandoned-cart'), days: 'days' | t('abandoned-cart') } %}
+
+    {% embed '_includes/forms/field' with {
+        label: config.label,
+        instructions: config.instructions ?? null,
+        id: config.name | id,
+        warning: config.warning ?? null,
+        errors: config.errors ?? null,
+    } %}
+        {% block input %}
+            {% import '_includes/forms' as forms %}
+            <div class="flex flex-nowrap ac-duration">
+                {{ forms.text({
+                    id: config.name | id,
+                    name: config.name ~ '[value]',
+                    value: value,
+                    type: 'number',
+                    min: 0,
+                    size: 6,
+                    placeholder: config.placeholder ?? null,
+                }) }}
+                {{ forms.select({
+                    name: config.name ~ '[unit]',
+                    value: unit,
+                    options: units | map(u => { label: labels[u], value: u }),
+                }) }}
+                {% if config.suffix ?? false %}<span class="light">{{ config.suffix }}</span>{% endif %}
+            </div>
+        {% endblock %}
+    {% endembed %}
+{% endmacro %}
+
+{% macro statusLabel(status, label) %}
+    <pk-status-label status="{{ status }}">{{ label }}</pk-status-label>
+{% endmacro %}

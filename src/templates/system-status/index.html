@@ -1,0 +1,35 @@
+{% extends 'abandoned-cart/_layouts/settings' %}
+
+{% set selectedTab = 'system-status' %}
+{% set pageTitle = 'System Status' | t('abandoned-cart') %}
+{% set crumbs = [{ label: pageTitle, url: url('abandoned-cart/settings/system-status') }] %}
+{% set statuses = { ready: 'active', attention: 'warning', notice: 'inactive' } %}
+
+{% block actionButton %}
+    {% if currentUser.can('abandonedCart-manageSequences') %}
+        <form method="post" class="ac-inline-form">
+            {{ csrfInput() }}
+            {{ actionInput('abandoned-cart/system-status/run') }}
+            {{ redirectInput('abandoned-cart/settings/system-status') }}
+            <button type="submit" class="btn">{{ 'Run Now' | t('abandoned-cart') }}</button>
+        </form>
+    {% endif %}
+{% endblock %}
+
+{% block settingsContent %}
+    <ul class="ac-checks">
+        {% for check in checks %}
+            <li class="ac-check ac-check--{{ check.status }}">
+                <pk-status status="{{ statuses[check.status] }}" aria-hidden="true"></pk-status>
+                <div>
+                    <strong>{{ check.label }}</strong>
+                    <p>{{ check.message | md(inlineOnly=true) }}</p>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if lastRunSummary %}
+        <p class="light">{{ 'Last run: {enrolled} enrolled, {skipped} skipped, {sent} sent, {failed} failed, {ended} ended.' | t('abandoned-cart', lastRunSummary | merge({ enrolled: lastRunSummary.enrolled ?? 0, skipped: lastRunSummary.skipped ?? 0, sent: lastRunSummary.sent ?? 0, failed: lastRunSummary.failed ?? 0, ended: lastRunSummary.ended ?? 0 })) }}</p>
+    {% endif %}
+{% endblock %}

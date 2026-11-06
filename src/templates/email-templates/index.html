@@ -1,0 +1,55 @@
+{% extends 'abandoned-cart/_layouts/settings' %}
+
+{% requireAdmin false %}
+
+{% set selectedTab = 'email-templates' %}
+{% set pageTitle = 'Email Templates' | t('abandoned-cart') %}
+{% set crumbs = [{ label: pageTitle, url: url('abandoned-cart/settings/email-templates') }] %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+
+{% block actionButton %}
+    {% if not readOnly %}
+        <a href="{{ url('abandoned-cart/settings/email-templates/new') }}" class="btn submit add icon">{{ 'New Email Template' | t('abandoned-cart') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block settingsContent %}
+    <table class="data fullwidth ac-templates">
+        <thead>
+            <tr>
+                <th scope="col">{{ 'Name' | t('app') }}</th>
+                <th scope="col">{{ 'Handle' | t('app') }}</th>
+                <th scope="col">{{ 'Template' | t('app') }}</th>
+                <th scope="col" class="thin">{{ 'Used By' | t('abandoned-cart') }}</th>
+                {% if not readOnly %}<th scope="col" class="thin"><span class="visually-hidden">{{ 'Actions' | t('app') }}</span></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for template in templates %}
+                {% set count = (usage[template.id] ?? 0) + (template.isDefault ? (usage[''] ?? 0) : 0) %}
+                <tr data-id="{{ template.id }}" data-name="{{ template.name }}">
+                    <th scope="row">
+                        <a href="{{ template.cpEditUrl }}">{{ template.name }}</a>
+                        {% if template.isDefault %}<pk-status-label status="active" class="ac-inline-label">{{ 'Default' | t('abandoned-cart') }}</pk-status-label>{% endif %}
+                    </th>
+                    <td><code>{{ template.handle }}</code></td>
+                    <td>{% if template.usesBundledDesign %}<span class="light">{{ 'Bundled design' | t('abandoned-cart') }}</span>{% else %}<code>{{ template.htmlTemplate }}</code>{% endif %}</td>
+                    <td class="thin nowrap">{{ '{count, plural, =1{1 email} other{# emails}}' | t('abandoned-cart', { count: count }) }}</td>
+                    {% if not readOnly %}
+                        <td class="thin">
+                            {% if not template.isDefault %}
+                                {{ disclosureMenu([
+                                    { label: 'Make default' | t('abandoned-cart'), action: 'abandoned-cart/email-templates/make-default', params: { id: template.id } },
+                                    { hr: true },
+                                    { label: 'Delete' | t('app'), destructive: true, action: 'abandoned-cart/email-templates/delete', params: { id: template.id }, confirm: 'Delete “{name}”? Emails that use it will use the default template.' | t('abandoned-cart', { name: template.name }) },
+                                ], { hiddenLabel: 'Actions' | t('app'), buttonAttributes: { class: ['action-btn'], removeClass: 'menubtn', data: { icon: 'ellipsis' } } }) }}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="light">{{ 'Emails that don’t choose a template use the default. The bundled design needs no template files, so new installs look good straight away.' | t('abandoned-cart') }}</p>
+{% endblock %}
