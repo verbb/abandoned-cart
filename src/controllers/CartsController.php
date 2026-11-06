@@ -227,7 +227,7 @@ class CartsController extends BaseCpController
             }
         }
 
-        return null;
+        return $steps ? Craft::t('abandoned-cart', 'All emails sent') : null;
     }
 
     private function _userNames(array $userIds): array

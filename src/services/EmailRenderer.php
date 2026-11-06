@@ -12,6 +12,7 @@ use Craft;
 use craft\base\Component;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 use craft\helpers\Template;
 use craft\mail\Message;
 use craft\web\View;
@@ -45,9 +46,17 @@ class EmailRenderer extends Component
         $originalMode = $view->getTemplateMode();
         $originalLanguage = Craft::$app->language;
         $language = $this->_resolveLanguage($cart, $order);
+        $sites = Craft::$app->getSites();
+        $originalSite = $sites->getCurrentSite();
+        $cartSite = $cart->siteId ? $sites->getSiteById($cart->siteId) : null;
 
         try {
             Craft::$app->language = $language;
+
+            // Templates see the cart's own site, so `siteUrl`, `currentSite` and site-specific content are right.
+            if ($cartSite) {
+                $sites->setCurrentSite($cartSite);
+            }
 
             $tokens = $this->getTokens($email, $cart);
             $subject = $this->_renderText((string)$email->subject, $tokens, $order);
@@ -66,6 +75,7 @@ class EmailRenderer extends Component
             }
         } finally {
             $view->setTemplateMode($originalMode);
+            $sites->setCurrentSite($originalSite);
             Craft::$app->language = $originalLanguage;
         }
 
@@ -214,7 +224,9 @@ class EmailRenderer extends Component
         // Templates written for 4.x read these names, so upgraded stores keep working while they update.
         if (AbandonedCart::$plugin->getSettings()->compatibilityMode) {
             $variables['discount'] = $email->discountCode ?: false;
-            $variables['checkoutLink'] = $recoverUrl;
+            // 4.x templates write `siteUrl ~ checkoutLink`, so the link is relative to the site URL.
+            $siteUrl = UrlHelper::siteUrl();
+            $variables['checkoutLink'] = str_starts_with($recoverUrl, $siteUrl) ? substr($recoverUrl, strlen($siteUrl)) : $recoverUrl;
             $variables['currentSite'] = $site;
         }
 

@@ -302,7 +302,9 @@ class SequencesController extends BaseCpController
                 'productIds' => array_values(array_map('intval', array_filter((array)($posted['productIds'] ?? [])))),
             ],
             Sequence::AUDIENCE_CUSTOM => ['condition' => AbandonedCart::$plugin->getAudiences()->createOrderCondition(is_array($posted['condition'] ?? null) ? $posted['condition'] : [])->getConfig()],
-            default => [],
+            Sequence::AUDIENCE_ALL, Sequence::AUDIENCE_FIRST_TIME => [],
+            // A registered audience keeps whatever settings its own fields post.
+            default => $posted,
         };
     }
 

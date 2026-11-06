@@ -30,7 +30,8 @@
             <p class="light">{{ 'Unsubscribed {date}. Staff can’t undo an unsubscribe; it clears if the customer opts in again at checkout or from their account.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
         {% elseif customer.status == 'doNotEmail' %}
             {% if customer.statusNote %}<p>“{{ customer.statusNote }}”</p>{% endif %}
-            <p class="light">{{ 'Added by {name} {date}.' | t('abandoned-cart', { name: changedBy.friendlyName ?? 'the 4.x upgrade' | t('abandoned-cart'), date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
+            {% set addedBy = changedBy.friendlyName ?? (customer.statusSource == 'upgrade' ? 'the 4.x upgrade' | t('abandoned-cart') : null) %}
+            <p class="light">{{ addedBy ? 'Added by {name} {date}.' | t('abandoned-cart', { name: addedBy, date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) : 'Added {date}.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
             {% if canManage %}
                 <form method="post">
                     {{ csrfInput() }}{{ actionInput('abandoned-cart/customers/remove-do-not-email') }}{{ hiddenInput('id', customer.id) }}{{ redirectInput(customer.cpEditUrl) }}

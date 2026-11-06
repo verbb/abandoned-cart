@@ -484,8 +484,20 @@
     margin-bottom: 0;
 }
 
+.ac-tester {
+    padding-bottom: 16px;
+}
+
+.ac-tester > p {
+    margin: 2px 0 0;
+}
+
 .ac-tester .select {
-    margin-top: 8px;
+    margin-top: 10px;
+}
+
+.ac-side-actions {
+    padding: 4px 0 0;
 }
 
 .ac-tester__result {
@@ -533,12 +545,16 @@
 }
 
 .ac-panel__note {
-    margin-inline-end: auto;
+    flex: 1 1 140px;
+    min-width: 0;
+    margin: 0;
     font-size: 12px;
 }
 
 .ac-panel__foot input[type='email'] {
-    width: 220px;
+    flex: 0 1 220px;
+    min-width: 140px;
+    width: auto;
 }
 
 .ac-panel__body {
@@ -853,8 +869,14 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 8px;
-    padding: 14px 24px 4px;
+    padding: 14px 0 4px;
 }
+
+/* Craft pulls read-only rows out to the panel edge; keep them in line with the headings. */
+.meta.read-only > .data {
+    padding-inline: 10px;
+}
+
 
 .ac-meta-head h2 {
     margin: 0;
@@ -862,13 +884,13 @@
 }
 
 .meta.read-only > p {
-    margin: 4px 24px 12px;
+    margin: 4px 0 12px;
 }
 
 .ac-dne-form {
     display: grid;
     gap: 8px;
-    padding: 0 24px 16px;
+    padding: 0 0 16px;
 }
 
 .ac-strip {
@@ -1455,4 +1477,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+}
+
+/* Status labels are single words or short phrases; wrapping them mid-word reads as a glitch. */
+pk-status-label {
+    white-space: nowrap;
 }

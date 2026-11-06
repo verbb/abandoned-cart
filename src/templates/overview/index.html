@@ -147,7 +147,7 @@
         <div class="ac-card">
             <div class="ac-card__head"><h2>{{ 'Why Carts Didn’t Recover' | t('abandoned-cart') }}</h2></div>
             {% if reasonData.rows %}
-                <pk-bar-chart class="ac-chart ac-chart--short" orientation="horizontal" label="{{ 'Why carts didn’t recover' | t('abandoned-cart') }}" data="{{ reasonData | json_encode }}"></pk-bar-chart>
+                <pk-bar-chart class="ac-chart" style="--pk-chart-height: {{ reasonData.rows | length * 34 + 48 }}px" orientation="horizontal" label="{{ 'Why carts didn’t recover' | t('abandoned-cart') }}" data="{{ reasonData | json_encode }}"></pk-bar-chart>
             {% else %}
                 <p class="light">{{ 'Nothing to show for this period.' | t('abandoned-cart') }}</p>
             {% endif %}

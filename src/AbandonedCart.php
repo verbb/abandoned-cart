@@ -187,8 +187,8 @@ class AbandonedCart extends Plugin
     private function _registerSiteRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
-            $event->rules['abandoned-cart/recover/<token:[A-Za-z0-9_-]+>'] = 'abandoned-cart/recovery/restore';
-            $event->rules['abandoned-cart/unsubscribe/<token:[A-Za-z0-9_-]+>'] = 'abandoned-cart/recovery/unsubscribe';
+            $event->rules['abandoned-cart/recover/<token:[A-Za-z0-9_-]+={0,2}>'] = 'abandoned-cart/recovery/restore';
+            $event->rules['abandoned-cart/unsubscribe/<token:[A-Za-z0-9_-]+={0,2}>'] = 'abandoned-cart/recovery/unsubscribe';
 
             // Links in emails sent by 4.x.
             $event->rules['abandoned-cart-restore'] = 'abandoned-cart/recovery/restore-legacy';

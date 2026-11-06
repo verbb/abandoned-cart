@@ -47,7 +47,7 @@ class Audiences extends Component
                 Sequence::AUDIENCE_CART_VALUE => ['label' => Craft::t('abandoned-cart', 'Cart Value'), 'description' => Craft::t('abandoned-cart', 'Carts above or below an amount')],
                 Sequence::AUDIENCE_RETURNING => ['label' => Craft::t('abandoned-cart', 'Returning Customers'), 'description' => Craft::t('abandoned-cart', 'Customers who’ve ordered before')],
                 Sequence::AUDIENCE_FIRST_TIME => ['label' => Craft::t('abandoned-cart', 'First-Time Customers'), 'description' => Craft::t('abandoned-cart', 'No completed orders yet')],
-                Sequence::AUDIENCE_PRODUCTS => ['label' => Craft::t('abandoned-cart', 'Products'), 'description' => Craft::t('abandoned-cart', 'Carts with chosen products or categories')],
+                Sequence::AUDIENCE_PRODUCTS => ['label' => Craft::t('abandoned-cart', 'Products'), 'description' => Craft::t('abandoned-cart', 'Carts with chosen products')],
                 Sequence::AUDIENCE_CUSTOM => ['label' => Craft::t('abandoned-cart', 'Custom Rules'), 'description' => Craft::t('abandoned-cart', 'Any Commerce order condition')],
             ]]);
             $this->trigger(self::EVENT_REGISTER_AUDIENCES, $event);

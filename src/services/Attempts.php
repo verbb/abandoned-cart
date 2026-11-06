@@ -322,6 +322,8 @@ class Attempts extends Component
                 if (!$event->isValid) {
                     return $this->_cancel($attempt, Craft::t('abandoned-cart', 'a plugin or module cancelled it'));
                 }
+
+                $message = $event->message ?? $message;
             }
 
             // 4.x handlers keep working while compatibility mode is on.
@@ -375,7 +377,7 @@ class Attempts extends Component
         }
 
         if ($this->hasEventHandlers(self::EVENT_AFTER_SEND)) {
-            $this->trigger(self::EVENT_AFTER_SEND, new SendEvent(['attempt' => $this->getAttemptById($attempt->id), 'recovery' => $recovery, 'email' => $email, 'rendered' => $rendered ?? null, 'success' => (bool)$sent]));
+            $this->trigger(self::EVENT_AFTER_SEND, new SendEvent(['attempt' => $this->getAttemptById($attempt->id), 'recovery' => $recovery, 'email' => $email, 'rendered' => $rendered ?? null, 'message' => $message ?? null, 'success' => (bool)$sent]));
         }
 
         return $sent ? 'sent' : 'failed';

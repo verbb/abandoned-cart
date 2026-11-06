@@ -74,13 +74,18 @@
         <aside class="ac-setup__side">
             <div class="ac-card ac-opportunity">
                 <span class="ac-eyebrow">{{ 'Last 30 Days' | t('abandoned-cart') }}</span>
-                <strong class="ac-opportunity__value">{{ formatter.asCurrency(opportunity.value, currency) }}</strong>
-                <span class="light">{{ 'left in {count, plural, =1{1 abandoned cart} other{# abandoned carts}}' | t('abandoned-cart', { count: opportunity.carts }) }}</span>
-                <div class="ac-split">
-                    <div><strong>{{ opportunity.withEmail }}</strong><span class="light">{{ 'had an email address' | t('abandoned-cart') }}</span></div>
-                    <div><strong>{{ opportunity.carts - opportunity.withEmail }}</strong><span class="light">{{ 'had no email yet' | t('abandoned-cart') }}</span></div>
-                </div>
-                <p class="light ac-hint">{{ 'These are the carts your emails could have reached, read from your Commerce orders. We don’t promise a recovery rate, because nobody can.' | t('abandoned-cart') }}</p>
+                {% if opportunity.carts %}
+                    <strong class="ac-opportunity__value">{{ formatter.asCurrency(opportunity.value, currency) }}</strong>
+                    <span class="light">{{ 'left in {count, plural, =1{1 abandoned cart} other{# abandoned carts}}' | t('abandoned-cart', { count: opportunity.carts }) }}</span>
+                    <div class="ac-split">
+                        <div><strong>{{ opportunity.withEmail }}</strong><span class="light">{{ 'had an email address' | t('abandoned-cart') }}</span></div>
+                        <div><strong>{{ opportunity.carts - opportunity.withEmail }}</strong><span class="light">{{ 'had no email yet' | t('abandoned-cart') }}</span></div>
+                    </div>
+                    <p class="light ac-hint">{{ 'These are the carts your emails could have reached, read from your Commerce orders. We don’t promise a recovery rate, because nobody can.' | t('abandoned-cart') }}</p>
+                {% else %}
+                    <p><strong>{{ 'No abandoned carts yet' | t('abandoned-cart') }}</strong></p>
+                    <p class="light ac-hint">{{ 'Carts left in your store over the last 30 days will show here, so you can see what your emails could reach.' | t('abandoned-cart') }}</p>
+                {% endif %}
             </div>
             <div class="ac-card">
                 <strong>{{ 'How It Works' | t('abandoned-cart') }}</strong>

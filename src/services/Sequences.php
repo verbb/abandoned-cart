@@ -201,7 +201,7 @@ class Sequences extends Component
         }
 
         $presets = AbandonedCart::$plugin->getPresets();
-        $preset = $presets->getPresetByHandle(Presets::PRESET_THREE_REMINDERS);
+        $preset = $presets->getPresetByHandle(Presets::PRESET_THREE_REMINDERS) ?? $presets->getBuiltInPresetByHandle(Presets::PRESET_THREE_REMINDERS);
 
         if (!$preset) {
             throw new RuntimeException('The Three Reminders preset is needed to create Everyone Else.');

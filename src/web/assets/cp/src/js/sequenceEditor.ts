@@ -316,8 +316,20 @@ function mountAudiences(): void {
         cards.forEach(other => other.setAttribute('aria-checked', String(other === card)));
         document.querySelectorAll<HTMLElement>('[data-ac-audience-detail]').forEach((detail) => {
             detail.hidden = detail.dataset.acAudienceDetail !== type;
+            detail.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea').forEach((field) => {
+                field.disabled = detail.hidden;
+            });
         });
     }));
+
+    // Only the chosen audience's fields are saved, so a hidden panel can't leak settings into another audience.
+    input?.form?.addEventListener('submit', () => {
+        document.querySelectorAll<HTMLElement>('[data-ac-audience-detail]').forEach((detail) => {
+            detail.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea').forEach((field) => {
+                field.disabled = detail.hidden;
+            });
+        });
+    });
 
     const operator = document.querySelector<HTMLSelectElement>('select[name="audienceSettings[operator]"]');
     operator?.addEventListener('change', () => {

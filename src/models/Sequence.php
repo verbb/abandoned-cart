@@ -5,6 +5,7 @@ use verbb\abandonedcart\AbandonedCart;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\App;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
 
@@ -108,7 +109,7 @@ class Sequence extends Model
 
     public function getReturnUrl(): ?string
     {
-        return $this->returnUrl ?? AbandonedCart::$plugin->getSettings()->getReturnUrl();
+        return $this->returnUrl !== null ? App::parseEnv($this->returnUrl) : AbandonedCart::$plugin->getSettings()->getReturnUrl();
     }
 
     public function hasOverrides(): bool
@@ -152,7 +153,8 @@ class Sequence extends Model
         $rules[] = [['name', 'handle'], 'string', 'max' => 255];
         $rules[] = [['returnUrl'], 'string', 'max' => 1024];
         $rules[] = [['handle'], HandleValidator::class];
-        $rules[] = [['audienceType'], 'in', 'range' => self::audienceTypes()];
+        // Plugins can register more audiences, so the registered list is the one that counts.
+        $rules[] = [['audienceType'], 'in', 'range' => fn(): array => array_keys(AbandonedCart::$plugin->getAudiences()->getAllAudiences())];
         $rules[] = [['abandonedAfterMinutes'], 'integer', 'min' => 1];
         $rules[] = [['recoveryWindowMinutes', 'attributionWindowMinutes', 'contactLimitMinutes'], 'integer', 'min' => 0];
         $rules[] = [['audienceType'], function(string $attribute): void {

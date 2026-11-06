@@ -85,7 +85,15 @@ class m261106_000000_upgrade_to_5 extends Migration
 
         // Read the 4.x settings before anything writes the 5.0 ones. On an environment that receives this upgrade
         // through project config, Craft's stored config still holds the 4.x settings while migrations run.
-        $this->_legacy = array_merge(self::LEGACY_DEFAULTS, array_filter((array)($projectConfig->get('plugins.abandoned-cart.settings') ?? []), static fn($value): bool => $value !== null));
+        // Values in config/abandoned-cart.php took precedence over the control panel in 4.x, so they win here too.
+        $notNull = static fn($value): bool => $value !== null;
+        $fileConfig = Craft::$app->getConfig()->getConfigFromFile('abandoned-cart');
+        $fileConfig = is_array($fileConfig) ? $fileConfig : [];
+        $this->_legacy = array_merge(
+            self::LEGACY_DEFAULTS,
+            array_filter((array)($projectConfig->get('plugins.abandoned-cart.settings') ?? []), $notNull),
+            array_filter($fileConfig, $notNull),
+        );
 
         if (!$this->db->tableExists(Table::SEQUENCES)) {
             $install = new Install(['db' => $this->db]);

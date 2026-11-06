@@ -70,6 +70,21 @@ class Presets extends Component
     }
 
     /**
+     * The built-in preset with this handle, even when a plugin has removed it from the list. Everyone Else is built
+     * from Three Reminders, so it must always be available.
+     */
+    public function getBuiltInPresetByHandle(string $handle): ?Preset
+    {
+        foreach ($this->_getBuiltInPresets() as $preset) {
+            if ($preset->handle === $handle) {
+                return $preset;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Creates a new sequence, switched off, as a one-time copy of a preset. `$notices` collects anything the preset
      * asked for that this site doesn't have, such as an email template handle, so the editor can say so. Check the
      * returned sequence for errors: on failure nothing is saved.

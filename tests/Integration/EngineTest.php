@@ -234,3 +234,19 @@ it('lets staff retry an email that failed, but nothing else', function() {
         ->and($attempts->getAttemptById($first->id)->status)->toBe(Attempt::STATUS_SENT)
         ->and($this->sentMailCount())->toBe($before + 1);
 });
+
+it('builds recovery and unsubscribe links from URL-safe tokens that resolve', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('link.check@example.test', idleMinutes: 90);
+    engine()->run();
+
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('link.check@example.test')->id)[0];
+    $urls = engine()->getUrls($recovery, $recovery->getAttempts()[0]);
+    $recoverToken = tokenFrom($urls['recoverUrl']);
+    $unsubscribeToken = tokenFrom($urls['unsubscribeUrl']);
+
+    expect(preg_match('#/recover/([^/?&]+)#', urldecode($urls['recoverUrl']), $raw))->toBe(1)
+        ->and($raw[1])->toMatch('/^[A-Za-z0-9_-]+$/')
+        ->and(engine()->resolveRecoverToken($recoverToken)[0]->id)->toBe($recovery->id)
+        ->and(engine()->resolveUnsubscribeToken($unsubscribeToken)?->id)->toBe($recovery->customerId);
+});

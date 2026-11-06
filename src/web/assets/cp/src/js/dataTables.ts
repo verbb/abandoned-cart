@@ -39,7 +39,7 @@ function personCell(row: DataTableRow) {
 }
 
 function statusCell(tone: string, label: string, detail?: unknown) {
-    return html`<span style=${stack}><pk-status-label status=${tone}>${label}</pk-status-label>${detail ? html`<span style=${sub}>${detail}</span>` : null}</span>`;
+    return html`<span style=${stack}><pk-status-label status=${tone} style="white-space: nowrap; justify-self: start;">${label}</pk-status-label>${detail ? html`<span style=${sub}>${detail}</span>` : null}</span>`;
 }
 
 function progressCell(steps: string[]) {

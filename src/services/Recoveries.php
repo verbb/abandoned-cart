@@ -250,8 +250,11 @@ class Recoveries extends Component
                 continue;
             }
 
-            // Carts abandoned before a sequence was switched on carry on to the next one, as if it weren't live yet.
-            if ($candidate->enrollmentStartedAt && $abandonedAt < $candidate->enrollmentStartedAt) {
+            // A cart counts as abandoned once it's been idle for Abandoned After. Carts that reached that point before a
+            // sequence was switched on carry on to the next one, as if it weren't live yet.
+            $abandonedFrom = (clone $abandonedAt)->add(new DateInterval('PT' . $candidate->getAbandonedAfterMinutes() . 'M'));
+
+            if ($candidate->enrollmentStartedAt && $abandonedFrom < $candidate->enrollmentStartedAt) {
                 continue;
             }
 
@@ -538,8 +541,9 @@ class Recoveries extends Component
     {
         $security = Craft::$app->getSecurity();
         $customer = $recovery->getCustomer();
-        $recoverToken = StringHelper::base64UrlEncode($security->hashData($recovery->uid . ':' . ($attempt?->uid ?? '')));
-        $unsubscribeToken = StringHelper::base64UrlEncode($security->hashData((string)$customer?->uid));
+        // Padding is dropped so the tokens only use URL path characters; decoding doesn't need it.
+        $recoverToken = rtrim(StringHelper::base64UrlEncode($security->hashData($recovery->uid . ':' . ($attempt?->uid ?? ''))), '=');
+        $unsubscribeToken = rtrim(StringHelper::base64UrlEncode($security->hashData((string)$customer?->uid)), '=');
         $recoverUrl = UrlHelper::siteUrl('abandoned-cart/recover/' . $recoverToken, null, null, $recovery->siteId);
         $unsubscribeUrl = UrlHelper::siteUrl('abandoned-cart/unsubscribe/' . $unsubscribeToken, null, null, $recovery->siteId);
 

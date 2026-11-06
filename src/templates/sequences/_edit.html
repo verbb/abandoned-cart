@@ -240,14 +240,14 @@
     </div>
 
     <div class="meta ac-meta ac-tester" data-ac-cart-tester="{{ sequence.id }}">
-        <h5 class="heading">{{ 'Try It With a Real Cart' | t('abandoned-cart') }}</h5>
+        <div class="ac-meta-head"><h2>{{ 'Try It With a Real Cart' | t('abandoned-cart') }}</h2></div>
         <p class="light">{{ 'Check whether a cart would get this sequence, and why.' | t('abandoned-cart') }}</p>
         <div class="select fullwidth"><select data-ac-cart-select aria-label="{{ 'Cart' | t('abandoned-cart') }}"><option value="">{{ 'Choose a cart…' | t('abandoned-cart') }}</option></select></div>
         <p class="ac-tester__result" data-ac-cart-result aria-live="polite"></p>
     </div>
 
     {% if canManage and not sequence.isFallback %}
-        <div class="meta ac-meta">
+        <div class="ac-side-actions">
             <button type="button" class="btn small" data-ac-delete-sequence="{{ sequence.id }}" data-confirm="{{ 'Delete “{name}”? Carts in it stop getting its emails. Their history stays.' | t('abandoned-cart', { name: sequence.name }) }}">{{ 'Delete Sequence' | t('abandoned-cart') }}</button>
         </div>
     {% endif %}
