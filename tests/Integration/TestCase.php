@@ -27,6 +27,9 @@ abstract class TestCase extends BaseTestCase
     // Properties
     // =========================================================================
 
+    // Tests that change the schema turn this off: MySQL commits schema changes immediately.
+    protected bool $transactional = true;
+
     private ?Transaction $_transaction = null;
     private array $_settings = [];
 
@@ -43,7 +46,7 @@ abstract class TestCase extends BaseTestCase
         }
 
         $this->_settings = AbandonedCart::$plugin->getSettings()->getAttributes();
-        $this->_transaction = Craft::$app->getDb()->beginTransaction();
+        $this->_transaction = $this->transactional ? Craft::$app->getDb()->beginTransaction() : null;
     }
 
     protected function tearDown(): void
