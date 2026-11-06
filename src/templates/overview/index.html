@@ -71,7 +71,11 @@
     <div class="ac-card">
         <div class="ac-card__head">
             <h2>{{ 'From Abandoned to Recovered' | t('abandoned-cart') }}</h2>
-            <span class="light">{{ '{count} skipped before any email' | t('abandoned-cart', { count: current.skipped }) }} · <a href="{{ url('abandoned-cart/carts', { status: 'skipped' }) }}">{{ 'See why' | t('abandoned-cart') }}</a></span>
+            <span class="light">
+                {{ '{count} skipped before any email' | t('abandoned-cart', { count: current.skipped }) }}
+                {%- if current.blockedDomains %} · {{ '{count, plural, =1{1 cart} other{# carts}} from blocked domains not counted' | t('abandoned-cart', { count: current.blockedDomains }) }}{% endif %}
+                · <a href="{{ url('abandoned-cart/carts', { status: 'skipped' }) }}">{{ 'See why' | t('abandoned-cart') }}</a>
+            </span>
         </div>
         <pk-funnel-chart class="ac-chart ac-chart--short" label="{{ 'Recovery funnel' | t('abandoned-cart') }}" data="{{ funnelData | json_encode }}"></pk-funnel-chart>
     </div>

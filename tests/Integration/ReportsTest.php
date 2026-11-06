@@ -81,3 +81,23 @@ it('runs every report with carts in each state', function() {
         ->and($results['recent'])->toHaveCount(1)
         ->and($results['history'])->not->toBeEmpty();
 });
+
+it('leaves blocked-domain carts out of the Overview but lists them as skipped', function() {
+    AbandonedCart::$plugin->getSettings()->blockedDomains = ['bots.example'];
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('real.person@example.test', idleMinutes: 90);
+    $this->createCart('crawler@bots.example', idleMinutes: 90);
+    AbandonedCart::$plugin->getRecoveries()->run();
+
+    $reports = AbandonedCart::$plugin->getReports();
+    $start = new DateTime('-30 days');
+    $end = new DateTime('+1 day');
+    $summary = $reports->getSummary($start, $end);
+    $skippedRows = $reports->getCartList(['status' => 'skipped'], 1, 10)['rows'];
+
+    expect((int)$summary['abandoned'])->toBe(1)
+        ->and((int)$summary['skipped'])->toBe(0)
+        ->and((int)$summary['blockedDomains'])->toBe(1)
+        ->and($reports->getOutcomeReasons($start, $end)['skipped'])->not->toHaveKey('blockedDomain')
+        ->and(array_column($skippedRows, 'reason'))->toBe(['blockedDomain']);
+});

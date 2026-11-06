@@ -5,6 +5,7 @@ use verbb\abandonedcart\db\Table;
 use verbb\abandonedcart\models\Attempt;
 use verbb\abandonedcart\models\Email;
 use verbb\abandonedcart\models\Recovery;
+use verbb\abandonedcart\models\SkippedCart;
 
 use craft\base\Component;
 use craft\db\Query;
@@ -433,11 +434,17 @@ class Reports extends Component
             ->where(['>=', 'abandonedAt', Db::prepareDateForDb($start)])
             ->andWhere(['<', 'abandonedAt', Db::prepareDateForDb($end)])
             ->one();
+        // Carts from blocked domains are usually bots or test orders, so they stay out of the Overview's totals.
         $skipped = (new Query())
-            ->select(['count' => 'COUNT(*)', 'value' => 'SUM([[cartTotal]])'])
+            ->select([
+                'count' => "SUM(CASE WHEN [[reason]] = :blocked THEN 0 ELSE 1 END)",
+                'value' => "SUM(CASE WHEN [[reason]] = :blocked THEN 0 ELSE [[cartTotal]] END)",
+                'blocked' => "SUM(CASE WHEN [[reason]] = :blocked THEN 1 ELSE 0 END)",
+            ])
             ->from([Table::SKIPPED_CARTS])
             ->where(['>=', 'abandonedAt', Db::prepareDateForDb($start)])
             ->andWhere(['<', 'abandonedAt', Db::prepareDateForDb($end)])
+            ->addParams([':blocked' => SkippedCart::REASON_BLOCKED_DOMAIN])
             ->one();
         $emailed = (int)(new Query())
             ->from(['r' => Table::RECOVERIES])
@@ -466,6 +473,7 @@ class Reports extends Component
             'abandoned' => $entered + (int)$skipped['count'],
             'abandonedValue' => (float)$recoveries['value'] + (float)$skipped['value'],
             'skipped' => (int)$skipped['count'],
+            'blockedDomains' => (int)$skipped['blocked'],
             'entered' => $entered,
             'emailed' => $emailed,
             'clicked' => $clickedCarts,
@@ -526,6 +534,7 @@ class Reports extends Component
             ->from([Table::SKIPPED_CARTS])
             ->where(['>=', 'abandonedAt', Db::prepareDateForDb($start)])
             ->andWhere(['<', 'abandonedAt', Db::prepareDateForDb($end)])
+            ->andWhere(['not', ['reason' => SkippedCart::REASON_BLOCKED_DOMAIN]])
             ->groupBy(['reason'])
             ->pairs();
 
@@ -549,7 +558,7 @@ class Reports extends Component
     public function countFrequentAbandoners(DateTime $since, int $minimum = 3): int
     {
         $recoveries = (new Query())->select(['customerId'])->from([Table::RECOVERIES])->where(['>=', 'abandonedAt', Db::prepareDateForDb($since)]);
-        $skipped = (new Query())->select(['customerId'])->from([Table::SKIPPED_CARTS])->where(['>=', 'abandonedAt', Db::prepareDateForDb($since)])->andWhere(['not', ['customerId' => null]]);
+        $skipped = (new Query())->select(['customerId'])->from([Table::SKIPPED_CARTS])->where(['>=', 'abandonedAt', Db::prepareDateForDb($since)])->andWhere(['not', ['customerId' => null]])->andWhere(['not', ['reason' => SkippedCart::REASON_BLOCKED_DOMAIN]]);
 
         return (int)(new Query())
             ->from(['x' => $recoveries->union($skipped, true)])

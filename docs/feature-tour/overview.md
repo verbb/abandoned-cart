@@ -23,6 +23,8 @@ Choose the last 7, 30 or 90 days. Each figure is compared with the period before
 
 **From Abandoned to Recovered** shows the funnel: carts abandoned, carts emailed, carts whose customer clicked through, and carts recovered, with the value left in abandoned carts and the number skipped before any email. **See why** opens the skipped carts.
 
+Carts from a [Blocked Domain](../get-started/configuration.md#blockeddomains) are usually bots or test orders, so the Overview leaves them out of its totals, its funnel, **Why Carts Didn't Recover** and the frequent-abandoner count, and notes how many it left out. They're still listed under **Carts → Skipped**.
+
 **Why Carts Didn't Recover** ranks the most common reasons carts left recovery without an order, along with the reasons carts were skipped. A large share for one reason, such as **Contacted recently**, is a prompt to review the matching setting.
 
 ## Sequence Performance
