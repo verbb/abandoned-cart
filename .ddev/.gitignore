@@ -1,6 +1,7 @@
 *
 !.gitignore
 !config.yaml
+!docker-compose.matrix-postgres.yaml
 !commands/
 !commands/host/
 !commands/host/test

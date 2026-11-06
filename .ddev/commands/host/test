@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ## Description: Rebuild an isolated Craft and Commerce installation and run Pest.
-## Usage: test [Pest arguments]
+## Usage: test [--database=pgsql] [Pest arguments]
 ## HostExecution: true
 set -euo pipefail
 cd "$DDEV_APPROOT"

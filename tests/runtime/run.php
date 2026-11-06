@@ -47,8 +47,14 @@ file_put_contents($runtime . '/result.json', json_encode(['status' => 'running',
 try {
     $arguments = array_slice($argv, 1);
     $updateLock = false;
+    $database = 'mysql';
 
     foreach ($arguments as $index => $argument) {
+        if (str_starts_with($argument, '--database=')) {
+            $database = substr($argument, 11);
+            unset($arguments[$index]);
+        }
+
         if ($argument === '--update-lock') {
             $updateLock = true;
             unset($arguments[$index]);
@@ -58,6 +64,22 @@ try {
             throw new RuntimeException('Parallel workers require independent runtime state and are not enabled.');
         }
     }
+
+    if (!in_array($database, ['mysql', 'pgsql'], true)) {
+        throw new RuntimeException('Unknown test database.');
+    }
+
+    // Both choices name fixed services owned by this dedicated test project.
+    // Never accept an arbitrary database DSN or credentials from the environment.
+    $databaseConfig = [
+        'driver' => $database,
+        'server' => $database === 'pgsql' ? 'matrix-pgsql' : 'db',
+        'port' => $database === 'pgsql' ? '5432' : '3306',
+        'database' => 'db',
+        'user' => 'db',
+        'password' => 'db',
+    ];
+    file_put_contents($runtime . '/database.json', json_encode($databaseConfig));
 
     $log = fopen($runtime . '/latest.log', 'w');
     $run = static function(array $command, ?string $cwd = null) use ($root, $log): void {
@@ -157,17 +179,24 @@ $config['baseApiUrl'] = 'http://127.0.0.1:9/';
 
 return $config;
 PHP);
-    file_put_contents($app . '/config/db.php', "<?php\nreturn ['driver'=>'mysql','server'=>'db','port'=>'3306','database'=>'db','user'=>'db','password'=>'db'];\n");
+    file_put_contents($app . '/config/db.php', "<?php\nreturn " . var_export($databaseConfig, true) . ";\n");
     file_put_contents($app . '/config/general.php', "<?php\nreturn \\craft\\config\\GeneralConfig::create()->devMode(true)->allowAdminChanges(true)->timezone('UTC');\n");
 
-    $database = new PDO('mysql:host=db;port=3306;dbname=db', 'db', 'db', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $database->exec('SET FOREIGN_KEY_CHECKS=0');
+    $db = new PDO($database . ':host=' . $databaseConfig['server'] . ';port=' . $databaseConfig['port'] . ';dbname=db', 'db', 'db', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
-    foreach ($database->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $table) {
-        $database->exec('DROP TABLE `' . str_replace('`', '``', $table) . '`');
+    if ($database === 'pgsql') {
+        $db->exec('DROP SCHEMA public CASCADE');
+        $db->exec('CREATE SCHEMA public');
+    } else {
+        $db->exec('SET FOREIGN_KEY_CHECKS=0');
+
+        foreach ($db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN) as $table) {
+            $db->exec('DROP TABLE `' . str_replace('`', '``', $table) . '`');
+        }
+
+        $db->exec('SET FOREIGN_KEY_CHECKS=1');
     }
 
-    $database->exec('SET FOREIGN_KEY_CHECKS=1');
     $run(['php', 'tests/runtime/craft.php', 'install/craft', '--interactive=0', '--username=admin', '--email=admin@example.test', '--password=testing-only-password', '--siteName=Abandoned Cart Tests', '--siteUrl=https://' . $project . '.ddev.site', '--language=en-US']);
     $run(['php', 'tests/runtime/craft.php', 'plugin/install', 'commerce', '--interactive=0']);
     $run(['php', 'tests/runtime/craft.php', 'plugin/install', $package['extra']['handle'], '--interactive=0']);
@@ -203,6 +232,8 @@ PHP);
     file_put_contents($runtime . '/result.json', json_encode([
         'status' => 'passed',
         'counts' => $counts,
+        'database' => $database,
+        'databaseVersion' => $db->getAttribute(PDO::ATTR_SERVER_VERSION),
         'arguments' => array_values($arguments),
         'finishedAt' => gmdate(DATE_ATOM),
     ], JSON_PRETTY_PRINT));
@@ -210,6 +241,7 @@ PHP);
 } catch (Throwable $error) {
     file_put_contents($runtime . '/result.json', json_encode([
         'status' => 'failed',
+        'database' => $database ?? null,
         'message' => $error->getMessage(),
         'finishedAt' => gmdate(DATE_ATOM),
     ], JSON_PRETTY_PRINT));
