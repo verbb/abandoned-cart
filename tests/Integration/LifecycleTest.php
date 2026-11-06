@@ -19,7 +19,7 @@ function abandonedCartLeftovers(): array
         'elements' => (int)(new Query())->from(Table::ELEMENTS)->where(['like', 'type', 'verbb\\abandonedcart\\%', false])->count(),
         'fields' => (int)(new Query())->from(Table::FIELDS)->where(['like', 'handle', 'abandonedCart%', false])->count(),
         'fieldLayouts' => (int)(new Query())->from(Table::FIELDLAYOUTS)->where(['like', 'type', 'verbb\\abandonedcart\\%', false])->count(),
-        'projectConfig' => Craft::$app->getProjectConfig()->get('plugins.abandoned-cart') !== null,
+        'projectConfig' => Craft::$app->getProjectConfig()->get('plugins.abandoned-cart') !== null || Craft::$app->getProjectConfig()->get('abandoned-cart') !== null,
     ];
 }
 

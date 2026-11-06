@@ -2,11 +2,11 @@
 namespace verbb\abandonedcart\base;
 
 use verbb\abandonedcart\AbandonedCart;
-use verbb\abandonedcart\services\Carts;
-use verbb\abandonedcart\services\Service;
-use verbb\abandonedcart\services\Templates;
-
-use Craft;
+use verbb\abandonedcart\services\Customers;
+use verbb\abandonedcart\services\Emails;
+use verbb\abandonedcart\services\EmailTemplates;
+use verbb\abandonedcart\services\Presets;
+use verbb\abandonedcart\services\Sequences;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
@@ -17,6 +17,7 @@ trait PluginTrait
     // =========================================================================
 
     public static ?AbandonedCart $plugin = null;
+
 
     // Traits
     // =========================================================================
@@ -33,9 +34,11 @@ trait PluginTrait
 
         return [
             'components' => [
-                'carts' => Carts::class,
-                'service' => Service::class,
-                'templates' => Templates::class,
+                'customers' => Customers::class,
+                'emails' => Emails::class,
+                'emailTemplates' => EmailTemplates::class,
+                'presets' => Presets::class,
+                'sequences' => Sequences::class,
             ],
         ];
     }
@@ -44,19 +47,28 @@ trait PluginTrait
     // Public Methods
     // =========================================================================
 
-    public function getCarts(): Carts
+    public function getCustomers(): Customers
     {
-        return $this->get('carts');
+        return $this->get('customers');
     }
 
-    public function getService(): Service
+    public function getEmails(): Emails
     {
-        return $this->get('service');
+        return $this->get('emails');
     }
 
-    public function getTemplates(): Templates
+    public function getEmailTemplates(): EmailTemplates
     {
-        return $this->get('templates');
+        return $this->get('emailTemplates');
     }
 
+    public function getPresets(): Presets
+    {
+        return $this->get('presets');
+    }
+
+    public function getSequences(): Sequences
+    {
+        return $this->get('sequences');
+    }
 }

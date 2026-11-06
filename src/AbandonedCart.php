@@ -3,28 +3,23 @@ namespace verbb\abandonedcart;
 
 use verbb\abandonedcart\base\PluginTrait;
 use verbb\abandonedcart\models\Settings;
-use verbb\abandonedcart\variables\AbandonedCartVariable;
+use verbb\abandonedcart\services\EmailTemplates;
 
 use Craft;
 use craft\base\Plugin;
-use craft\events\RegisterUrlRulesEvent;
-use craft\helpers\UrlHelper;
-use craft\services\Gc;
-use craft\web\twig\variables\CraftVariable;
-use craft\web\UrlManager;
+use craft\services\ProjectConfig;
 
 use yii\base\Event;
-
-use craft\commerce\elements\Order;
 
 class AbandonedCart extends Plugin
 {
     // Properties
     // =========================================================================
 
-    public bool $hasCpSection = true;
-    public bool $hasCpSettings = true;
-    public string $schemaVersion = '2.3.0';
+    // The control panel screens arrive with the settings and sequence phases of the 5.0 build.
+    public bool $hasCpSection = false;
+    public bool $hasCpSettings = false;
+    public string $schemaVersion = '5.0.0';
 
 
     // Traits
@@ -42,51 +37,12 @@ class AbandonedCart extends Plugin
 
         self::$plugin = $this;
 
-        $this->_registerVariables();
-        $this->_registerCraftEventListeners();
-        $this->_registerGarbageCollection();
-
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
-            $this->_registerCpRoutes();
-        }
-
-        if (Craft::$app->getRequest()->getIsSiteRequest()) {
-            $this->_registerSiteRoutes();
-        }
+        $this->_registerProjectConfigEventListeners();
     }
 
     public function getPluginName(): string
     {
         return Craft::t('abandoned-cart', $this->getSettings()->pluginName);
-    }
-
-    public function getCpNavItem(): array
-    {
-        $nav = parent::getCpNavItem();
-
-        $nav['label'] = $this->getPluginName();
-        $nav['url'] = 'abandoned-cart';
-
-        if (Craft::$app->getUser()->checkPermission('accessPlugin-abandoned-cart')) {
-            $nav['subnav']['dashboard'] = [
-                'label' => Craft::t('abandoned-cart', 'Dashboard'),
-                'url' => 'abandoned-cart/dashboard',
-            ];
-        }
-
-        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $nav['subnav']['settings'] = [
-                'label' => Craft::t('abandoned-cart', 'Settings'),
-                'url' => 'abandoned-cart/settings',
-            ];
-        }
-
-        return $nav;
-    }
-
-    public function getSettingsResponse(): mixed
-    {
-        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('abandoned-cart/settings'));
     }
 
 
@@ -102,40 +58,15 @@ class AbandonedCart extends Plugin
     // Private Methods
     // =========================================================================
 
-    private function _registerCpRoutes(): void
+    private function _registerProjectConfigEventListeners(): void
     {
-        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
-            $event->rules['abandoned-cart'] = ['template' => 'abandoned-cart/index'];
-            $event->rules['abandoned-cart/dashboard'] = 'abandoned-cart/carts/index';
-            $event->rules['abandoned-cart/settings'] = 'abandoned-cart/plugin/settings';
-        });
-    }
+        $emailTemplates = $this->getEmailTemplates();
 
-    private function _registerSiteRoutes(): void
-    {
-        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
-            $event->rules['abandoned-cart-restore'] = 'abandoned-cart/carts/restore-cart';
-        });
-    }
+        Craft::$app->getProjectConfig()
+            ->onAdd(EmailTemplates::CONFIG_KEY . '.{uid}', [$emailTemplates, 'handleChangedTemplate'])
+            ->onUpdate(EmailTemplates::CONFIG_KEY . '.{uid}', [$emailTemplates, 'handleChangedTemplate'])
+            ->onRemove(EmailTemplates::CONFIG_KEY . '.{uid}', [$emailTemplates, 'handleDeletedTemplate']);
 
-    private function _registerVariables(): void
-    {
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
-            $event->sender->set('abandonedCart', AbandonedCartVariable::class);
-        });
-    }
-
-    private function _registerCraftEventListeners(): void
-    {
-        Event::on(Order::class, Order::EVENT_AFTER_COMPLETE_ORDER, function(Event $event) {
-            $this->getCarts()->markCartAsRecovered($event->sender);
-        });
-    }
-
-    private function _registerGarbageCollection(): void
-    {
-        Event::on(Gc::class, Gc::EVENT_RUN, function() {
-            $this->getCarts()->purgeExpiredCarts();
-        });
+        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, [$emailTemplates, 'rebuildProjectConfig']);
     }
 }
