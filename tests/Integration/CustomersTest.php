@@ -64,3 +64,13 @@ it('finds a customer from their user account, by user or by email', function() {
     expect($customers->getCustomerByUser($user)?->id)->toBe($guest->id);
 });
 
+
+it('lets customers turn reminders back on from their account, but not staff', function() {
+    $customers = AbandonedCart::$plugin->getCustomers();
+    $customer = $customers->getOrCreateCustomer('self.service@example.test');
+    $customers->changeStatus($customer, Customer::STATUS_UNSUBSCRIBED, Customer::SOURCE_ACCOUNT);
+
+    expect($customers->changeStatus($customer, Customer::STATUS_ACTIVE, Customer::SOURCE_STAFF))->toBeFalse()
+        ->and($customers->changeStatus($customer, Customer::STATUS_ACTIVE, Customer::SOURCE_ACCOUNT))->toBeTrue()
+        ->and($customers->getCustomerById($customer->id)->status)->toBe(Customer::STATUS_ACTIVE);
+});

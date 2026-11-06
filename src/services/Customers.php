@@ -128,8 +128,8 @@ class Customers extends Component
             }
         }
 
-        // Only the customer can undo an unsubscribe, by opting in again at checkout.
-        if ($customer->status === Customer::STATUS_UNSUBSCRIBED && $status === Customer::STATUS_ACTIVE && $source !== Customer::SOURCE_CHECKOUT) {
+        // Only the customer can undo an unsubscribe, by opting in again at checkout or from their account.
+        if ($customer->status === Customer::STATUS_UNSUBSCRIBED && $status === Customer::STATUS_ACTIVE && !in_array($source, [Customer::SOURCE_CHECKOUT, Customer::SOURCE_ACCOUNT], true)) {
             $customer->addError('status', Craft::t('abandoned-cart', 'Only the customer can undo an unsubscribe.'));
 
             return false;

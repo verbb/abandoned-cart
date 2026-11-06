@@ -27,7 +27,7 @@
         <div class="ac-meta-head"><h2>{{ 'Email Status' | t('abandoned-cart') }}</h2></div>
         <p><pk-status-label status="{{ tones[customer.status] }}">{{ statusLabels[customer.status] }}</pk-status-label></p>
         {% if customer.status == 'unsubscribed' %}
-            <p class="light">{{ 'Unsubscribed {date}. Staff can’t undo an unsubscribe; it clears if the customer opts in again at checkout.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
+            <p class="light">{{ 'Unsubscribed {date}. Staff can’t undo an unsubscribe; it clears if the customer opts in again at checkout or from their account.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
         {% elseif customer.status == 'doNotEmail' %}
             {% if customer.statusNote %}<p>“{{ customer.statusNote }}”</p>{% endif %}
             <p class="light">{{ 'Added by {name} {date}.' | t('abandoned-cart', { name: changedBy.friendlyName ?? 'the 4.x upgrade' | t('abandoned-cart'), date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>

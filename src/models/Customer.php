@@ -21,6 +21,7 @@ class Customer extends Model
     public const SOURCE_STAFF = 'staff';
     public const SOURCE_CHECKOUT = 'checkout';
     public const SOURCE_UPGRADE = 'upgrade';
+    public const SOURCE_ACCOUNT = 'account';
 
 
     // Properties
