@@ -40,6 +40,9 @@ class Settings extends Model
     public int $maxEnrollmentsPerRun = 100;
     public bool $compatibilityMode = true;
 
+    // Carried over from 4.x for its scheduler URL, which works while compatibility mode is on.
+    public ?string $passKey = null;
+
 
     // Public Methods
     // =========================================================================
@@ -52,6 +55,13 @@ class Settings extends Model
         }
 
         parent::setAttributes($values, $safeOnly);
+    }
+
+    public function getPassKey(): ?string
+    {
+        $passKey = App::parseEnv($this->passKey);
+
+        return is_string($passKey) && trim($passKey) !== '' ? $passKey : null;
     }
 
     public function getReturnUrl(): ?string

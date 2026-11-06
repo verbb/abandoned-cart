@@ -245,6 +245,7 @@ class m261106_000000_upgrade_to_5 extends Migration
         $settings->recoveryWindowMinutes = max(60, $this->_legacyInt('restoreExpiryHours') * 60);
         $settings->contactLimitMinutes = max(60, $this->_legacyInt('recipientCooldownHours') * 60);
         $settings->returningCustomersOnly = $this->_legacyBool('previousOrderRequired');
+        $settings->passKey = $this->_legacyString('passKey');
         $settings->blockedDomains = $this->_blocklist()['domains'];
 
         if (isset($this->_legacy['maxEnrollmentsPerRun'])) {

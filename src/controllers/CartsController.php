@@ -12,7 +12,11 @@ use Craft;
 use craft\helpers\AdminTable;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
+use craft\web\Controller;
 
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -20,8 +24,66 @@ use craft\commerce\elements\Order;
 
 class CartsController extends BaseCpController
 {
+    // Properties
+    // =========================================================================
+
+    protected array|int|bool $allowAnonymous = ['find-carts'];
+
+
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        // The 4.x scheduler URL is called by cron with a pass key, not from the control panel.
+        if ($action->id === 'find-carts') {
+            $this->enableCsrfValidation = false;
+
+            return Controller::beforeAction($action);
+        }
+
+        return parent::beforeAction($action);
+    }
+
+    /**
+     * The 4.x scheduler URL, kept while compatibility mode is on so existing cron jobs keep sending. It runs the 5.0
+     * scheduler. Send the pass key as `Authorization: Bearer <key>` in a POST, as in 4.x.
+     *
+     * @deprecated in 5.0.0. Run `php craft abandoned-cart/recoveries/run` from cron instead.
+     */
+    public function actionFindCarts(): Response
+    {
+        $plugin = AbandonedCart::$plugin;
+        $settings = $plugin->getSettings();
+
+        if (!$settings->compatibilityMode) {
+            throw new NotFoundHttpException('Page not found');
+        }
+
+        // Reject method overrides, so the key can't arrive in a GET request that ends up in logs.
+        if (strtoupper($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            throw new MethodNotAllowedHttpException('Method Not Allowed. This URL can only handle POST requests.');
+        }
+
+        $this->requirePostRequest();
+
+        if (array_key_exists('passkey', $this->request->getQueryParams()) || array_key_exists('passkey', $this->request->getBodyParams())) {
+            throw new BadRequestHttpException('Scheduler pass keys must be sent using the Authorization header.');
+        }
+
+        $passKey = $settings->getPassKey();
+        $requestKey = $this->_bearerToken();
+
+        if ($passKey === null || $requestKey === null || !hash_equals($passKey, $requestKey)) {
+            throw new ForbiddenHttpException('User is not authorized to perform this action, or key mismatch from settings.');
+        }
+
+        Craft::$app->getDeprecator()->log('abandoned-cart/carts/find-carts', 'Abandoned Cart’s `abandoned-cart/carts/find-carts` scheduler URL is deprecated. Run `php craft abandoned-cart/recoveries/run` from cron instead.');
+
+        $summary = $plugin->getRecoveries()->run();
+
+        return $this->asJson(['success' => !($summary['locked'] ?? false), 'summary' => $summary]);
+    }
 
     public function actionIndex(): Response
     {
@@ -208,6 +270,17 @@ class CartsController extends BaseCpController
         }
 
         return $recovery;
+    }
+
+    private function _bearerToken(): ?string
+    {
+        $headers = $this->request->getHeaders()->get('Authorization', [], false);
+
+        if (count($headers) !== 1 || !is_string($headers[0]) || !preg_match('~\ABearer +([^\s,]+)\z~iD', $headers[0], $matches)) {
+            return null;
+        }
+
+        return $matches[1];
     }
 
     private function _nextLabel(array $steps): ?string

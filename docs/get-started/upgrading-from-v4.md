@@ -11,7 +11,7 @@ Review each of these that applies to your site:
 - **Everyone:** your two reminders become the Everyone Else sequence, and their timing is converted. Check the [reminder timing](#reminder-timing) and the email wording after upgrading.
 - **Sites with an `abandoned-cart.php` configuration file:** the 4.x settings are converted, but no longer read afterwards. Update the file using the [settings mapping](#settings).
 - **Sites that run reminders from cron:** the console command has a new name. The old one keeps working while [compatibility mode](#compatibility-mode) is on. See [Console Command](#console-command).
-- **Sites that trigger reminders over HTTP:** the HTTP endpoint and the `passKey` setting are removed. See [HTTP Trigger](#http-trigger).
+- **Sites that trigger reminders over HTTP:** the endpoint keeps working while [compatibility mode](#compatibility-mode) is on, with the same pass key. See [HTTP Trigger](#http-trigger).
 - **Sites with custom reminder templates:** template variables have changed, and the 4.x bundled templates are removed. See [Email Templates](#email-templates).
 - **Modules and plugins that listen to Abandoned Cart events:** the cart save events are removed, and `beforeMailSend` only runs in compatibility mode. See [Events](#events).
 
@@ -36,7 +36,7 @@ The 4.x settings are replaced. The migration converts the values saved in the co
 | `firstReminderTemplate`, `secondReminderTemplate` | An [email template](../feature-tour/emails-and-email-templates.md#email-templates) chosen on each email |
 | `discountCode` | The **Discount Code** on each Everyone Else email |
 | `disableSecondReminder` | Delete the second email from Everyone Else |
-| `passKey` | Removed |
+| `passKey` | `passKey`, used only by the [HTTP trigger](#http-trigger) while compatibility mode is on |
 | `includeBlacklisted` | Removed |
 
 Durations in Abandoned Cart 5 are always in minutes. The recovery window is also measured differently: it now starts when the cart is abandoned, not when an email is sent, so it needs to cover the whole sequence.
@@ -109,9 +109,9 @@ While compatibility mode is on, `abandoned-cart/reminders/schedule-emails` runs 
 
 ### HTTP Trigger
 
-The `abandoned-cart/carts/find-carts` endpoint and the `passKey` setting that secured it are removed, along with any requests that call it. Use the [console command](#console-command) from cron instead. If you can't use cron, Abandoned Cart queues a run from ordinary site and control panel requests while a sequence is on, as long as Craft's queue is running. [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run) explains both options.
+While [compatibility mode](#compatibility-mode) is on, the `abandoned-cart/carts/find-carts` endpoint keeps working, so a scheduled request that called it in 4.x carries on sending. The upgrade keeps your `passKey`, and the request works as it did in 4.x: a POST with the key in an `Authorization: Bearer` header. It now runs the 5.0 scheduler and responds with a JSON summary of the run instead of redirecting to the control panel. Each call logs a deprecation warning.
 
-Remove the `passKey` from your configuration file and any secrets store, and delete the scheduled request that called the endpoint.
+Switch to the [console command](#console-command) from cron when you can. If you can't use cron, Abandoned Cart also queues a run from ordinary site and control panel requests while a sequence is on, as long as Craft's queue is running. [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run) explains both options. Once nothing calls the endpoint, remove the `passKey` from your configuration file and any secrets store. With compatibility mode off, the endpoint returns a 404.
 
 ### Email Templates
 
@@ -263,10 +263,11 @@ Compatibility mode keeps the developer-facing parts of Abandoned Cart 4 working 
 - the `checkoutLink`, `discount` and `currentSite` template variables
 - the `Carts::EVENT_BEFORE_MAIL_SEND` event
 - the `abandoned-cart/reminders/schedule-emails` console command
+- the `abandoned-cart/carts/find-carts` scheduler URL
 
 `checkoutLink` is the recovery link relative to the site's URL, so a 4.x link written as `{{ siteUrl ~ checkoutLink }}`, as in the 4.x bundled templates, keeps working. Its replacement, `recoverUrl`, is the complete link. Emails render as the cart's own site, so `siteUrl` and `checkoutLink` match on multi-site installs too.
 
-The event and console command log a deprecation warning each time they're used; open **Utilities → Deprecation Warnings** after the site has sent some emails and run the scheduler. The template variables don't log warnings, so search your email templates for `checkoutLink`, `discount` and `currentSite` and replace them as shown in [Email Templates](#email-templates). Once nothing uses them, switch compatibility mode off in your configuration file:
+The event, console command and scheduler URL log a deprecation warning each time they're used; open **Utilities → Deprecation Warnings** after the site has sent some emails and run the scheduler. The template variables don't log warnings, so search your email templates for `checkoutLink`, `discount` and `currentSite` and replace them as shown in [Email Templates](#email-templates). Once nothing uses them, switch compatibility mode off in your configuration file:
 
 ```php
 <?php

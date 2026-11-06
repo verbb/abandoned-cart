@@ -19,7 +19,7 @@
 - Added System Status, with checks for the scheduler, sending, recent failures, email templates and consent, and a Run Now action.
 - Added the Manage sequences and send emails, Manage Do Not Email and View System Status permissions.
 - Added events for sequences, emails, email templates, audiences, enrolment, consent, recovery links, sending, rendering and customers.
-- Added the `compatibilityMode` setting, on by default, which keeps the 4.x email template variables, the `beforeMailSend` event and the 4.x console command working while sites update. The event and command log deprecation warnings.
+- Added the `compatibilityMode` setting, on by default, which keeps the 4.x email template variables, the `beforeMailSend` event, the 4.x console command and the 4.x scheduler URL working while sites update. The event, command and URL log deprecation warnings.
 
 ### Changed
 - Upgrading from 4.x runs a one-time migration that converts 4.x settings, reminders, templates and the blocklist into the Everyone Else sequence, email templates, Do Not Email statuses and the new settings, and imports 4.x reminder history.
@@ -32,9 +32,9 @@
 - Deprecated the `checkoutLink`, `discount` and `currentSite` email template variables. Use `recoverUrl`, `discountCode` and `site` instead.
 - Deprecated `Carts::EVENT_BEFORE_MAIL_SEND`. Use `Attempts::EVENT_BEFORE_SEND` instead.
 - Deprecated the `abandoned-cart/reminders/schedule-emails` console command. Use `abandoned-cart/recoveries/run` instead.
+- Deprecated the `abandoned-cart/carts/find-carts` scheduler URL and the `passKey` setting. Use `abandoned-cart/recoveries/run` from cron instead.
 
 ### Removed
-- Removed the HTTP scheduler endpoint (`abandoned-cart/carts/find-carts`) and the `passKey` setting.
 - Removed or replaced the `firstReminderDelay`, `secondReminderDelay`, `firstReminderSubject`, `secondReminderSubject`, `firstReminderTemplate`, `secondReminderTemplate`, `discountCode`, `disableSecondReminder`, `restoreExpiryHours`, `recipientCooldownHours`, `staleRecordRetentionDays`, `recoveryUrl`, `previousOrderRequired`, `blacklist` and `includeBlacklisted` settings. The upgrade guide maps each one to its replacement.
 - Removed the `Carts::EVENT_BEFORE_SAVE_CART` and `Carts::EVENT_AFTER_SAVE_CART` events, the `CartEvent` class and the 4.x cart model and record.
 - Removed the bundled `abandoned-cart/emails/first` and `abandoned-cart/emails/second` email templates.

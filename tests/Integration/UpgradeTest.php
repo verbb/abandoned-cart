@@ -179,6 +179,7 @@ it('upgrades a 4.x install on Craft 5', function() {
         expect(Craft::$app->getDb()->tableExists(Table::CARTS))->toBeFalse()
             ->and($plugin->getEmailTemplates()->getDefaultTemplate())->not->toBeNull()
             ->and($settings->pluginName)->toBe('Cart Reminders')
+            ->and($settings->getPassKey())->toBe('legacy-pass-key')
             ->and($settings->returnUrl)->toBe('shop/checkout')
             ->and($settings->recoveryWindowMinutes)->toBe(4320)
             ->and($settings->contactLimitMinutes)->toBe(2880)
