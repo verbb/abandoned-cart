@@ -1,0 +1,50 @@
+{# Shared by the customer profile page and the Abandoned Cart screen on a user's account. #}
+{% set formatter = craft.app.formatter %}
+{% set currency = craft.abandonedCart.getCurrency() %}
+{% set rowStates = { active: ['blue', 'In recovery' | t('abandoned-cart')], recovered: ['green', 'Recovered' | t('abandoned-cart')], ended: ['gray', 'Not recovered' | t('abandoned-cart')], skipped: ['amber', 'Skipped' | t('abandoned-cart')] } %}
+{% set reasonLabels = { noConsent: 'Didn’t opt in' | t('abandoned-cart'), doNotEmail: 'On Do Not Email' | t('abandoned-cart'), unsubscribed: 'Unsubscribed' | t('abandoned-cart'), blockedDomain: 'Blocked domain' | t('abandoned-cart'), notReturning: 'Not a returning customer' | t('abandoned-cart'), contactLimit: 'Contacted recently' | t('abandoned-cart'), noSequence: 'No sequence was on' | t('abandoned-cart'), cancelled: 'Excluded by a plugin' | t('abandoned-cart') } %}
+
+<div class="ac-strip">
+    <div><span class="light">{{ 'Carts Abandoned' | t('abandoned-cart') }}</span><strong>{{ stats.recentCarts }}</strong><span class="light">{{ 'last 30 days · {count} all time' | t('abandoned-cart', { count: stats.allCarts }) }}</span></div>
+    <div><span class="light">{{ 'Recovered' | t('abandoned-cart') }}</span><strong>{{ stats.recovered }}</strong><span class="light">{{ stats.allCarts ? '{rate} of carts' | t('abandoned-cart', { rate: formatter.asPercent(stats.recovered / stats.allCarts, 0) }) : '—' }}</span></div>
+    <div><span class="light">{{ 'Recovered Revenue' | t('abandoned-cart') }}</span><strong>{{ formatter.asCurrency(stats.revenue, currency) }}</strong><span class="light">{{ '{count, plural, =1{from 1 order} other{from # orders}}' | t('abandoned-cart', { count: stats.recovered }) }}</span></div>
+    <div><span class="light">{{ 'Emails' | t('abandoned-cart') }}</span><strong>{{ '{count} sent' | t('abandoned-cart', { count: stats.sent }) }}</strong><span class="light">{{ '{count} clicked' | t('abandoned-cart', { count: stats.clicked }) }}</span></div>
+    <div><span class="light">{{ 'Lifetime Orders' | t('abandoned-cart') }}</span><strong>{{ stats.lifetimeOrders }}</strong><span class="light">{{ '{value} in Commerce' | t('abandoned-cart', { value: formatter.asCurrency(stats.lifetimeValue, currency) }) }}</span></div>
+</div>
+
+{% if noticed %}
+    <div class="ac-card">
+        <div class="ac-card__head"><h2>{{ 'What We’ve Noticed' | t('abandoned-cart') }}</h2></div>
+        <ul class="ac-noticed">
+            {% for line in noticed %}<li>{{ line | md(inlineOnly=true) }}</li>{% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<div class="ac-card ac-card--table">
+    <div class="ac-card__head"><h2>{{ 'Carts' | t('abandoned-cart') }}</h2><span class="light">{{ 'Newest first' | t('abandoned-cart') }}</span></div>
+    {% if history %}
+        <table class="data fullwidth">
+            <thead><tr><th>{{ 'Abandoned' | t('abandoned-cart') }}</th><th class="ac-num">{{ 'Value' | t('abandoned-cart') }}</th><th>{{ 'Sequence' | t('abandoned-cart') }}</th><th>{{ 'Emails' | t('abandoned-cart') }}</th><th>{{ 'Outcome' | t('abandoned-cart') }}</th></tr></thead>
+            <tbody>
+                {% for row in history %}
+                    {% set state = row.kind == 'skipped' ? 'skipped' : row.status %}
+                    <tr>
+                        <td><a href="{{ url(row.kind == 'skipped' ? 'abandoned-cart/carts/skipped/' ~ row.id : 'abandoned-cart/carts/' ~ row.id) }}">{{ row.abandonedAt | datetime('short') }}</a></td>
+                        <td class="ac-num">{{ formatter.asCurrency(row.cartTotal, row.currency ?: currency) }}</td>
+                        <td>{{ row.sequenceId ? (sequences[row.sequenceId] ?? '—') : '—' }}</td>
+                        <td>
+                            <span class="ac-pips">{% for step in progress[row.id] ?? [] %}<i class="ac-pip ac-pip--{{ step.status }}"></i>{% else %}—{% endfor %}</span>
+                        </td>
+                        <td>
+                            <pk-status-label status="{{ rowStates[state][0] }}">{{ rowStates[state][1] }}</pk-status-label>
+                            {% if row.kind == 'skipped' %}<span class="light ac-sub">{{ reasonLabels[row.reason] ?? row.reason }}</span>{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="light">{{ 'No carts yet.' | t('abandoned-cart') }}</p>
+    {% endif %}
+</div>

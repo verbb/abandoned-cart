@@ -45,6 +45,17 @@ class Customers extends Component
         return $row ? new Customer($row) : null;
     }
 
+    public function getCustomerByUser(\craft\elements\User $user): ?Customer
+    {
+        $row = $this->_createCustomerQuery()->where(['userId' => $user->id])->one();
+
+        if (!$row && $user->email) {
+            $row = $this->_createCustomerQuery()->where(['email' => Customer::normalizeEmail($user->email)])->one();
+        }
+
+        return $row ? new Customer($row) : null;
+    }
+
     public function getOrCreateCustomer(string $email, ?int $userId = null): Customer
     {
         $customer = $this->getCustomerByEmail($email);

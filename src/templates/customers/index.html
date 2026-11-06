@@ -1,0 +1,34 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% set title = 'Customers' | t('abandoned-cart') %}
+{% set selectedSubnavItem = 'customers' %}
+{% set crumbs = [{ label: title, url: url('abandoned-cart/customers') }] %}
+
+{% block main %}
+    <div class="content-grid__main">
+        <div id="content" class="ac-unpaned">{{ block('blockContent') }}</div>
+    </div>
+{% endblock %}
+
+{% block blockContent %}
+    {% if frequent %}
+        <div class="ac-callout">
+            <p>{{ '**{count, plural, =1{1 customer} other{# customers}} abandoned 3 or more carts** in the last 30 days. They’re sorted to the top.' | t('abandoned-cart', { count: frequent }) | md(inlineOnly=true) }}</p>
+        </div>
+    {% endif %}
+
+    {{ tag('div', {
+        class: 'ac-table--index',
+        data: {
+            'ac-table': {
+                kind: 'customers',
+                userId: currentUser.uid,
+                counts: counts,
+                status: craft.app.request.getParam('status') ?: 'all',
+                search: craft.app.request.getParam('search'),
+                canManage: currentUser.can('abandonedCart-manageDoNotEmail'),
+            },
+        },
+    }) }}
+    <p class="light ac-hint">{{ 'Only Commerce customers with an abandoned cart are listed. The Do not email view also shows addresses blocked before they’ve had a cart.' | t('abandoned-cart') }}</p>
+{% endblock %}

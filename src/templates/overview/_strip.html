@@ -1,0 +1,7 @@
+{% set formatter = craft.app.formatter %}
+<div class="ac-strip" aria-label="{{ 'Right now' | t('abandoned-cart') }}">
+    <div><span class="ac-live"><span class="ac-live__dot"></span>{{ 'Right now' | t('abandoned-cart') }}</span><strong>{{ rightNow.inRecovery }}</strong><span class="light">{{ '{count, plural, =1{cart in recovery} other{carts in recovery}}' | t('abandoned-cart', { count: rightNow.inRecovery }) }}</span></div>
+    <div><span class="light">{{ 'Next 24 Hours' | t('abandoned-cart') }}</span><strong>{{ rightNow.scheduled }}</strong><span class="light">{{ 'emails scheduled' | t('abandoned-cart') }}</span></div>
+    <div><span class="light">{{ 'Value in Recovery' | t('abandoned-cart') }}</span><strong>{{ formatter.asCurrency(rightNow.value, currency) }}</strong><span class="light">{{ '{count, plural, =1{across 1 cart} other{across # carts}}' | t('abandoned-cart', { count: rightNow.inRecovery }) }}</span></div>
+    <div><span class="light">{{ 'Needs Attention' | t('abandoned-cart') }}</span><strong class="{{ rightNow.failed ? 'ac-warn' : 'ac-ok' }}">{{ rightNow.failed }}</strong>{% if rightNow.failed %}<a href="{{ url('abandoned-cart/settings/system-status') }}">{{ '{count, plural, =1{1 email failed} other{# emails failed}} →' | t('abandoned-cart', { count: rightNow.failed }) }}</a>{% else %}<span class="light">{{ 'All clear' | t('abandoned-cart') }}</span>{% endif %}</div>
+</div>

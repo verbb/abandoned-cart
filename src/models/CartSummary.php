@@ -5,6 +5,7 @@ use Craft;
 use craft\base\Model;
 
 use craft\commerce\elements\Order;
+use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
 
 /**
@@ -53,8 +54,8 @@ class CartSummary extends Model
             'subtotal' => (float)$order->getItemSubtotal(),
             'itemCount' => (int)$order->getTotalQty(),
             'items' => array_map(static fn(LineItem $item): array => [
-                'title' => (string)$item->getDescription(),
-                'description' => self::_describeOptions($item->getOptions()),
+                'title' => self::_title($item),
+                'description' => self::_variant($item) ?? self::_describeOptions($item->getOptions()),
                 'qty' => (int)$item->qty,
                 'price' => (float)$item->getSalePrice(),
                 'subtotal' => (float)$item->getSubtotal(),
@@ -96,6 +97,27 @@ class CartSummary extends Model
 
     // Private Methods
     // =========================================================================
+
+    private static function _title(LineItem $item): string
+    {
+        $purchasable = $item->getPurchasable();
+
+        return $purchasable instanceof Variant ? (string)($purchasable->getOwner()?->title ?? $purchasable->title) : (string)$item->getDescription();
+    }
+
+    /**
+     * A variant's own title when it says something the product title doesn't, such as a size or colour.
+     */
+    private static function _variant(LineItem $item): ?string
+    {
+        $purchasable = $item->getPurchasable();
+
+        if (!$purchasable instanceof Variant || $purchasable->title === ($purchasable->getOwner()?->title)) {
+            return null;
+        }
+
+        return $purchasable->title ?: null;
+    }
 
     private static function _describeOptions(array $options): ?string
     {

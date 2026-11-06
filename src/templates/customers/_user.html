@@ -1,0 +1,17 @@
+{% do view.registerAssetBundle('verbb\\abandonedcart\\web\\assets\\cp\\AbandonedCartAsset') %}
+{# The Abandoned Cart screen on a user's account, next to Commerce's screen. #}
+{% set tones = { active: 'green', unsubscribed: 'gray', doNotEmail: 'red' } %}
+
+{% if customer %}
+    <div class="ac-user-screen">
+        <div class="ac-user-screen__head">
+            <pk-status-label status="{{ tones[customer.status] }}">{{ statusLabels[customer.status] }}</pk-status-label>
+            {% if currentUser.can('accessPlugin-abandoned-cart') %}
+                <a href="{{ customer.cpEditUrl }}">{{ 'Open the full customer profile' | t('abandoned-cart') }} →</a>
+            {% endif %}
+        </div>
+        {% include 'abandoned-cart/customers/_profile' %}
+    </div>
+{% else %}
+    <p class="zilch">{{ 'This customer hasn’t abandoned a cart.' | t('abandoned-cart') }}</p>
+{% endif %}

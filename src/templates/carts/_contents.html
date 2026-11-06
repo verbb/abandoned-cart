@@ -1,0 +1,25 @@
+{# Cart contents as the plugin saw them. `cart` is a CartSummary, or null when the Commerce cart was purged. #}
+<div class="ac-card">
+    <div class="ac-card__head">
+        <h2>{{ 'Cart Contents' | t('abandoned-cart') }}</h2>
+        <span class="light">{{ order and order.isCompleted ? 'As ordered' | t('abandoned-cart') : 'As it is now' | t('abandoned-cart') }}</span>
+    </div>
+    {% if cart and cart.items %}
+        <table class="ac-items">
+            <tbody>
+                {% for item in cart.items %}
+                    <tr>
+                        <td class="ac-items__thumb"><span aria-hidden="true">{{ item.title | slice(0, 1) | upper }}</span></td>
+                        <td><strong>{{ item.title }}</strong>{% if item.description %}<br><span class="light">{{ item.description }}</span>{% endif %}<br><span class="light">{{ 'Qty {qty}' | t('abandoned-cart', { qty: item.qty }) }}</span></td>
+                        <td class="ac-items__price">{{ cart.formatMoney(item.subtotal) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr><td></td><td>{{ 'Total' | t('abandoned-cart') }}</td><td class="ac-items__price">{{ cart.formatMoney(cart.total) }}</td></tr>
+            </tfoot>
+        </table>
+    {% else %}
+        <p class="light">{{ 'Commerce no longer has this cart, so its contents can’t be shown. It was worth {value} when abandoned.' | t('abandoned-cart', { value: total }) }}</p>
+    {% endif %}
+</div>

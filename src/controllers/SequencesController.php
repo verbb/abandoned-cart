@@ -130,22 +130,24 @@ class SequencesController extends BaseCpController
         $sequence->name = (string)$this->request->getBodyParam('name', $sequence->name);
         $sequence->enabled = (bool)$this->request->getBodyParam('enabled', $sequence->enabled);
 
-        if (!$sequence->isFallback) {
-            $sequence->audienceType = (string)$this->request->getBodyParam('audienceType', $sequence->audienceType);
+        if (!$sequence->isFallback && $this->request->getBodyParam('audienceType') !== null) {
+            $sequence->audienceType = (string)$this->request->getBodyParam('audienceType');
             $sequence->audienceSettings = $this->_audienceSettings($sequence->audienceType, (array)$this->request->getBodyParam('audienceSettings', []));
         }
 
-        $siteIds = $this->request->getBodyParam('siteIds');
-        $sequence->siteIds = is_array($siteIds) ? array_values(array_map('intval', array_filter($siteIds))) : [];
-
-        // Overrides only apply while their switch is on, so switching it off returns to the Recovery Defaults.
-        $override = (bool)$this->request->getBodyParam('overrideDefaults');
-
-        foreach (['abandonedAfterMinutes', 'recoveryWindowMinutes', 'attributionWindowMinutes', 'contactLimitMinutes'] as $key) {
-            $sequence->$key = $override ? Duration::toMinutes($this->request->getBodyParam($key)) : null;
+        // Fields that weren't posted keep their values, so a quick On/Off form doesn't clear anything else.
+        if (($siteIds = $this->request->getBodyParam('siteIds')) !== null) {
+            $sequence->siteIds = is_array($siteIds) ? array_values(array_map('intval', array_filter($siteIds))) : [];
         }
 
-        $sequence->returnUrl = $override ? (trim((string)$this->request->getBodyParam('returnUrl')) ?: null) : null;
+        if (($override = $this->request->getBodyParam('overrideDefaults')) !== null) {
+            // Overrides only apply while their switch is on, so switching it off returns to the Recovery Defaults.
+            foreach (['abandonedAfterMinutes', 'recoveryWindowMinutes', 'attributionWindowMinutes', 'contactLimitMinutes'] as $key) {
+                $sequence->$key = $override ? Duration::toMinutes($this->request->getBodyParam($key)) : null;
+            }
+
+            $sequence->returnUrl = $override ? (trim((string)$this->request->getBodyParam('returnUrl')) ?: null) : null;
+        }
 
         if (!$sequences->saveSequence($sequence)) {
             return $this->asModelFailure($sequence, Craft::t('abandoned-cart', 'Couldn’t save sequence.'), 'sequence');

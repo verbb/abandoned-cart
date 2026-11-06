@@ -2,11 +2,14 @@
 namespace verbb\abandonedcart;
 
 use verbb\abandonedcart\base\PluginTrait;
+use verbb\abandonedcart\controllers\UsersController as AbandonedCartUsersController;
 use verbb\abandonedcart\models\Settings;
 use verbb\abandonedcart\services\EmailTemplates;
 use verbb\abandonedcart\variables\AbandonedCartVariable;
 
 use Craft;
+use craft\controllers\UsersController;
+use craft\events\DefineEditUserScreensEvent;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\events\RegisterUrlRulesEvent;
@@ -61,6 +64,7 @@ class AbandonedCart extends Plugin
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
+            $this->_registerUserScreen();
         }
 
         if (Craft::$app instanceof ConsoleApplication) {
@@ -166,6 +170,17 @@ class AbandonedCart extends Plugin
             $event->rules['abandoned-cart/settings/email-templates/new'] = 'abandoned-cart/email-templates/edit';
             $event->rules['abandoned-cart/settings/email-templates/<templateId:\d+>'] = 'abandoned-cart/email-templates/edit';
             $event->rules['abandoned-cart/settings/system-status'] = 'abandoned-cart/system-status/index';
+            $event->rules['myaccount/abandoned-cart'] = 'abandoned-cart/users/index';
+            $event->rules['users/<userId:\d+>/abandoned-cart'] = 'abandoned-cart/users/index';
+        });
+    }
+
+    private function _registerUserScreen(): void
+    {
+        Event::on(UsersController::class, UsersController::EVENT_DEFINE_EDIT_SCREENS, function(DefineEditUserScreensEvent $event) {
+            if ($event->currentUser?->can('accessPlugin-abandoned-cart')) {
+                $event->screens[AbandonedCartUsersController::SCREEN] = ['label' => $this->getPluginName()];
+            }
         });
     }
 

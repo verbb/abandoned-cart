@@ -1,0 +1,30 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% set title = 'Carts' | t('abandoned-cart') %}
+{% set selectedSubnavItem = 'carts' %}
+{% set crumbs = [{ label: title, url: url('abandoned-cart/carts') }] %}
+
+{% block main %}
+    <div class="content-grid__main">
+        <div id="content" class="ac-unpaned">{{ block('blockContent') }}</div>
+    </div>
+{% endblock %}
+
+{% block blockContent %}
+    {{ tag('div', {
+        class: 'ac-table--index',
+        data: {
+            'ac-table': {
+                kind: 'carts',
+                userId: currentUser.uid,
+                counts: counts,
+                sequences: sequences | map(s => { value: s.id, label: s.name }),
+                reasons: reasons | map((label, value) => { value: value, label: label }) | values,
+                status: craft.app.request.getParam('status') ?: 'all',
+                sequenceId: craft.app.request.getParam('sequenceId'),
+                search: craft.app.request.getParam('search'),
+            },
+        },
+    }) }}
+    <p class="light ac-hint">{{ 'Carts without an email address aren’t listed, because they can’t be recovered by email.' | t('abandoned-cart') }}</p>
+{% endblock %}

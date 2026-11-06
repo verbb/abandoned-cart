@@ -5,6 +5,8 @@ use verbb\abandonedcart\events\CustomerStatusEvent;
 use verbb\abandonedcart\models\Customer;
 use verbb\abandonedcart\services\Customers;
 
+use craft\elements\User;
+
 uses(verbb\abandonedcart\tests\Integration\TestCase::class);
 
 it('finds one customer per email, whatever its case', function() {
@@ -49,3 +51,16 @@ it('only lets the customer undo an unsubscribe', function() {
     expect($customers->changeStatus($customer, Customer::STATUS_ACTIVE, Customer::SOURCE_STAFF))->toBeFalse()
         ->and($customers->changeStatus($customer, Customer::STATUS_ACTIVE, Customer::SOURCE_CHECKOUT))->toBeTrue();
 });
+
+it('finds a customer from their user account, by user or by email', function() {
+    $customers = AbandonedCart::$plugin->getCustomers();
+    $user = new User(['email' => 'account.holder@example.test', 'username' => 'account.holder@example.test']);
+    expect(Craft::$app->getElements()->saveElement($user, false))->toBeTrue();
+
+    expect($customers->getCustomerByUser($user))->toBeNull();
+
+    $guest = $customers->getOrCreateCustomer('Account.Holder@example.test');
+
+    expect($customers->getCustomerByUser($user)?->id)->toBe($guest->id);
+});
+

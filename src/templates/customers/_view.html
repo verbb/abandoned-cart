@@ -1,0 +1,58 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set title = user.fullName ?? customer.email %}
+{% set selectedSubnavItem = 'customers' %}
+{% set crumbs = [{ label: 'Customers' | t('abandoned-cart'), url: url('abandoned-cart/customers') }] %}
+{% set formatter = craft.app.formatter %}
+{% set currency = craft.abandonedCart.getCurrency() %}
+{% set tones = { active: 'green', unsubscribed: 'gray', doNotEmail: 'red' } %}
+{% set canManage = currentUser.can('abandonedCart-manageDoNotEmail') %}
+
+{% block contextMenu %}
+    <pk-status-label status="{{ tones[customer.status] }}" class="ac-title-status">{{ statusLabels[customer.status] }}</pk-status-label>
+{% endblock %}
+
+{% block actionButton %}
+    {% if user %}<a class="btn" href="{{ url('users/' ~ user.id ~ '/commerce') }}">{{ 'View in Commerce' | t('abandoned-cart') }}</a>{% endif %}
+{% endblock %}
+
+{% block blockContent %}
+    {% include 'abandoned-cart/customers/_profile' %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta read-only">
+        <div class="ac-meta-head"><h2>{{ 'Email Status' | t('abandoned-cart') }}</h2></div>
+        <p><pk-status-label status="{{ tones[customer.status] }}">{{ statusLabels[customer.status] }}</pk-status-label></p>
+        {% if customer.status == 'unsubscribed' %}
+            <p class="light">{{ 'Unsubscribed {date}. Staff can’t undo an unsubscribe; it clears if the customer opts in again at checkout.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
+        {% elseif customer.status == 'doNotEmail' %}
+            {% if customer.statusNote %}<p>“{{ customer.statusNote }}”</p>{% endif %}
+            <p class="light">{{ 'Added by {name} {date}.' | t('abandoned-cart', { name: changedBy.friendlyName ?? 'the 4.x upgrade' | t('abandoned-cart'), date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
+            {% if canManage %}
+                <form method="post">
+                    {{ csrfInput() }}{{ actionInput('abandoned-cart/customers/remove-do-not-email') }}{{ hiddenInput('id', customer.id) }}{{ redirectInput(customer.cpEditUrl) }}
+                    <button type="submit" class="btn small">{{ 'Remove from Do Not Email' | t('abandoned-cart') }}</button>
+                </form>
+            {% endif %}
+        {% else %}
+            {% if nextSequenceAt %}<p class="light">{{ 'Can start a new sequence after {date}.' | t('abandoned-cart', { date: nextSequenceAt | date('short') }) }}</p>{% endif %}
+            {% if canManage %}
+                <form method="post" class="ac-dne-form">
+                    {{ csrfInput() }}{{ actionInput('abandoned-cart/customers/do-not-email') }}{{ hiddenInput('ids[]', customer.id) }}{{ redirectInput(customer.cpEditUrl) }}
+                    {{ forms.text({ name: 'note', placeholder: 'Note, such as “Asked by phone”' | t('abandoned-cart') }) }}
+                    <button type="submit" class="btn small">{{ 'Add to Do Not Email' | t('abandoned-cart') }}</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="meta read-only">
+        <div class="ac-meta-head"><h2>{{ 'Customer' | t('abandoned-cart') }}</h2></div>
+        <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Account' | t('abandoned-cart') }}</h5><div class="value">{{ user and user.isCredentialed ? 'Yes, since {date}' | t('abandoned-cart', { date: user.dateCreated | date('short') }) : 'Guest' | t('abandoned-cart') }}</div></div>
+        {% if user %}<div class="data"><h5 class="heading">{{ 'Commerce' | t('abandoned-cart') }}</h5><div class="value"><a href="{{ url('users/' ~ user.id ~ '/commerce') }}">{{ 'Customer page' | t('abandoned-cart') }}</a></div></div>{% endif %}
+    </div>
+{% endblock %}

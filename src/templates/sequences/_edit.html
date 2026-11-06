@@ -145,7 +145,7 @@
                             </span>
                             <span class="ac-email-card__stats">
                                 {% if stats and stats.sent %}
-                                    <strong>{{ formatter.asPercent(stats.clickRate ?? 0) }}</strong>{{ 'clicked' | t('abandoned-cart') }}
+                                    <strong>{{ formatter.asPercent(stats.clickRate ?? 0, 0) }}</strong>{{ 'clicked' | t('abandoned-cart') }}
                                 {% else %}
                                     <span class="light">{{ 'Not sent yet' | t('abandoned-cart') }}</span>
                                 {% endif %}

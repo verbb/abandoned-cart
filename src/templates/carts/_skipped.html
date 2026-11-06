@@ -1,0 +1,55 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% set title = customerName ?: customer.email ?? 'Cart' | t('abandoned-cart') %}
+{% set selectedSubnavItem = 'carts' %}
+{% set crumbs = [{ label: 'Carts' | t('abandoned-cart'), url: url('abandoned-cart/carts') }] %}
+{% set formatter = craft.app.formatter %}
+{% set currency = skipped.currency ?: craft.abandonedCart.getCurrency() %}
+
+{% set explanations = {
+    noConsent: 'The consent field wasn’t switched on for this order, so no email will be sent. You choose which field gives consent in General Settings.' | t('abandoned-cart'),
+    doNotEmail: 'This customer is on Do Not Email.' | t('abandoned-cart'),
+    unsubscribed: 'This customer unsubscribed from cart reminders.' | t('abandoned-cart'),
+    blockedDomain: 'The email address is at a blocked domain ({domain}).' | t('abandoned-cart', { domain: skipped.detail }),
+    notReturning: 'General Settings only allows returning customers, and this customer hasn’t ordered before.' | t('abandoned-cart'),
+    contactLimit: 'The customer was emailed about another cart recently, so the Contact Limit held this one back.' | t('abandoned-cart'),
+    noSequence: 'No switched-on sequence matched this cart. Turn on Everyone Else to catch every cart.' | t('abandoned-cart'),
+    cancelled: 'A plugin or module excluded this cart{reason}.' | t('abandoned-cart', { reason: skipped.detail ? ': ' ~ skipped.detail : '' }),
+} %}
+
+{% block contextMenu %}
+    <pk-status-label status="amber" class="ac-title-status">{{ 'Skipped' | t('abandoned-cart') }}</pk-status-label>
+{% endblock %}
+
+{% block blockContent %}
+    <div class="ac-outcome ac-outcome--skip">
+        <span class="ac-outcome__icon" aria-hidden="true">{{ svg('@appicons/info.svg') }}</span>
+        <div>
+            <h2>{{ 'Not emailed: {reason}' | t('abandoned-cart', { reason: skipped.reasonLabel | lower }) }}</h2>
+            <p>{{ explanations[skipped.reason] ?? skipped.reasonLabel }}</p>
+        </div>
+    </div>
+
+    <div class="ac-card">
+        <div class="ac-card__head"><h2>{{ 'Journey' | t('abandoned-cart') }}</h2></div>
+        <ol class="ac-journey">
+            <li><strong>{{ 'Abandoned' | t('abandoned-cart') }}</strong><span>{{ skipped.abandonedAt | datetime('short') }}</span></li>
+            <li class="ac-journey--skipped"><strong>{{ 'Skipped' | t('abandoned-cart') }}</strong><span>{{ skipped.dateCreated | datetime('short') }} · {{ skipped.reasonLabel | lower }}</span></li>
+        </ol>
+    </div>
+
+    {% include 'abandoned-cart/carts/_contents' with { total: formatter.asCurrency(skipped.cartTotal, currency) } %}
+{% endblock %}
+
+{% block details %}
+    <div class="meta read-only">
+        <div class="ac-meta-head"><h2>{{ 'Customer' | t('abandoned-cart') }}</h2>{% if customer %}<a href="{{ customer.cpEditUrl }}">{{ 'View customer' | t('abandoned-cart') }}</a>{% endif %}</div>
+        <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email ?? '—' }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Account' | t('abandoned-cart') }}</h5><div class="value">{{ customer and customer.user and customer.user.isCredentialed ? 'Yes' | t('app') : 'Guest' | t('abandoned-cart') }}</div></div>
+    </div>
+    <div class="meta read-only">
+        <div class="ac-meta-head"><h2>{{ 'Cart' | t('abandoned-cart') }}</h2></div>
+        <div class="data"><h5 class="heading">{{ 'Value' | t('abandoned-cart') }}</h5><div class="value">{{ formatter.asCurrency(skipped.cartTotal, currency) }}</div></div>
+        {% if order %}<div class="data"><h5 class="heading">{{ 'Commerce Order' | t('abandoned-cart') }}</h5><div class="value"><a href="{{ order.cpEditUrl }}">{{ order.shortNumber }}</a></div></div>{% endif %}
+    </div>
+{% endblock %}

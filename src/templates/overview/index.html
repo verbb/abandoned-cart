@@ -1,0 +1,159 @@
+{% extends 'abandoned-cart/_layouts' %}
+
+{% import '_includes/forms' as forms %}
+
+{% set title = 'Overview' | t('abandoned-cart') %}
+{% set selectedSubnavItem = 'overview' %}
+{% set formatter = craft.app.formatter %}
+
+{% macro delta(current, previous, kind = 'percent') %}
+    {% if previous > 0 or kind == 'points' %}
+        {% set change = kind == 'points' ? (current - previous) * 100 : ((current - previous) / previous) * 100 %}
+        {% if change | abs >= 0.5 %}
+            <span class="ac-delta ac-delta--{{ change > 0 ? 'up' : 'down' }}">{{ change > 0 ? '▲' : '▼' }} {{ change | abs | number_format(kind == 'points' ? 1 : 0) }}{{ kind == 'points' ? ' pts' : '%' }}</span>
+        {% endif %}
+    {% endif %}
+{% endmacro %}
+
+{% block actionButton %}
+    <form method="get" class="ac-inline-form">
+        {{ forms.select({
+            name: 'range',
+            value: range,
+            options: ranges | map(days => { label: 'Last {count} days' | t('abandoned-cart', { count: days }), value: days }),
+            inputAttributes: { onchange: 'this.form.submit()', 'aria-label': 'Date range' | t('abandoned-cart') },
+        }) }}
+    </form>
+{% endblock %}
+
+{% block main %}
+    <div class="content-grid__main">
+        <div id="content" class="ac-unpaned">{{ block('blockContent') }}</div>
+    </div>
+{% endblock %}
+
+{% block blockContent %}
+    {% include 'abandoned-cart/overview/_strip' %}
+
+    <div class="ac-grid ac-grid--hero">
+        <div class="ac-card">
+            <div class="ac-card__head">
+                <h2>{{ 'Recovered Revenue' | t('abandoned-cart') }}</h2>
+            </div>
+            <div class="ac-kpi-big">
+                <span class="ac-kpi-big__value">{{ formatter.asCurrency(current.revenue, currency) }}</span>
+                {{ _self.delta(current.revenue, previous.revenue) }}
+                <span class="light">{{ 'vs previous {count} days' | t('abandoned-cart', { count: range }) }}</span>
+            </div>
+            <p class="light ac-kpi-sub">{{ '{orders, plural, =1{1 order} other{# orders}} · {average} average' | t('abandoned-cart', { orders: current.recovered, average: formatter.asCurrency(current.averageOrder, currency) }) }}</p>
+            <pk-line-chart class="ac-chart" area table-toggle label="{{ 'Recovered revenue by day' | t('abandoned-cart') }}" data="{{ chartData | json_encode }}"></pk-line-chart>
+        </div>
+
+        <div class="ac-kpis">
+            <div class="ac-kpi">
+                <span class="ac-eyebrow">{{ 'Recovery Rate' | t('abandoned-cart') }}</span>
+                <div class="ac-kpi__row"><strong>{{ formatter.asPercent(current.rate, 1) }}</strong>{{ _self.delta(current.rate, previous.rate, 'points') }}</div>
+                <span class="light">{{ 'of carts that were sent an email' | t('abandoned-cart') }}</span>
+            </div>
+            <div class="ac-kpi">
+                <span class="ac-eyebrow">{{ 'Recovered Orders' | t('abandoned-cart') }}</span>
+                <div class="ac-kpi__row"><strong>{{ current.recovered }}</strong>{{ _self.delta(current.recovered, previous.recovered) }}</div>
+                <span class="light">{{ '{count} from first-time customers' | t('abandoned-cart', { count: current.firstOrders }) }}</span>
+            </div>
+            <div class="ac-kpi">
+                <span class="ac-eyebrow">{{ 'Revenue per Email Sent' | t('abandoned-cart') }}</span>
+                <div class="ac-kpi__row"><strong>{{ formatter.asCurrency(current.revenuePerEmail, currency) }}</strong>{{ _self.delta(current.revenuePerEmail, previous.revenuePerEmail) }}</div>
+                <span class="light">{{ '{count, plural, =1{1 email sent} other{# emails sent}}' | t('abandoned-cart', { count: current.emailsSent }) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ac-card">
+        <div class="ac-card__head">
+            <h2>{{ 'From Abandoned to Recovered' | t('abandoned-cart') }}</h2>
+            <span class="light">{{ '{count} skipped before any email' | t('abandoned-cart', { count: current.skipped }) }} · <a href="{{ url('abandoned-cart/carts', { status: 'skipped' }) }}">{{ 'See why' | t('abandoned-cart') }}</a></span>
+        </div>
+        <pk-funnel-chart class="ac-chart ac-chart--short" label="{{ 'Recovery funnel' | t('abandoned-cart') }}" data="{{ funnelData | json_encode }}"></pk-funnel-chart>
+    </div>
+
+    <div class="ac-card ac-card--table">
+        <div class="ac-card__head">
+            <h2>{{ 'Sequence Performance' | t('abandoned-cart') }}</h2>
+            <span class="light">{{ 'A recovered order counts for the last email clicked, or else the last one sent' | t('abandoned-cart') }}</span>
+        </div>
+        <table class="data fullwidth ac-performance">
+            <thead>
+                <tr>
+                    <th>{{ 'Sequence' | t('abandoned-cart') }}</th>
+                    <th class="ac-num">{{ 'Carts' | t('abandoned-cart') }}</th>
+                    <th class="ac-num">{{ 'Emails Sent' | t('abandoned-cart') }}</th>
+                    <th class="ac-num">{{ 'Click Rate' | t('abandoned-cart') }}</th>
+                    <th class="ac-num">{{ 'Recovered' | t('abandoned-cart') }}</th>
+                    <th class="ac-num">{{ 'Revenue' | t('abandoned-cart') }}</th>
+                </tr>
+            </thead>
+            {% for item in sequences %}
+                {% set sent = item.emailStats | column('sent') | reduce((carry, v) => carry + v, 0) %}
+                {% set clicked = item.emailStats | column('clicked') | reduce((carry, v) => carry + v, 0) %}
+                <tbody>
+                    <tr class="ac-performance__sequence">
+                        <th scope="row">
+                            <button type="button" class="ac-toggle-row" aria-expanded="false" data-ac-toggle-rows="ac-seq-{{ item.sequence.id }}">{{ svg('@appicons/chevron-right.svg') }}<span>{{ item.sequence.name }}</span></button>
+                            {% if not item.sequence.enabled %}<pk-status-label status="inactive" class="ac-inline-label">{{ 'Off' | t('abandoned-cart') }}</pk-status-label>{% endif %}
+                        </th>
+                        <td class="ac-num">{{ item.stats.entered ?? 0 }}</td>
+                        <td class="ac-num">{{ sent }}</td>
+                        <td class="ac-num">{{ sent ? formatter.asPercent(clicked / sent, 0) : '—' }}</td>
+                        <td class="ac-num">{{ item.stats ? formatter.asPercent(item.stats.rate, 1) : '—' }}</td>
+                        <td class="ac-num"><strong>{{ formatter.asCurrency(item.stats.revenue ?? 0, currency) }}</strong></td>
+                    </tr>
+                    {% for step in item.emails | slice(1) %}
+                        {% set email = item.sequence.emails[loop.index0] ?? null %}
+                        {% set stats = email ? item.emailStats[email.id] ?? null : null %}
+                        <tr class="ac-performance__email" data-ac-row-group="ac-seq-{{ item.sequence.id }}" hidden>
+                            <td>{{ step.label }} · {{ step.subject }} <span class="light">· {{ step.detail | lower }}</span></td>
+                            <td></td>
+                            <td class="ac-num">{{ stats.sent ?? 0 }}</td>
+                            <td class="ac-num">{{ stats and stats.sent ? formatter.asPercent(stats.clickRate, 0) : '—' }}</td>
+                            <td class="ac-num">{{ stats.recovered ?? 0 }}</td>
+                            <td class="ac-num">{{ formatter.asCurrency(stats.revenue ?? 0, currency) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="ac-grid ac-grid--2">
+        <div class="ac-card">
+            <div class="ac-card__head"><h2>{{ 'Recent Recoveries' | t('abandoned-cart') }}</h2><a href="{{ url('abandoned-cart/carts', { status: 'recovered' }) }}">{{ 'View all' | t('abandoned-cart') }}</a></div>
+            <ul class="ac-feed">
+                {% for row in recent %}
+                    {% set name = row.name ?: row.email %}
+                    <li>
+                        <span class="ac-avatar" aria-hidden="true">{{ name | split(' ') | map(part => part | slice(0, 1)) | join('') | slice(0, 2) | upper }}</span>
+                        <a href="{{ url('abandoned-cart/carts/' ~ row.id) }}">
+                            <span><strong>{{ name }}</strong>{% if row.isFirstOrder %} <span class="ac-chip">{{ 'First order' | t('abandoned-cart') }}</span>{% endif %}</span>
+                            <span class="light">{{ row.subject ? 'After “{subject}”' | t('abandoned-cart', { subject: row.subject }) ~ ' · ' }}{{ formatter.asRelativeTime(row.recoveredAt) }}</span>
+                        </a>
+                        <strong class="ac-num">{{ formatter.asCurrency(row.orderTotal, row.currency ?: currency) }}</strong>
+                    </li>
+                {% else %}
+                    <li class="light">{{ 'No recoveries yet.' | t('abandoned-cart') }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="ac-card">
+            <div class="ac-card__head"><h2>{{ 'Why Carts Didn’t Recover' | t('abandoned-cart') }}</h2></div>
+            {% if reasonData.rows %}
+                <pk-bar-chart class="ac-chart ac-chart--short" orientation="horizontal" label="{{ 'Why carts didn’t recover' | t('abandoned-cart') }}" data="{{ reasonData | json_encode }}"></pk-bar-chart>
+            {% else %}
+                <p class="light">{{ 'Nothing to show for this period.' | t('abandoned-cart') }}</p>
+            {% endif %}
+            {% if frequent %}
+                <p class="ac-hint"><a href="{{ url('abandoned-cart/customers') }}">{{ '{count, plural, =1{1 customer} other{# customers}} abandoned 3 or more carts in the last 30 days →' | t('abandoned-cart', { count: frequent }) }}</a></p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
