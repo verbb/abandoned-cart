@@ -229,6 +229,30 @@ class Attempts extends Component
         return $result;
     }
 
+    /**
+     * Sends a failed email again, straight away. Returns null when the email didn't fail or the cart has left recovery.
+     */
+    public function retry(Recovery $recovery, Attempt $attempt): ?string
+    {
+        if ($attempt->status !== Attempt::STATUS_FAILED || !$recovery->getIsActive() || AbandonedCart::$plugin->getSettings()->getDeliveryPaused()) {
+            return null;
+        }
+
+        $now = new DateTime();
+
+        // Staff asked for this send, so it gets a fresh set of tries.
+        Db::update(Table::ATTEMPTS, ['status' => Attempt::STATUS_SCHEDULED, 'tries' => 0, 'dueAt' => Db::prepareDateForDb($now)], ['id' => $attempt->id, 'status' => Attempt::STATUS_FAILED]);
+        $claimed = $this->claim($attempt->id, $now);
+
+        if (!$claimed) {
+            return null;
+        }
+
+        AbandonedCart::$plugin->getActivities()->log($recovery->id, Activities::TYPE_RETRIED, $claimed->id, ['position' => $claimed->position]);
+
+        return $this->deliver($claimed, $now);
+    }
+
     public function sendTest(Email $email, string $to, ?Order $order = null): bool
     {
         $cart = $order ? CartSummary::fromOrder($order) : CartSummary::sample($email->getSequence()?->siteIds[0] ?? null);

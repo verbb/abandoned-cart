@@ -80,6 +80,12 @@
                 <li class="ac-journey--{{ clickedThis ? 'click' : attempt.status }}">
                     <strong>{{ clickedThis ? 'Clicked email {position}' | t('abandoned-cart', { position: attempt.position }) : 'Email {position} {status}' | t('abandoned-cart', { position: attempt.position, status: attempt.statusLabel | lower }) }}</strong>
                     <span>{{ attempt.sentAt ? attempt.sentAt | datetime('short') : (attempt.status == 'scheduled' ? 'Due {date}' | t('abandoned-cart', { date: attempt.dueAt | datetime('short') }) : attempt.failureReason ?? '') }}</span>
+                    {% if attempt.status == 'failed' and recovery.isActive and canManage %}
+                        <form method="post" class="ac-inline-form">
+                            {{ csrfInput() }}{{ actionInput('abandoned-cart/carts/retry') }}{{ hiddenInput('recoveryId', recovery.id) }}{{ hiddenInput('attemptId', attempt.id) }}{{ redirectInput(recovery.cpEditUrl) }}
+                            <button type="submit" class="btn small">{{ 'Retry' | t('abandoned-cart') }}</button>
+                        </form>
+                    {% endif %}
                 </li>
             {% endfor %}
             {% if recovery.status == 'recovered' %}

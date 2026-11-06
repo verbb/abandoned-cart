@@ -214,3 +214,23 @@ it('ends recoveries once their recovery period is over', function() {
     expect($ended)->toBe(1)
         ->and($recovery->endReason)->toBe(Recovery::END_EXPIRED);
 });
+
+it('lets staff retry an email that failed, but nothing else', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('retry.me@example.test', idleMinutes: 90);
+    engine()->run();
+
+    $attempts = AbandonedCart::$plugin->getAttempts();
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('retry.me@example.test')->id)[0];
+    [$first, $second] = $recovery->getAttempts();
+
+    expect($attempts->retry($recovery, $first))->toBeNull()
+        ->and($attempts->retry($recovery, $second))->toBeNull();
+
+    craft\helpers\Db::update(verbb\abandonedcart\db\Table::ATTEMPTS, ['status' => Attempt::STATUS_FAILED, 'tries' => Attempt::MAX_TRIES, 'sentAt' => null], ['id' => $first->id]);
+    $before = $this->sentMailCount();
+
+    expect($attempts->retry($recovery, $attempts->getAttemptById($first->id)))->toBe('sent')
+        ->and($attempts->getAttemptById($first->id)->status)->toBe(Attempt::STATUS_SENT)
+        ->and($this->sentMailCount())->toBe($before + 1);
+});

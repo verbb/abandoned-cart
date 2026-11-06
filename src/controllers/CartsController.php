@@ -155,6 +155,26 @@ class CartsController extends BaseCpController
         };
     }
 
+    public function actionRetry(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission(AbandonedCart::PERMISSION_MANAGE_SEQUENCES);
+
+        $recovery = $this->_getRecovery();
+        $attempts = AbandonedCart::$plugin->getAttempts();
+        $attempt = $attempts->getAttemptById((int)$this->request->getRequiredBodyParam('attemptId'));
+
+        if (!$attempt || $attempt->recoveryId !== $recovery->id) {
+            throw new NotFoundHttpException('Email not found');
+        }
+
+        return match ($attempts->retry($recovery, $attempt)) {
+            'sent' => $this->asSuccess(Craft::t('abandoned-cart', 'Email {position} was sent.', ['position' => $attempt->position])),
+            null => $this->asFailure(Craft::t('abandoned-cart', 'That email can’t be retried, or sending is paused.')),
+            default => $this->asFailure(Craft::t('abandoned-cart', 'The email wasn’t sent. The cart’s history shows why.')),
+        };
+    }
+
     public function actionStop(): Response
     {
         $this->requirePostRequest();
