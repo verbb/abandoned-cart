@@ -1,0 +1,20 @@
+{% autoescape false %}
+{{ heading }}
+
+{{ message | replace({'</p>': "\n\n", '<br>': "\n", '<br />': "\n"}) | striptags | trim }}
+
+{% for item in cart.items %}
+- {{ item.title }}{{ item.description ? ' (' ~ item.description ~ ')' }} × {{ item.qty }}: {{ cart.formatMoney(item.subtotal) }}
+{% endfor %}
+{{ 'Subtotal' | t('abandoned-cart') }}: {{ cart.formatMoney(cart.subtotal) }}
+{% if discountCode %}
+
+{{ 'Use this code at checkout' | t('abandoned-cart') }}: {{ discountCode }}
+{% endif %}
+
+{{ buttonLabel }}: {{ recoverUrl }}
+
+--
+{{ storeName }}{{ storeAddress ? ', ' ~ storeAddress }}
+{{ 'Unsubscribe from cart reminders' | t('abandoned-cart') }}: {{ unsubscribeUrl }}
+{% endautoescape %}

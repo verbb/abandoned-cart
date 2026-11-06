@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="{{ craft.app.language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{{ siteName }}</title>
+</head>
+<body style="margin:0;padding:24px;background:#faf8f5;color:#2b2724;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <header style="max-width:960px;margin:0 auto;padding:8px 0 24px;border-bottom:1px solid #ece6df;">
+        <a href="{{ homeUrl }}" style="color:inherit;text-decoration:none;font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:14px;">{{ siteName }}</a>
+    </header>
+    <main>{{ body | raw }}</main>
+</body>
+</html>

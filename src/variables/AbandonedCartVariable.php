@@ -1,0 +1,31 @@
+<?php
+namespace verbb\abandonedcart\variables;
+
+use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\models\Settings;
+
+class AbandonedCartVariable
+{
+    // Public Methods
+    // =========================================================================
+
+    public function getPluginName(): string
+    {
+        return AbandonedCart::$plugin->getPluginName();
+    }
+
+    public function getSettings(): Settings
+    {
+        return AbandonedCart::$plugin->getSettings();
+    }
+
+    public function getSequences(): array
+    {
+        return AbandonedCart::$plugin->getSequences()->getAllSequences();
+    }
+
+    public function getEmailTemplates(): array
+    {
+        return AbandonedCart::$plugin->getEmailTemplates()->getAllTemplates();
+    }
+}

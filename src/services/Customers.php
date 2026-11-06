@@ -1,10 +1,12 @@
 <?php
 namespace verbb\abandonedcart\services;
 
+use verbb\abandonedcart\AbandonedCart;
 use verbb\abandonedcart\db\Table;
 use verbb\abandonedcart\events\CustomerEvent;
 use verbb\abandonedcart\events\CustomerStatusEvent;
 use verbb\abandonedcart\models\Customer;
+use verbb\abandonedcart\models\Recovery;
 use verbb\abandonedcart\records\Customer as CustomerRecord;
 
 use Craft;
@@ -130,6 +132,11 @@ class Customers extends Component
 
         if (!$this->saveCustomer($customer)) {
             return false;
+        }
+
+        // Nobody who has asked not to be emailed should get the rest of a sequence already under way.
+        if ($status !== Customer::STATUS_ACTIVE) {
+            AbandonedCart::$plugin->getRecoveries()->endRecoveriesForCustomer($customer, $status === Customer::STATUS_UNSUBSCRIBED ? Recovery::END_UNSUBSCRIBED : Recovery::END_DO_NOT_EMAIL);
         }
 
         if ($this->hasEventHandlers(self::EVENT_AFTER_CHANGE_STATUS)) {

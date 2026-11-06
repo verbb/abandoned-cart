@@ -1,0 +1,216 @@
+<?php
+
+use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\models\Attempt;
+use verbb\abandonedcart\models\Customer;
+use verbb\abandonedcart\models\Recovery;
+use verbb\abandonedcart\models\Sequence;
+use verbb\abandonedcart\models\SkippedCart;
+use verbb\abandonedcart\services\Presets;
+
+uses(verbb\abandonedcart\tests\Integration\TestCase::class);
+
+function engine(): verbb\abandonedcart\services\Recoveries
+{
+    return AbandonedCart::$plugin->getRecoveries();
+}
+
+function tokenFrom(string $url): string
+{
+    preg_match('#(?:recover|unsubscribe)/([A-Za-z0-9_-]+)#', urldecode($url), $matches);
+
+    return $matches[1] ?? '';
+}
+
+function attemptStatuses(Recovery $recovery): array
+{
+    return array_map(fn(Attempt $attempt) => $attempt->status, $recovery->getAttempts());
+}
+
+it('does nothing while every sequence is off', function() {
+    $this->createCart('waiting@example.test');
+
+    expect(engine()->run())->toMatchArray(['enrolled' => 0, 'skipped' => 0, 'sent' => 0]);
+});
+
+it('enrols an idle cart in Everyone Else and sends the first email', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $order = $this->createCart('amelia.hart@example.test', idleMinutes: 90);
+    $before = $this->sentMailCount();
+
+    $summary = engine()->run();
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('amelia.hart@example.test')->id)[0];
+
+    expect($summary)->toMatchArray(['enrolled' => 1, 'sent' => 1])
+        ->and($recovery->orderId)->toBe($order->id)
+        ->and($recovery->status)->toBe(Recovery::STATUS_ACTIVE)
+        ->and(attemptStatuses($recovery))->toBe([Attempt::STATUS_SENT, Attempt::STATUS_SCHEDULED, Attempt::STATUS_SCHEDULED])
+        ->and($this->sentMailCount())->toBe($before + 1);
+});
+
+it('waits for a cart that hasn’t been idle long enough', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('still.shopping@example.test', idleMinutes: 20);
+
+    expect(engine()->run())->toMatchArray(['enrolled' => 0, 'skipped' => 0]);
+});
+
+it('records why carts are skipped', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $customers = AbandonedCart::$plugin->getCustomers();
+    $customers->changeStatus($customers->getOrCreateCustomer('blocked@example.test'), Customer::STATUS_DO_NOT_EMAIL, Customer::SOURCE_STAFF);
+    AbandonedCart::$plugin->getSettings()->blockedDomains = ['competitor.example'];
+
+    $this->createCart('blocked@example.test');
+    $this->createCart('buyer@competitor.example');
+    engine()->run();
+
+    $reasons = (new craft\db\Query())->select(['reason'])->from('{{%abandonedcart_skippedcarts}}')->orderBy(['reason' => SORT_ASC])->column();
+
+    expect($reasons)->toBe([SkippedCart::REASON_BLOCKED_DOMAIN, SkippedCart::REASON_DO_NOT_EMAIL]);
+});
+
+it('gives each cart the first sequence it matches, from the top', function() {
+    $presets = AbandonedCart::$plugin->getPresets();
+    $highValue = $presets->createSequenceFromPreset($presets->getPresetByHandle(Presets::PRESET_HIGH_VALUE_CARTS), ['audienceSettings' => ['operator' => 'atLeast', 'amount' => 100]]);
+    $this->turnOn($highValue);
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+
+    $this->createCart('big@example.test', $this->createVariant(150));
+    $this->createCart('small@example.test', $this->createVariant(20));
+    engine()->run();
+
+    $sequenceFor = fn(string $email) => engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail($email)->id)[0]->sequenceId;
+
+    expect($sequenceFor('big@example.test'))->toBe($highValue->id)
+        ->and($sequenceFor('small@example.test'))->toBe(AbandonedCart::$plugin->getSequences()->getFallbackSequence()->id);
+});
+
+it('only takes carts abandoned after a sequence was turned on', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence(), 'now');
+    $this->createCart('old.cart@example.test', idleMinutes: 180);
+
+    expect(engine()->run())->toMatchArray(['enrolled' => 0, 'skipped' => 0]);
+});
+
+it('credits a recovered order to the email that was sent', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $order = $this->createCart('returning@example.test', $this->createVariant(80));
+    engine()->run();
+
+    $this->completeOrder($order);
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('returning@example.test')->id)[0];
+
+    expect($recovery->status)->toBe(Recovery::STATUS_RECOVERED)
+        ->and($recovery->creditedAttemptId)->toBe($recovery->getAttempts()[0]->id)
+        ->and($recovery->orderTotal)->toEqual(80.0)
+        ->and($recovery->isFirstOrder)->toBeTrue()
+        ->and(attemptStatuses($recovery))->toBe([Attempt::STATUS_SENT, Attempt::STATUS_CANCELLED, Attempt::STATUS_CANCELLED]);
+});
+
+it('doesn’t credit an order completed before any email went out', function() {
+    $sequence = AbandonedCart::$plugin->getSequences()->getFallbackSequence();
+    $sequence->abandonedAfterMinutes = 60;
+    AbandonedCart::$plugin->getSequences()->saveSequence($sequence);
+    $this->turnOn($sequence);
+
+    // Email 1 waits an hour after abandonment, so set a long first delay.
+    $first = $sequence->getEmails()[0];
+    $first->delayMinutes = 600;
+    AbandonedCart::$plugin->getEmails()->saveEmail($first);
+
+    $order = $this->createCart('quick.buyer@example.test', idleMinutes: 90);
+    engine()->run();
+    $this->completeOrder($order);
+
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('quick.buyer@example.test')->id)[0];
+
+    expect($recovery->status)->toBe(Recovery::STATUS_ENDED)
+        ->and($recovery->endReason)->toBe(Recovery::END_COMPLETED_BEFORE_EMAIL);
+});
+
+it('holds a sequence’s emails while it’s off and sends them when it’s back on', function() {
+    $sequences = AbandonedCart::$plugin->getSequences();
+    $sequence = $this->turnOn($sequences->getFallbackSequence());
+    $first = $sequence->getEmails()[0];
+    $first->delayMinutes = 600;
+    AbandonedCart::$plugin->getEmails()->saveEmail($first);
+
+    $order = $this->createCart('paused@example.test', idleMinutes: 90);
+    $recovery = engine()->enroll($order, new DateTime());
+
+    // Switch off, then let the first email fall due.
+    $sequence->enabled = false;
+    $sequences->saveSequence($sequence);
+    craft\helpers\Db::update('{{%abandonedcart_attempts}}', ['dueAt' => craft\helpers\Db::prepareDateForDb(new DateTime('-5 minutes'))], ['recoveryId' => $recovery->id, 'position' => 1]);
+
+    $held = AbandonedCart::$plugin->getAttempts()->sendDue(new DateTime());
+
+    $sequence->enabled = true;
+    $sequences->saveSequence($sequence);
+    $released = AbandonedCart::$plugin->getAttempts()->sendDue(new DateTime());
+
+    expect($held['sent'])->toBe(0)
+        ->and($released['sent'])->toBe(1);
+});
+
+it('stops a sequence when the customer unsubscribes and remembers the choice', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('leaving@example.test');
+    engine()->run();
+
+    $customer = AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('leaving@example.test');
+    $recovery = engine()->getRecoveriesByCustomerId($customer->id)[0];
+    $urls = engine()->getUrls($recovery);
+    $token = tokenFrom($urls['unsubscribeUrl']);
+
+    expect(engine()->resolveUnsubscribeToken($token)?->id)->toBe($customer->id)
+        ->and(engine()->resolveUnsubscribeToken('nonsense'))->toBeNull();
+
+    AbandonedCart::$plugin->getCustomers()->changeStatus($customer, Customer::STATUS_UNSUBSCRIBED, Customer::SOURCE_UNSUBSCRIBE);
+    $recovery = engine()->getRecoveryById($recovery->id);
+
+    expect($recovery->endReason)->toBe(Recovery::END_UNSUBSCRIBED)
+        ->and(attemptStatuses($recovery))->toBe([Attempt::STATUS_SENT, Attempt::STATUS_CANCELLED, Attempt::STATUS_CANCELLED]);
+});
+
+it('resolves recovery links to the recovery and the email clicked', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('clicker@example.test');
+    engine()->run();
+
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('clicker@example.test')->id)[0];
+    $attempt = $recovery->getAttempts()[0];
+    $token = tokenFrom(engine()->getUrls($recovery, $attempt)['recoverUrl']);
+    [$resolved, $resolvedAttempt] = engine()->resolveRecoverToken($token);
+
+    expect($resolved->id)->toBe($recovery->id)
+        ->and($resolvedAttempt->id)->toBe($attempt->id)
+        ->and(engine()->resolveRecoverToken(substr($token, 0, -4) . 'abcd'))->toBeNull();
+});
+
+it('skips a second cart while the contact limit holds', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('frequent@example.test', idleMinutes: 300);
+    engine()->run();
+    $this->createCart('frequent@example.test', idleMinutes: 90);
+    engine()->run();
+
+    $reasons = (new craft\db\Query())->select(['reason'])->from('{{%abandonedcart_skippedcarts}}')->column();
+
+    expect($reasons)->toBe([SkippedCart::REASON_CONTACT_LIMIT]);
+});
+
+it('ends recoveries once their recovery period is over', function() {
+    $sequence = $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence(), '-30 days');
+    $sequence->recoveryWindowMinutes = 120;
+    AbandonedCart::$plugin->getSequences()->saveSequence($sequence);
+
+    $this->createCart('expiring@example.test', idleMinutes: 150);
+    engine()->run();
+    $ended = engine()->sweep(new DateTime('+1 hour'));
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('expiring@example.test')->id)[0];
+
+    expect($ended)->toBe(1)
+        ->and($recovery->endReason)->toBe(Recovery::END_EXPIRED);
+});

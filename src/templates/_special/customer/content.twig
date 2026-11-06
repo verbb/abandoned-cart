@@ -1,0 +1,45 @@
+{#
+    Customer pages for recovery links and unsubscribing. This content renders inside the Customer Pages template set
+    in Settings, or inside a standalone page when none is set.
+#}
+{% set pages = {
+    notFound: {
+        heading: 'This link isn’t valid' | t('abandoned-cart'),
+        message: 'It may be incomplete, or it may have come from an old email. You can still visit the shop.' | t('abandoned-cart'),
+    },
+    expired: {
+        heading: 'This link has expired' | t('abandoned-cart'),
+        message: 'Cart links only last a little while, to keep your details safe. Your items may still be in stock.' | t('abandoned-cart'),
+    },
+    alreadyCompleted: {
+        heading: 'This order is already complete' | t('abandoned-cart'),
+        message: 'Thanks for your order. There’s nothing left in this cart to finish.' | t('abandoned-cart'),
+    },
+    cartEmpty: {
+        heading: 'This cart is empty' | t('abandoned-cart'),
+        message: 'The items in it may have changed since we emailed you.' | t('abandoned-cart'),
+    },
+    unsubscribe: {
+        heading: 'Stop cart reminders?' | t('abandoned-cart'),
+        message: 'We won’t email {email} about carts left at {siteName} again. Order confirmations and receipts still arrive as normal.' | t('abandoned-cart', { email: customer.email ?? '', siteName: siteName }),
+    },
+    unsubscribed: {
+        heading: 'You’re unsubscribed' | t('abandoned-cart'),
+        message: 'You won’t get any more cart reminders from us.' | t('abandoned-cart'),
+    },
+} %}
+{% set content = pages[page] ?? pages.notFound %}
+
+<div class="abandoned-cart-page" data-page="{{ page }}" style="max-width:460px;margin:48px auto;text-align:center;font-family:inherit;">
+    <h1 style="margin:0 0 14px;">{{ content.heading }}</h1>
+    <p style="margin:0 0 24px;line-height:1.6;">{{ content.message }}</p>
+
+    {% if page == 'unsubscribe' %}
+        <form method="post" action="{{ actionUrl }}">
+            <button type="submit" style="display:inline-block;min-width:220px;padding:13px 18px;border:0;border-radius:6px;background:#2b2724;color:#fff;font:inherit;font-weight:600;cursor:pointer;">{{ 'Unsubscribe' | t('abandoned-cart') }}</button>
+        </form>
+        <p style="margin:16px 0 0;"><a href="{{ homeUrl }}">{{ 'Keep getting reminders' | t('abandoned-cart') }}</a></p>
+    {% else %}
+        <a href="{{ homeUrl }}" style="display:inline-block;min-width:220px;padding:13px 18px;border-radius:6px;background:#2b2724;color:#fff;text-decoration:none;font-weight:600;">{{ 'Continue shopping' | t('abandoned-cart') }}</a>
+    {% endif %}
+</div>
