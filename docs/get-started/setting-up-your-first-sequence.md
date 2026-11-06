@@ -26,7 +26,7 @@ If you can't add a cron job, Abandoned Cart queues a run from ordinary site and 
 
 Choose **Open Everyone Else** in the checklist, or go to **Abandoned Carts → Sequences** and select **Everyone Else**. The sequence page shows a timeline: the cart is abandoned after an hour without changes, email 1 goes out straight away, email 2 a day later and email 3 two days after that.
 
-Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change. [Emails and Email Templates](../feature-tour/emails-and-email-templates.md) explains every field.
+Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change; once you've changed one, the checklist marks this step done. [Emails and Email Templates](../feature-tour/emails-and-email-templates.md) explains every field.
 
 If you'd like the last email to include a discount, create a discount with a coupon code in Commerce first, then enter that code in the email's **Discount Code** field. Customers who return through that email have the code applied to their cart.
 

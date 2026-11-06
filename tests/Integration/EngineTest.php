@@ -250,3 +250,27 @@ it('builds recovery and unsubscribe links from URL-safe tokens that resolve', fu
         ->and(engine()->resolveRecoverToken($recoverToken)[0]->id)->toBe($recovery->id)
         ->and(engine()->resolveUnsubscribeToken($unsubscribeToken)?->id)->toBe($recovery->customerId);
 });
+
+it('skips a cart whose new customer a module refuses, and carries on with the rest', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('refused@example.test', idleMinutes: 90);
+    $this->createCart('welcome@example.test', idleMinutes: 90);
+    $customers = AbandonedCart::$plugin->getCustomers();
+    $refuse = function(verbb\abandonedcart\events\CustomerEvent $event) {
+        $event->isValid = $event->customer->email !== 'refused@example.test';
+    };
+    $customers->on(verbb\abandonedcart\services\Customers::EVENT_BEFORE_SAVE_CUSTOMER, $refuse);
+
+    try {
+        $summary = engine()->run();
+    } finally {
+        $customers->off(verbb\abandonedcart\services\Customers::EVENT_BEFORE_SAVE_CUSTOMER, $refuse);
+    }
+
+    $skipped = (new craft\db\Query())->from(verbb\abandonedcart\db\Table::SKIPPED_CARTS)->select(['reason', 'customerId'])->all();
+
+    expect($summary)->toMatchArray(['enrolled' => 1, 'skipped' => 1])
+        ->and($skipped)->toHaveCount(1)
+        ->and($skipped[0]['reason'])->toBe(SkippedCart::REASON_CANCELLED)
+        ->and($skipped[0]['customerId'])->toBeNull();
+});

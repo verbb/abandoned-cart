@@ -500,7 +500,7 @@ The email's wording is still the wording written on the sequence. To send differ
 
 ### The `beforeSaveCustomer` Event
 
-The event that is triggered before a customer record is saved. Set `$event->isValid` to `false` to stop the save. Abandoned Cart creates customers while it processes carts and expects those saves to succeed, so avoid cancelling new customers (`$event->isNew`).
+The event that is triggered before a customer record is saved. Set `$event->isValid` to `false` to stop the save. Abandoned Cart creates customers while it processes carts. If you cancel a new customer (`$event->isNew`), that cart is skipped with the reason **Excluded by a plugin** and the run carries on with the others.
 
 ```php
 use verbb\abandonedcart\events\CustomerEvent;

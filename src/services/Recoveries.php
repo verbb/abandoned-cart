@@ -31,6 +31,8 @@ use craft\web\Application as WebApplication;
 
 use DateInterval;
 use DateTime;
+use InvalidArgumentException;
+use yii\base\InvalidArgumentException as YiiInvalidArgumentException;
 use Throwable;
 use yii\base\Event;
 
@@ -220,7 +222,14 @@ class Recoveries extends Component
     public function enroll(Order $order, DateTime $now): Recovery|SkippedCart|null
     {
         $abandonedAt = DateTimeHelper::toDateTime($order->dateUpdated) ?: $now;
-        $customer = AbandonedCart::$plugin->getCustomers()->getOrCreateCustomer((string)$order->getEmail(), $order->getCustomerId());
+
+        try {
+            $customer = AbandonedCart::$plugin->getCustomers()->getOrCreateCustomer((string)$order->getEmail(), $order->getCustomerId());
+        } catch (YiiInvalidArgumentException $e) {
+            // A plugin or module refused the new customer, so this cart is left out rather than stopping the run.
+            return $this->skip($order, null, $abandonedAt, SkippedCart::REASON_CANCELLED, $e->getMessage());
+        }
+
         $settings = AbandonedCart::$plugin->getSettings();
 
         if ($customer->status === Customer::STATUS_DO_NOT_EMAIL) {

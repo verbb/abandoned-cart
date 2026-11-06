@@ -5,6 +5,7 @@ use verbb\abandonedcart\AbandonedCart;
 use verbb\abandonedcart\helpers\Duration;
 use verbb\abandonedcart\models\Recovery;
 use verbb\abandonedcart\models\SkippedCart;
+use verbb\abandonedcart\services\Presets;
 use verbb\abandonedcart\services\State;
 
 use Craft;
@@ -41,7 +42,7 @@ class OverviewController extends BaseCpController
                 'schedule' => $this->_schedule($fallback),
                 'checks' => $this->_sendingChecks(),
                 'testSentAt' => $plugin->getState()->get(State::TEST_SENT_AT),
-                'emailsEdited' => $fallback && $fallback->dateUpdated && $fallback->dateCreated && $fallback->dateUpdated->getTimestamp() - $fallback->dateCreated->getTimestamp() > 60,
+                'emailsEdited' => $this->_emailsEdited($fallback),
                 'opportunity' => $reports->getOpportunity(new DateTime('-30 days')),
                 'currency' => $reports->getCurrency(),
             ]);
@@ -159,6 +160,31 @@ class OverviewController extends BaseCpController
         }
 
         return $steps;
+    }
+
+    /**
+     * Whether Everyone Else or any of its emails has been changed since the install created them.
+     */
+    private function _emailsEdited(?\verbb\abandonedcart\models\Sequence $fallback): bool
+    {
+        if (!$fallback) {
+            return false;
+        }
+
+        $changed = static fn($model): bool => $model->dateCreated && $model->dateUpdated && $model->dateUpdated->getTimestamp() - $model->dateCreated->getTimestamp() > 60;
+
+        if ($changed($fallback)) {
+            return true;
+        }
+
+        foreach ($fallback->getEmails() as $email) {
+            if ($changed($email)) {
+                return true;
+            }
+        }
+
+        // Adding or removing an email also counts.
+        return count($fallback->getEmails()) !== count(AbandonedCart::$plugin->getPresets()->getBuiltInPresetByHandle(Presets::PRESET_THREE_REMINDERS)?->emails ?? []);
     }
 
     private function _sendingChecks(): array
