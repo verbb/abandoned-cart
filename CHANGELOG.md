@@ -1,5 +1,44 @@
 # Changelog
 
+## 5.0.0 - Unreleased
+
+> {warning} Before upgrading to Abandoned Cart 5, review the [Upgrading from v4](https://verbb.io/craft-plugins/abandoned-cart/docs/v5/get-started/upgrading-from-v4) guide for breaking changes and required migration steps.
+
+### Added
+- Added sequences of up to five recovery emails, each with its own audience (cart value, returning customers, first-time customers, products or custom order rules), sites, timing and optional discount code. The Everyone Else sequence catches every cart that no other sequence matches.
+- Added sequence presets, and the `Presets::EVENT_REGISTER_PRESETS` event for adding, reordering or removing them.
+- Added an email editor with tokens, live desktop and mobile previews using a sample or real cart, and test sends.
+- Added email templates, stored in project config, with a responsive bundled design that needs no template files and an option to copy it to your own templates.
+- Added the Overview, with recovered revenue, recovery rate, a recovery funnel, sequence and email performance, and a setup checklist for new installs.
+- Added the Carts screen and cart pages, with each cart's journey and history, skipped carts with their reasons, and Send Now, Stop Emails and Retry actions.
+- Added the Customers screen and customer pages, with Can be emailed, Unsubscribed and Do Not Email statuses, and an Abandoned Cart tab on Craft user accounts.
+- Added unsubscribe links and one-click `List-Unsubscribe` headers to every recovery email, with a confirmation page for customers.
+- Added `craft.abandonedCart.getCurrentCustomer()` and the `abandoned-cart/preferences/save` action, so signed-in customers can turn cart reminders off or on from their account.
+- Added the Consent Field, Blocked Domains, Only Returning Customers, Contact Limit, Attribution Window, Recovery Ends After and Pause All Sending settings, with per-sequence overrides for recovery timing and the return page.
+- Added a Page Template setting so expired-link and unsubscribe pages can render inside the site's layout.
+- Added System Status, with checks for the scheduler, sending, recent failures, email templates and consent, and a Run Now action.
+- Added the Manage sequences and send emails, Manage Do Not Email and View System Status permissions.
+- Added events for sequences, emails, email templates, audiences, enrolment, consent, recovery links, sending, rendering and customers.
+- Added the `compatibilityMode` setting, on by default, which keeps the 4.x email template variables, the `beforeMailSend` event and the 4.x console command working while sites update. The event and command log deprecation warnings.
+
+### Changed
+- Upgrading from 4.x runs a one-time migration that converts 4.x settings, reminders, templates and the blocklist into the Everyone Else sequence, email templates, Do Not Email statuses and the new settings, and imports 4.x reminder history.
+- The scheduler command is now `abandoned-cart/recoveries/run`, and sends due emails itself rather than queueing a job for each email. When cron isn't available, web requests queue a run while a sequence is on.
+- Recovery links now restore carts that belong to an account only for that customer, after signing in, and show a page explaining expired or invalid links.
+- An order completed within the attribution window after an email now counts as recovered, even without a click.
+- Failed emails are now retried automatically, up to three tries.
+
+### Deprecated
+- Deprecated the `checkoutLink`, `discount` and `currentSite` email template variables. Use `recoverUrl`, `discountCode` and `site` instead.
+- Deprecated `Carts::EVENT_BEFORE_MAIL_SEND`. Use `Attempts::EVENT_BEFORE_SEND` instead.
+- Deprecated the `abandoned-cart/reminders/schedule-emails` console command. Use `abandoned-cart/recoveries/run` instead.
+
+### Removed
+- Removed the HTTP scheduler endpoint (`abandoned-cart/carts/find-carts`) and the `passKey` setting.
+- Removed or replaced the `firstReminderDelay`, `secondReminderDelay`, `firstReminderSubject`, `secondReminderSubject`, `firstReminderTemplate`, `secondReminderTemplate`, `discountCode`, `disableSecondReminder`, `restoreExpiryHours`, `recipientCooldownHours`, `staleRecordRetentionDays`, `recoveryUrl`, `previousOrderRequired`, `blacklist` and `includeBlacklisted` settings. The upgrade guide maps each one to its replacement.
+- Removed the `Carts::EVENT_BEFORE_SAVE_CART` and `Carts::EVENT_AFTER_SAVE_CART` events, the `CartEvent` class and the 4.x cart model and record.
+- Removed the bundled `abandoned-cart/emails/first` and `abandoned-cart/emails/second` email templates.
+
 ## 4.0.20 - 2026-11-01
 
 ### Fixed

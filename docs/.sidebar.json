@@ -4,15 +4,34 @@
         "collapsable": false,
         "children": [
             "get-started/installation-setup",
+            "get-started/setting-up-your-first-sequence",
             "get-started/requirements",
-            "get-started/configuration"
+            "get-started/configuration",
+            "get-started/upgrading-from-v4"
         ]
     },
     {
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "feature-tour/usage"
+            "feature-tour/sequences",
+            "feature-tour/emails-and-email-templates",
+            "feature-tour/sending-and-scheduling",
+            "feature-tour/recovery-links-and-unsubscribing",
+            "feature-tour/carts",
+            "feature-tour/customers",
+            "feature-tour/overview",
+            "feature-tour/permissions"
+        ]
+    },
+    {
+        "title": "Template Guides",
+        "collapsable": false,
+        "children": [
+            "template-guides/custom-email-templates",
+            "template-guides/styling-customer-pages",
+            "template-guides/showing-the-restored-cart-notice",
+            "template-guides/letting-customers-manage-reminder-emails"
         ]
     },
     {
