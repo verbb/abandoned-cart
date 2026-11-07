@@ -12,16 +12,16 @@
 {% set currency = craft.abandonedCart.getCurrency() %}
 {% set settings = audienceSettings ?? sequence.audienceSettings %}
 
-{% block contextMenu %}
-    <pk-status-label status="{{ sequence.enabled ? 'active' : 'inactive' }}" class="ac-title-status">{{ sequence.enabled ? 'On' | t('abandoned-cart') : 'Off' | t('abandoned-cart') }}</pk-status-label>
-{% endblock %}
-
 {% block actionButton %}
     {% if canManage %}
         <div class="btngroup">
             <button type="submit" class="btn submit">{{ 'Save' | t('app') }}</button>
         </div>
     {% endif %}
+{% endblock %}
+
+{% block main %}
+    {% include 'abandoned-cart/_includes/details-main' with { content: block('blockContent') } %}
 {% endblock %}
 
 {% block blockContent %}
@@ -122,7 +122,7 @@
 
         <ol class="ac-timeline" data-ac-timeline>
             <li class="ac-tl ac-tl--start">
-                <span class="ac-tl__node" aria-hidden="true">{{ svg('@appicons/shopping-cart.svg') }}</span>
+                <span class="ac-tl__node" aria-hidden="true">{{ iconSvg('cart-shopping') }}</span>
                 <div class="ac-tl__body"><strong>{{ 'Cart abandoned' | t('abandoned-cart') }}</strong> <span class="light">· {{ 'no changes for {time}' | t('abandoned-cart', { time: editorConfig.abandonedAfter }) }}</span></div>
             </li>
             {% for step in schedule %}
@@ -160,7 +160,7 @@
             {% endfor %}
             <li class="ac-tl ac-tl--end">
                 <span class="ac-tl__node" aria-hidden="true">{{ svg('@appicons/check.svg') }}</span>
-                <div class="ac-tl__body">
+                <div class="ac-tl__body ac-tl__body--end">
                     {% if canManage %}
                         <button type="button" class="ac-add-between" data-ac-add-email="{{ (schedule | length) + 1 }}"{% if schedule | length >= editorConfig.maxEmails %} disabled{% endif %}>{{ '+ Add email' | t('abandoned-cart') }}</button>
                     {% endif %}

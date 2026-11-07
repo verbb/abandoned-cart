@@ -135,6 +135,9 @@ function addAddressButton(table: PkDataTable): HTMLElement {
 function mount(container: HTMLElement): void {
     const config = JSON.parse(container.dataset.acTable ?? '{}') as TableConfig;
     const table = document.createElement('pk-data-table') as PkDataTable;
+    // A `pk-data-table-toolbar` in the page header (see the index templates) renders this table's toolbar.
+    table.id = `ac-${config.kind}-table`;
+    const toolbar = document.querySelector<HTMLElement>(`pk-data-table-toolbar[for="${table.id}"]`) ?? table;
     const state = { status: config.status ?? 'all', sequenceId: config.sequenceId ?? '' };
 
     table.mode = 'remote';
@@ -145,7 +148,7 @@ function mount(container: HTMLElement): void {
     table.labels = {
         ...Object.fromEntries(Object.entries(dataTableLabels).map(([key, value]) => [key, t(value)])),
         search: config.kind === 'carts' ? t('Search by email') : t('Search by email or name'),
-        empty: config.kind === 'carts' ? t('No abandoned carts yet. They appear once a sequence is on and carts go idle.') : t('No customers have abandoned a cart yet.'),
+        empty: config.kind === 'carts' ? t('No abandoned carts yet.') : t('No customers have abandoned a cart yet.'),
         noResults: t('Nothing matches those filters.'),
     };
     table.query = { ...defaultDataTableQuery(), search: config.search ?? '', sort: table.defaultSort, pageSize: 50 } as DataTableQuery;
@@ -174,7 +177,7 @@ function mount(container: HTMLElement): void {
         table.selectable = true;
         addAddress = addAddressButton(table);
         addAddress.hidden = state.status !== 'doNotEmail';
-        table.append(addAddress);
+        toolbar.append(addAddress);
 
         const bulk = document.createElement('pk-button');
         bulk.slot = 'selection-actions';

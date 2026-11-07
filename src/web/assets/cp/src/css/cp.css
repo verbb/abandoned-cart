@@ -94,10 +94,6 @@
     color: var(--text-color, #1f2933);
 }
 
-.ac-title-status {
-    margin-inline-start: 10px;
-}
-
 /* Pages whose cards sit on the page background instead of Craft's white pane */
 #content.ac-unpaned {
     padding: 0;
@@ -381,16 +377,32 @@
 }
 
 .ac-tl--email .ac-tl__body {
-    padding-top: 2px;
+    /* Centre the 16px wait label on the 44px node. */
+    padding-top: 14px;
 }
 
 .ac-tl--add .ac-tl__body {
     padding: 0 0 10px;
 }
 
+/* The last node's Add Email button and hint, centred on the 44px node. */
+.ac-tl__body--end {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    min-height: 44px;
+    padding: 0;
+}
+
+.ac-tl__body--end .ac-hint {
+    margin: 0;
+}
+
 .ac-tl__wait {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     font-size: 11px;
+    line-height: 16px;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -660,7 +672,12 @@
 
 [data-ac-table] pk-data-table {
     display: block;
-    --pk-data-table-toolbar-background: var(--gray-100, #e4edf6);
+}
+
+/* A list's data table toolbar in the page header fills the space after the title. */
+#toolbar .ac-index-toolbar {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 /* Cart and customer pages */
@@ -1640,16 +1657,4 @@ pk-status-label {
 
 .ac-sources a.sel .ac-source-count {
     color: inherit;
-}
-
-/* The data table's sticky toolbar pads its controls by 2px; match it so the first source lines up with the search field. */
-.ac-sources--toolbar {
-    margin-top: 2px;
-}
-
-/* A short note on a list screen's title row, after the title */
-.ac-header-alert {
-    flex: 0 1 auto;
-    min-width: 0;
-    margin-inline-start: 16px;
 }

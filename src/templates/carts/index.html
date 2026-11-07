@@ -7,6 +7,11 @@
 {% set status = craft.app.request.getParam('status') ?: 'all' %}
 {% set sequenceId = craft.app.request.getParam('sequenceId') %}
 
+{# The table's search and View menu sit in the page header, like a Craft element index. #}
+{% block toolbar %}
+    <pk-data-table-toolbar for="ac-carts-table" class="ac-index-toolbar"></pk-data-table-toolbar>
+{% endblock %}
+
 {% block sidebar %}
     {% set statusItems = [
         { label: 'All carts' | t('abandoned-cart'), count: counts.all, params: { status: 'all' } },
@@ -24,7 +29,6 @@
     {% include 'abandoned-cart/_includes/sources' with {
         label: 'Carts' | t('abandoned-cart'),
         baseUrl: 'abandoned-cart/carts',
-        alignToToolbar: true,
         groups: [{ items: statusItems }] | merge(sequenceItems ? [{ heading: 'Sequences' | t('abandoned-cart'), items: sequenceItems }] : []),
     } only %}
 {% endblock %}

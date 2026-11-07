@@ -10,10 +10,6 @@
 {% set tones = { active: 'green', unsubscribed: 'gray', doNotEmail: 'red' } %}
 {% set canManage = currentUser.can('abandonedCart-manageDoNotEmail') %}
 
-{% block contextMenu %}
-    <pk-status-label status="{{ tones[customer.status] }}" class="ac-title-status">{{ statusLabels[customer.status] }}</pk-status-label>
-{% endblock %}
-
 {% block actionButton %}
     {% if user %}<a class="btn" href="{{ url('users/' ~ user.id ~ '/commerce') }}">{{ 'View in Commerce' | t('abandoned-cart') }}</a>{% endif %}
 {% endblock %}
