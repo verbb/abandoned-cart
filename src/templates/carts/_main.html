@@ -1,0 +1,21 @@
+{# Cart pages put their cards straight on the page, beside Craft's details sidebar. #}
+<div class="content-grid__main">
+    <div id="content" class="ac-unpaned">{{ content | raw }}</div>
+</div>
+
+<div id="details-toggle-wrapper" class="content-grid__toggle" tabindex="-1">
+    {% embed '_includes/disclosure-toggle' with {
+        id: 'details-toggle',
+        controls: 'details-container',
+        persist: true,
+        storageMode: 'cookies',
+        storageKey: 'sidebar-details',
+    } only %}
+        {% block content %}
+            <span class="details-toggle__inner">
+                <span aria-hidden="true" class="cp-icon">{{ iconSvg('angle-right') }}</span>
+                <span class="visually-hidden">{{ 'Toggle details sidebar' | t('app') }}</span>
+            </span>
+        {% endblock %}
+    {% endembed %}
+</div>

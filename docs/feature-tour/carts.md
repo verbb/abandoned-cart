@@ -21,7 +21,7 @@ For a recovered cart, the page shows which email the order was credited to, whet
 
 **Journey** shows each step: when the cart was abandoned, each email with its status, any clicks, and the order. **Full History** lists everything Abandoned Cart did with the cart, including emails that couldn't be sent and why, and changes to the cart that moved its emails later.
 
-The side panel shows the customer, whether they have an account, how many orders they've completed before, and whether they can be emailed, with links to their [customer page](customers.md) and to the order in Commerce.
+The sidebar starts with **Can be emailed**. Staff with the **Manage Do Not Email** permission can switch it off to add the customer to [Do Not Email](customers.md#do-not-email), which stops their emails, or back on to remove them. It can't be switched on for a customer who unsubscribed. Below it are the cart's status, the customer with a link to their [customer page](customers.md), whether they have an account and how many orders they've completed before, the sequence and its audience, the cart's value, when it was abandoned and last changed, and a link to the order in Commerce.
 
 ## Stepping In
 

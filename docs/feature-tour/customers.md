@@ -30,7 +30,9 @@ Use Do Not Email when a customer asks you directly to stop, such as by phone, or
 
 On a customer's page, enter an optional note, such as "Asked by phone", and choose **Add to Do Not Email**. The note and the person who added it are shown on the page afterwards. To add several customers at once, select them in the list and choose **Add to Do Not Email**. To block an address that hasn't abandoned a cart yet, open the **Do not email** view and choose **Add Address**.
 
-Customers can't change a Do Not Email status themselves, even from their account. **Remove from Do Not Email** on the customer's page lets them be emailed again. Carts that were skipped while they were on the list aren't revisited.
+You can also switch off **Can be emailed** in a cart's sidebar.
+
+Customers can't change a Do Not Email status themselves, even from their account. **Remove from Do Not Email** on the customer's page, or switching **Can be emailed** back on in a cart's sidebar, lets them be emailed again. Carts that were skipped while they were on the list aren't revisited.
 
 Do Not Email records are kept permanently, whatever the **Keep History For** setting.
 

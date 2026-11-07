@@ -9,10 +9,6 @@
 {% set canManage = currentUser.can('abandonedCart-manageSequences') %}
 {% set states = { active: ['blue', 'In recovery' | t('abandoned-cart')], recovered: ['green', 'Recovered' | t('abandoned-cart')], ended: ['gray', 'Not recovered' | t('abandoned-cart')] } %}
 
-{% block contextMenu %}
-    <pk-status-label status="{{ states[recovery.status][0] }}" class="ac-title-status">{{ states[recovery.status][1] }}</pk-status-label>
-{% endblock %}
-
 {% block actionButton %}
     {% if canManage and recovery.isActive %}
         <form method="post" class="ac-inline-form">
@@ -20,6 +16,10 @@
             <button type="submit" class="btn">{{ 'Stop Emails' | t('abandoned-cart') }}</button>
         </form>
     {% endif %}
+{% endblock %}
+
+{% block main %}
+    {% include 'abandoned-cart/carts/_main' with { content: block('blockContent') } %}
 {% endblock %}
 
 {% block blockContent %}
@@ -109,27 +109,20 @@
 {% endblock %}
 
 {% block details %}
+    {% include 'abandoned-cart/carts/_email-status' %}
+
     <div class="meta read-only">
-        <div class="ac-meta-head"><h2>{{ 'Customer' | t('abandoned-cart') }}</h2>{% if customer %}<a href="{{ customer.cpEditUrl }}">{{ 'View customer' | t('abandoned-cart') }}</a>{% endif %}</div>
+        <div class="data"><h5 class="heading">{{ 'Status' | t('app') }}</h5><div class="value flex flex-nowrap"><span class="status {{ states[recovery.status][0] }}" aria-hidden="true"></span>{{ states[recovery.status][1] }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Customer' | t('abandoned-cart') }}</h5><div class="value">{% if customer %}<a href="{{ customer.cpEditUrl }}">{{ customerName ?: customer.email }}</a>{% else %}—{% endif %}</div></div>
         <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email ?? '—' }}</div></div>
         <div class="data"><h5 class="heading">{{ 'Account' | t('abandoned-cart') }}</h5><div class="value">{{ customer and customer.user and customer.user.isCredentialed ? 'Yes' | t('app') : 'Guest' | t('abandoned-cart') }}{% if previousOrders is not null %} · {{ '{count, plural, =0{no earlier orders} =1{1 earlier order} other{# earlier orders}}' | t('abandoned-cart', { count: previousOrders }) }}{% endif %}</div></div>
-        <div class="data"><h5 class="heading">{{ 'Email Status' | t('abandoned-cart') }}</h5><div class="value">{{ customer ? (customer.status == 'active' ? 'Can be emailed' | t('abandoned-cart') : customer.status == 'unsubscribed' ? 'Unsubscribed' | t('abandoned-cart') : 'Do not email' | t('abandoned-cart')) : '—' }}</div></div>
-    </div>
-    <div class="meta read-only">
-        <div class="ac-meta-head"><h2>{{ 'Cart' | t('abandoned-cart') }}</h2></div>
-        <div class="data"><h5 class="heading">{{ 'Value' | t('abandoned-cart') }}</h5><div class="value">{{ formatter.asCurrency(recovery.cartTotal, currency) }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Sequence' | t('abandoned-cart') }}</h5><div class="value">{% if sequence %}<a href="{{ sequence.cpEditUrl }}">{{ sequence.name }}</a>{% else %}<span class="light">{{ 'Deleted' | t('abandoned-cart') }}</span>{% endif %}</div></div>
+        {% if audience %}<div class="data"><h5 class="heading">{{ 'Audience' | t('abandoned-cart') }}</h5><div class="value">{{ audience }}</div></div>{% endif %}
+        <div class="data"><h5 class="heading">{{ 'Cart Value' | t('abandoned-cart') }}</h5><div class="value">{{ formatter.asCurrency(recovery.cartTotal, currency) }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Abandoned' | t('abandoned-cart') }}</h5><div class="value">{{ recovery.abandonedAt | datetime('short') }}</div></div>
         {% if order %}
             <div class="data"><h5 class="heading">{{ 'Last Activity' | t('abandoned-cart') }}</h5><div class="value">{{ order.dateUpdated | datetime('short') }}</div></div>
             <div class="data"><h5 class="heading">{{ 'Commerce Order' | t('abandoned-cart') }}</h5><div class="value"><a href="{{ order.cpEditUrl }}">{{ order.reference ?: order.shortNumber }}</a></div></div>
-        {% endif %}
-    </div>
-    <div class="meta read-only">
-        <div class="ac-meta-head"><h2>{{ 'Sequence' | t('abandoned-cart') }}</h2></div>
-        {% if sequence %}
-            <p><a href="{{ sequence.cpEditUrl }}">{{ sequence.name }}</a></p>
-            <p class="light">{{ audience }}</p>
-        {% else %}
-            <p class="light">{{ 'The sequence has been deleted.' | t('abandoned-cart') }}</p>
         {% endif %}
     </div>
 {% endblock %}

@@ -21,17 +21,17 @@ Choose the last 7, 30 or 90 days. Each figure is compared with the period before
 - **Recovered Orders** counts recovered orders, and how many came from first-time customers.
 - **Revenue per Email Sent** divides recovered revenue by the number of emails sent, which helps you judge whether an extra email in a sequence is worth it.
 
-**From Abandoned to Recovered** shows the funnel: carts abandoned, carts emailed, carts whose customer clicked through, and carts recovered, with the value left in abandoned carts and the number skipped before any email. **See why** opens the skipped carts.
+**From Abandoned to Recovered** shows the funnel: carts abandoned, carts emailed, carts whose customer clicked through, and carts recovered. Under each stage is the value left in abandoned carts, the share of carts that could be emailed and how many were skipped, and the share of emailed carts that clicked through and that were recovered. The info icon beside the heading links to the skipped carts, so you can see why they weren't emailed.
 
-Carts from a [Blocked Domain](../get-started/configuration.md#blockeddomains) are usually bots or test orders, so the Overview leaves them out of its totals, its funnel, **Why Carts Didn't Recover** and the frequent-abandoner count, and notes how many it left out. They're still listed under **Carts → Skipped**.
-
-**Why Carts Didn't Recover** ranks the most common reasons carts left recovery without an order, along with the reasons carts were skipped. A large share for one reason, such as **Contacted recently**, is a prompt to review the matching setting.
+Carts from a [Blocked Domain](../get-started/configuration.md#blockeddomains) are usually bots or test orders, so the Overview leaves them out of its totals, its funnel, **Why Carts Didn't Recover** and the frequent-abandoner count. The funnel's info icon says how many it left out. They're still listed under **Carts → Skipped**.
 
 ## Sequence Performance
 
-The **Sequence Performance** table compares your sequences for the chosen period: carts entered, emails sent, click rate, carts recovered and revenue. Expand a sequence to compare its emails, which shows where customers come back and whether a later email earns its place.
+The **Sequence Performance** table compares your sequences for the chosen period: carts entered, emails sent, click rate, recovery rate and revenue. A bar beside each recovery rate makes the sequences easy to compare. Expand a sequence to compare its emails, which shows where customers come back and whether a later email earns its place.
 
-**Recent Recoveries** lists the latest recovered carts and the email that brought each one back. A link at the bottom points out customers who abandoned three or more carts in the last 30 days.
+**Recent Recoveries** lists the latest recovered carts: the email the customer clicked before ordering, or that they bought without clicking an email, and any discount code they used.
+
+**Why Carts Didn't Recover** groups the carts that left recovery without a credited order: the sequence finished without a purchase, the customer started a newer cart, they unsubscribed or were added to Do Not Email, the cart was emptied or deleted, they ordered without an email's help, staff stopped the emails, or an email failed to send. A large share for one reason is a prompt to review the matching setting. Carts that were skipped before any email are in the funnel instead. A link underneath points out customers who abandoned three or more carts in the last 30 days.
 
 ## How Recoveries Are Credited
 

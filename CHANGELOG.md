@@ -10,7 +10,7 @@
 - Added an email editor with tokens, live desktop and mobile previews using a sample or real cart, and test sends.
 - Added email templates, stored in project config, with a responsive bundled design that needs no template files and an option to copy it to your own templates.
 - Added the Overview, with recovered revenue, recovery rate, a recovery funnel, sequence and email performance, and a setup checklist for new installs. Carts from blocked domains are left out of its figures.
-- Added the Carts screen and cart pages, with each cart's journey and history, skipped carts with their reasons, and Send Now, Stop Emails and Retry actions.
+- Added the Carts screen and cart pages, with each cart’s journey and history, skipped carts with their reasons, Send Now, Stop Emails and Retry actions, and a Can be emailed switch.
 - Added the Customers screen and customer pages, with Can be emailed, Unsubscribed and Do Not Email statuses, and an Abandoned Cart tab on Craft user accounts.
 - Added unsubscribe links and one-click `List-Unsubscribe` headers to every recovery email, with a confirmation page for customers.
 - Added `craft.abandonedCart.getCurrentCustomer()` and the `abandoned-cart/preferences/save` action, so signed-in customers can turn cart reminders off or on from their account.

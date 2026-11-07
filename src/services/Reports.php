@@ -537,14 +537,22 @@ class Reports extends Component
             ->andWhere(['not', ['reason' => SkippedCart::REASON_BLOCKED_DOMAIN]])
             ->groupBy(['reason'])
             ->pairs();
+        // Recoveries that ran out after an email failed, so a failure, not the customer, ended them.
+        $failed = (int)(new Query())
+            ->from(['r' => Table::RECOVERIES])
+            ->where(['r.status' => Recovery::STATUS_ENDED, 'r.endReason' => [Recovery::END_FINISHED, Recovery::END_EXPIRED]])
+            ->andWhere(['>=', 'r.abandonedAt', Db::prepareDateForDb($start)])
+            ->andWhere(['<', 'r.abandonedAt', Db::prepareDateForDb($end)])
+            ->andWhere(['exists', (new Query())->from(['a' => Table::ATTEMPTS])->where('[[a.recoveryId]] = [[r.id]]')->andWhere(['a.status' => Attempt::STATUS_FAILED])])
+            ->count();
 
-        return ['ended' => array_map('intval', $ended), 'skipped' => array_map('intval', $skipped)];
+        return ['ended' => array_map('intval', $ended), 'skipped' => array_map('intval', $skipped), 'failed' => $failed];
     }
 
     public function getRecentRecoveries(int $limit = 6): array
     {
         return (new Query())
-            ->select(['r.id', 'r.orderTotal', 'r.currency', 'r.recoveredAt', 'r.isFirstOrder', 'r.creditedAttemptId', 'c.email', 'name' => 'u.fullName', 'subject' => 'a.subject'])
+            ->select(['r.id', 'r.orderTotal', 'r.currency', 'r.recoveredAt', 'r.isFirstOrder', 'r.creditedAttemptId', 'r.clickedBeforeOrder', 'r.couponCode', 'c.email', 'name' => 'u.fullName', 'subject' => 'a.subject'])
             ->from(['r' => Table::RECOVERIES])
             ->leftJoin(['c' => Table::CUSTOMERS], '[[c.id]] = [[r.customerId]]')
             ->leftJoin(['u' => '{{%users}}'], '[[u.id]] = [[c.userId]]')

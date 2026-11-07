@@ -1,0 +1,44 @@
+{# The one thing staff can change from a cart: whether its customer can be emailed. #}
+{% import '_includes/forms' as forms %}
+
+{% if customer %}
+    {% set canManageStatus = currentUser.can('abandonedCart-manageDoNotEmail') %}
+    {% set unsubscribed = customer.status == 'unsubscribed' %}
+
+    <fieldset>
+        <legend class="h6">{{ 'Email Status' | t('abandoned-cart') }}</legend>
+        <div class="meta">
+            {{ forms.lightswitchField({
+                label: 'Can be emailed' | t('abandoned-cart'),
+                id: 'ac-email-status',
+                on: customer.status == 'active',
+                disabled: unsubscribed or not canManageStatus,
+            }) }}
+        </div>
+        {% if unsubscribed %}
+            <p class="light ac-meta-note">{{ 'Unsubscribed {date}. Only the customer can undo this, by opting in again.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
+        {% elseif customer.status == 'doNotEmail' %}
+            <p class="light ac-meta-note">{{ 'On Do Not Email.' | t('abandoned-cart') }}{% if customer.statusNote %} “{{ customer.statusNote }}”{% endif %}</p>
+        {% elseif canManageStatus %}
+            <p class="light ac-meta-note">{{ 'Switching this off adds the customer to Do Not Email and stops their emails.' | t('abandoned-cart') }}</p>
+        {% endif %}
+    </fieldset>
+
+    {% if canManageStatus and not unsubscribed %}
+        {% js %}
+            $('#ac-email-status').on('change', function() {
+                const on = $(this).data('lightswitch').on;
+                const id = {{ customer.id }};
+
+                Craft.sendActionRequest('POST', on ? 'abandoned-cart/customers/remove-do-not-email' : 'abandoned-cart/customers/do-not-email', {
+                    data: on ? { id } : { ids: [id] },
+                }).then(({ data }) => {
+                    Craft.cp.displaySuccess(data.message);
+                    window.location.reload();
+                }).catch(({ response }) => {
+                    Craft.cp.displayError(response?.data?.message);
+                });
+            });
+        {% endjs %}
+    {% endif %}
+{% endif %}

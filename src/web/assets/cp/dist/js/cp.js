@@ -1602,6 +1602,10 @@ var e=Object.defineProperty,t=(t,n)=>{let r={};for(var i in t)e(r,i,{get:t[i],en
             transition: opacity 0.2s;
         }
 
+        .plot.html-plot {
+            height: auto;
+        }
+
         .base.refreshing .plot {
             opacity: 0.45;
         }
@@ -1788,7 +1792,7 @@ var e=Object.defineProperty,t=(t,n)=>{let r={};for(var i in t)e(r,i,{get:t[i],en
             }
         }
     }
-`;cd.register(Uf);var Ip=new Set([`label`,`state`,`view`,`tableToggle`,`legend`,`hiddenKeys`,`emptyHeading`,`emptyMessage`,`errorHeading`,`errorMessage`,`loadingLabel`,`chartLabel`,`tableLabel`,`viewLabel`,`seriesLabel`,`tableAvailableLabel`,`totalLabel`,`description`]),Lp=`<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3.5 5.5h-7z"/></svg>`,Rp=`<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M4 7L.5 1.5h7z"/></svg>`;function zp(e,t){let n={...e};for(let[e,r]of Object.entries(t)){let t=n[e];n[e]=r&&typeof r==`object`&&!Array.isArray(r)&&t&&typeof t==`object`&&!Array.isArray(t)?zp(t,r):r}return n}var Bp=e=>e;function Vp(e){let t=document.createElement(`span`);return t.className=`change ${e.tone}`,e.direction&&t.insertAdjacentHTML(`afterbegin`,e.direction>0?Lp:Rp),t.append(document.createTextNode(e.text)),t}var G=class extends Ge{constructor(...e){super(...e),this.data=null,this.label=``,this.state=``,this.view=`chart`,this.tableToggle=!1,this.legend=`auto`,this.locale=``,this.emptyHeading=`No data for this period`,this.emptyMessage=``,this.errorHeading=`This chart couldn't be loaded`,this.errorMessage=``,this.loadingLabel=`Loading chart`,this.chartLabel=`Chart`,this.tableLabel=`Table`,this.viewLabel=`Show as`,this.seriesLabel=`Series`,this.description=``,this.tableAvailableLabel=`Data is available as a table.`,this.totalLabel=`Total`,this.hiddenKeys=new Set,this.chart=null,this.activeIndex=-1,this.needsBuild=!0,this.animateNext=!0,this.hasAnimated=!1,this.spokenTooltip=``}static{this.styles=Fp}buildLegend(e,t){return[]}prepare(e){return e}renderOverlay(){return k}renderSupplement(e){return k}get legendInToolbar(){return!0}connectedCallback(){super.connectedCallback(),this.needsBuild=!0,this.hasUpdated&&this.requestUpdate(),this.stopThemeObserver=Jr(()=>{this.animateNext=!1,this.needsBuild=!0,this.requestUpdate()})}disconnectedCallback(){this.stopThemeObserver?.(),this.destroyChart(),super.disconnectedCallback()}get mode(){return this.state===`error`?`error`:this.state===`empty`?`empty`:this.resolved&&this.resolved.rows.length?`ready`:this.state===`loading`?`loading`:`empty`}willUpdate(e){if(([...e.keys()].some(e=>!Ip.has(e))||!this.resolved&&this.data)&&(this.resolved=this.data&&Array.isArray(this.data.rows)&&Array.isArray(this.data.cols)?this.prepare({...this.data,cols:Mr(this.data.cols)}):void 0,this.needsBuild=!0),e.has(`data`)&&this.resolved&&this.hiddenKeys.size){let e=this.legendKeys(this.resolved),t=[...this.hiddenKeys].filter(t=>e.has(t));t.length!==this.hiddenKeys.size&&(this.hiddenKeys=new Set(t))}this.isConnected&&(this.env=Ir(this,this.locale))}updated(){this.mode===`ready`?(this.needsBuild||!this.chart)&&this.buildChart():this.destroyChart()}destroyChart(){this.chart?.destroy(),this.chart=null,this.activeIndex=-1,this.tooltipElement?.classList.remove(`visible`)}buildChart(){if(!this.canvas||!this.resolved||!this.isConnected)return;let e=this.env??Ir(this,this.locale),t=this.animateNext&&!this.hasAnimated&&!e.reducedMotion,n=this.buildConfig(e,this.resolved);n.options=zp({responsive:!0,maintainAspectRatio:!1,locale:e.locale,animation:t?{duration:500,easing:`easeOutQuart`}:!1,transitions:{active:{animation:{duration:0}}},interaction:{mode:`index`,intersect:!1},layout:{padding:{top:6}},plugins:{tooltip:{enabled:!1,external:({tooltip:e})=>{this.drawTooltip(e)}}},onClick:(e,t)=>{let{x:n,y:r}=e,i=n===null||r===null?void 0:t.find(e=>e.element.inRange(n,r,!0))??[...t].sort((e,t)=>Math.hypot(e.element.x-n,e.element.y-r)-Math.hypot(t.element.x-n,t.element.y-r))[0];this.selectPoint(i?[i]:t)},onHover:(e,t)=>{let n=e.native?.target;n&&(n.style.cursor=t.length?`pointer`:`default`)}},n.options??{}),n.plugins=[Br,Vr,...n.plugins??[]],this.destroyChart(),this.chart=new cd(this.canvas,n),this.applyHidden(!1),this.needsBuild=!1,this.animateNext=!0,this.hasAnimated=!0}applyHidden(e){let t=this.chart;t&&(t.data.datasets.forEach((e,n)=>{t.setDatasetVisibility(n,!this.hiddenKeys.has(Bp(e).pkKey))}),e&&t.update())}legendKeys(e){return new Set([...e.cols.slice(1).map(e=>e.id),`__comparison`])}get rebuildOnLegendToggle(){return!1}pointDetail(e,t){let n=this.chart?.data.datasets[e];if(!n||!this.resolved)return null;let r=Bp(n);return{index:t,row:this.resolved.rows[t]??null,series:r.pkKey,value:r.pkRaw?r.pkRaw[t]:n.data[t]}}toggleLegend(e){let t=new Set(this.hiddenKeys),n=!t.has(e.key);n?t.add(e.key):t.delete(e.key),this.hiddenKeys=t,this.rebuildOnLegendToggle?(this.animateNext=!1,this.needsBuild=!0):this.applyHidden(!0),this.dispatchEvent(new Pp({key:e.key,label:e.label,hidden:n}))}setView(e){e!==this.view&&(this.view=e,this.dispatchEvent(new CustomEvent(`pk-view-change`,{detail:{view:e},bubbles:!0,composed:!0})))}drawTooltip(e){let t=this.tooltipElement;if(!t||!this.env||!this.resolved)return;let n=e.opacity===0||!e.dataPoints?.length?null:this.buildTooltip(e.dataPoints,this.env,this.resolved);if(!n){t.classList.remove(`visible`);return}let r=document.createElement(`div`);r.className=`tooltip-title`,r.textContent=n.title;let i=[r],a=[n.title];for(let e of n.rows){let t=document.createElement(`div`);t.className=e.shape?`tooltip-row`:`tooltip-row plain`,e.shape&&t.append(this.keyElement(e.shape,e.color??``));let n=document.createElement(`span`);n.className=`tooltip-label`,n.textContent=e.label;let r=document.createElement(`span`);r.className=`tooltip-value`,r.textContent=e.value,t.append(n,r),e.change&&t.append(document.createElement(`span`),Vp(e.change)),i.push(t),a.push(`${e.label} ${e.value}${e.change?`, ${e.change.text}`:``}`)}if(n.footer){let e=document.createElement(`div`);e.className=`tooltip-footer`;let t=document.createElement(`span`);t.textContent=n.footer[0];let r=document.createElement(`b`);r.textContent=n.footer[1],e.append(t,r),i.push(e),a.push(n.footer.join(` `))}t.replaceChildren(...i),this.spokenTooltip=a.join(`. `),t.classList.add(`visible`);let o=this.plot,s=t.offsetWidth,c=t.offsetHeight,l=this.env.rtl?e.caretX-14-s:e.caretX+14;l+s>o.clientWidth&&(l=e.caretX-14-s),l<0&&(l=Math.min(o.clientWidth-s,e.caretX+14));let u=Math.max(0,Math.min(o.clientHeight-c,e.caretY-c/2));t.style.transform=`translate(${Math.max(0,l)}px, ${u}px)`}keyElement(e,t){let n=document.createElement(`span`);return n.className=e===`rect`?`key`:`key ${e}`,n.style.setProperty(`--_key-color`,t),n}pointCount(){return this.chart?.data.labels?.length??0}activeElementsAt(e){let t=this.chart;return t?t.data.datasets.map((t,n)=>({datasetIndex:n,index:e})).filter(n=>t.isDatasetVisible(n.datasetIndex)&&t.data.datasets[n.datasetIndex].data[e]!=null):[]}handleKeydown(e){let t=this.pointCount();if(!t||!this.chart)return;let n=this.env?.rtl??!1,r=n?`ArrowLeft`:`ArrowRight`,i=n?`ArrowRight`:`ArrowLeft`,a=this.activeIndex;switch(e.key){case r:case`ArrowDown`:a=a<0?0:Math.min(t-1,a+1);break;case i:case`ArrowUp`:a=a<0?t-1:Math.max(0,a-1);break;case`Home`:a=0;break;case`End`:a=t-1;break;case`Escape`:this.clearActive();return;case`Enter`:case` `:a>=0&&(e.preventDefault(),this.selectPoint(this.activeElementsAt(a)));return;default:return}e.preventDefault(),this.setActive(a)}setActive(e){let t=this.chart,n=this.activeElementsAt(e);if(this.activeIndex=e,!t||!n.length){t&&(t.setActiveElements([]),t.tooltip?.setActiveElements([],{x:0,y:0}),t.update(`none`));return}let r=t.getDatasetMeta(n[0].datasetIndex).data[e];t.setActiveElements(n),t.tooltip?.setActiveElements(n,{x:r.x,y:r.y}),t.update(`none`),this.liveRegion&&(this.liveRegion.textContent=this.spokenTooltip)}clearActive(){this.chart&&(this.activeIndex=-1,this.chart.setActiveElements([]),this.chart.tooltip?.setActiveElements([],{x:0,y:0}),this.chart.update(`none`))}selectPoint(e){let t=e[0],n=t?this.pointDetail(t.datasetIndex,t.index):null;n&&this.dispatchEvent(new Np(n))}renderLegend(e,t=`legend`){return e.length?O`
+`;cd.register(Uf);var Ip=new Set([`label`,`state`,`view`,`tableToggle`,`legend`,`hiddenKeys`,`emptyHeading`,`emptyMessage`,`errorHeading`,`errorMessage`,`loadingLabel`,`chartLabel`,`tableLabel`,`viewLabel`,`seriesLabel`,`tableAvailableLabel`,`totalLabel`,`description`]),Lp=`<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M4 1l3.5 5.5h-7z"/></svg>`,Rp=`<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M4 7L.5 1.5h7z"/></svg>`;function zp(e,t){let n={...e};for(let[e,r]of Object.entries(t)){let t=n[e];n[e]=r&&typeof r==`object`&&!Array.isArray(r)&&t&&typeof t==`object`&&!Array.isArray(t)?zp(t,r):r}return n}var Bp=e=>e;function Vp(e){let t=document.createElement(`span`);return t.className=`change ${e.tone}`,e.direction&&t.insertAdjacentHTML(`afterbegin`,e.direction>0?Lp:Rp),t.append(document.createTextNode(e.text)),t}var G=class extends Ge{constructor(...e){super(...e),this.data=null,this.label=``,this.state=``,this.view=`chart`,this.tableToggle=!1,this.legend=`auto`,this.locale=``,this.emptyHeading=`No data for this period`,this.emptyMessage=``,this.errorHeading=`This chart couldn't be loaded`,this.errorMessage=``,this.loadingLabel=`Loading chart`,this.chartLabel=`Chart`,this.tableLabel=`Table`,this.viewLabel=`Show as`,this.seriesLabel=`Series`,this.description=``,this.tableAvailableLabel=`Data is available as a table.`,this.totalLabel=`Total`,this.hiddenKeys=new Set,this.chart=null,this.activeIndex=-1,this.needsBuild=!0,this.animateNext=!0,this.hasAnimated=!1,this.spokenTooltip=``}static{this.styles=Fp}buildLegend(e,t){return[]}prepare(e){return e}renderOverlay(){return k}get htmlPlot(){return!1}renderPlot(){return k}renderSupplement(e){return k}get legendInToolbar(){return!0}connectedCallback(){super.connectedCallback(),this.needsBuild=!0,this.hasUpdated&&this.requestUpdate(),this.stopThemeObserver=Jr(()=>{this.animateNext=!1,this.needsBuild=!0,this.requestUpdate()})}disconnectedCallback(){this.stopThemeObserver?.(),this.destroyChart(),super.disconnectedCallback()}get mode(){return this.state===`error`?`error`:this.state===`empty`?`empty`:this.resolved&&this.resolved.rows.length?`ready`:this.state===`loading`?`loading`:`empty`}willUpdate(e){if(([...e.keys()].some(e=>!Ip.has(e))||!this.resolved&&this.data)&&(this.resolved=this.data&&Array.isArray(this.data.rows)&&Array.isArray(this.data.cols)?this.prepare({...this.data,cols:Mr(this.data.cols)}):void 0,this.needsBuild=!0),e.has(`data`)&&this.resolved&&this.hiddenKeys.size){let e=this.legendKeys(this.resolved),t=[...this.hiddenKeys].filter(t=>e.has(t));t.length!==this.hiddenKeys.size&&(this.hiddenKeys=new Set(t))}this.isConnected&&(this.env=Ir(this,this.locale))}updated(){this.mode!==`ready`||this.htmlPlot?this.destroyChart():(this.needsBuild||!this.chart)&&this.buildChart()}destroyChart(){this.chart?.destroy(),this.chart=null,this.activeIndex=-1,this.tooltipElement?.classList.remove(`visible`)}buildChart(){if(!this.canvas||!this.resolved||!this.isConnected)return;let e=this.env??Ir(this,this.locale),t=this.animateNext&&!this.hasAnimated&&!e.reducedMotion,n=this.buildConfig(e,this.resolved);n.options=zp({responsive:!0,maintainAspectRatio:!1,locale:e.locale,animation:t?{duration:500,easing:`easeOutQuart`}:!1,transitions:{active:{animation:{duration:0}}},interaction:{mode:`index`,intersect:!1},layout:{padding:{top:6}},plugins:{tooltip:{enabled:!1,external:({tooltip:e})=>{this.drawTooltip(e)}}},onClick:(e,t)=>{let{x:n,y:r}=e,i=n===null||r===null?void 0:t.find(e=>e.element.inRange(n,r,!0))??[...t].sort((e,t)=>Math.hypot(e.element.x-n,e.element.y-r)-Math.hypot(t.element.x-n,t.element.y-r))[0];this.selectPoint(i?[i]:t)},onHover:(e,t)=>{let n=e.native?.target;n&&(n.style.cursor=t.length?`pointer`:`default`)}},n.options??{}),n.plugins=[Br,Vr,...n.plugins??[]],this.destroyChart(),this.chart=new cd(this.canvas,n),this.applyHidden(!1),this.needsBuild=!1,this.animateNext=!0,this.hasAnimated=!0}applyHidden(e){let t=this.chart;t&&(t.data.datasets.forEach((e,n)=>{t.setDatasetVisibility(n,!this.hiddenKeys.has(Bp(e).pkKey))}),e&&t.update())}legendKeys(e){return new Set([...e.cols.slice(1).map(e=>e.id),`__comparison`])}get rebuildOnLegendToggle(){return!1}pointDetail(e,t){let n=this.chart?.data.datasets[e];if(!n||!this.resolved)return null;let r=Bp(n);return{index:t,row:this.resolved.rows[t]??null,series:r.pkKey,value:r.pkRaw?r.pkRaw[t]:n.data[t]}}toggleLegend(e){let t=new Set(this.hiddenKeys),n=!t.has(e.key);n?t.add(e.key):t.delete(e.key),this.hiddenKeys=t,this.rebuildOnLegendToggle?(this.animateNext=!1,this.needsBuild=!0):this.applyHidden(!0),this.dispatchEvent(new Pp({key:e.key,label:e.label,hidden:n}))}setView(e){e!==this.view&&(this.view=e,this.dispatchEvent(new CustomEvent(`pk-view-change`,{detail:{view:e},bubbles:!0,composed:!0})))}drawTooltip(e){let t=this.tooltipElement;if(!t||!this.env||!this.resolved)return;let n=e.opacity===0||!e.dataPoints?.length?null:this.buildTooltip(e.dataPoints,this.env,this.resolved);if(!n){t.classList.remove(`visible`);return}let r=document.createElement(`div`);r.className=`tooltip-title`,r.textContent=n.title;let i=[r],a=[n.title];for(let e of n.rows){let t=document.createElement(`div`);t.className=e.shape?`tooltip-row`:`tooltip-row plain`,e.shape&&t.append(this.keyElement(e.shape,e.color??``));let n=document.createElement(`span`);n.className=`tooltip-label`,n.textContent=e.label;let r=document.createElement(`span`);r.className=`tooltip-value`,r.textContent=e.value,t.append(n,r),e.change&&t.append(document.createElement(`span`),Vp(e.change)),i.push(t),a.push(`${e.label} ${e.value}${e.change?`, ${e.change.text}`:``}`)}if(n.footer){let e=document.createElement(`div`);e.className=`tooltip-footer`;let t=document.createElement(`span`);t.textContent=n.footer[0];let r=document.createElement(`b`);r.textContent=n.footer[1],e.append(t,r),i.push(e),a.push(n.footer.join(` `))}t.replaceChildren(...i),this.spokenTooltip=a.join(`. `),t.classList.add(`visible`);let o=this.plot,s=t.offsetWidth,c=t.offsetHeight,l=this.env.rtl?e.caretX-14-s:e.caretX+14;l+s>o.clientWidth&&(l=e.caretX-14-s),l<0&&(l=Math.min(o.clientWidth-s,e.caretX+14));let u=Math.max(0,Math.min(o.clientHeight-c,e.caretY-c/2));t.style.transform=`translate(${Math.max(0,l)}px, ${u}px)`}keyElement(e,t){let n=document.createElement(`span`);return n.className=e===`rect`?`key`:`key ${e}`,n.style.setProperty(`--_key-color`,t),n}pointCount(){return this.chart?.data.labels?.length??0}activeElementsAt(e){let t=this.chart;return t?t.data.datasets.map((t,n)=>({datasetIndex:n,index:e})).filter(n=>t.isDatasetVisible(n.datasetIndex)&&t.data.datasets[n.datasetIndex].data[e]!=null):[]}handleKeydown(e){let t=this.pointCount();if(!t||!this.chart)return;let n=this.env?.rtl??!1,r=n?`ArrowLeft`:`ArrowRight`,i=n?`ArrowRight`:`ArrowLeft`,a=this.activeIndex;switch(e.key){case r:case`ArrowDown`:a=a<0?0:Math.min(t-1,a+1);break;case i:case`ArrowUp`:a=a<0?t-1:Math.max(0,a-1);break;case`Home`:a=0;break;case`End`:a=t-1;break;case`Escape`:this.clearActive();return;case`Enter`:case` `:a>=0&&(e.preventDefault(),this.selectPoint(this.activeElementsAt(a)));return;default:return}e.preventDefault(),this.setActive(a)}setActive(e){let t=this.chart,n=this.activeElementsAt(e);if(this.activeIndex=e,!t||!n.length){t&&(t.setActiveElements([]),t.tooltip?.setActiveElements([],{x:0,y:0}),t.update(`none`));return}let r=t.getDatasetMeta(n[0].datasetIndex).data[e];t.setActiveElements(n),t.tooltip?.setActiveElements(n,{x:r.x,y:r.y}),t.update(`none`),this.liveRegion&&(this.liveRegion.textContent=this.spokenTooltip)}clearActive(){this.chart&&(this.activeIndex=-1,this.chart.setActiveElements([]),this.chart.tooltip?.setActiveElements([],{x:0,y:0}),this.chart.update(`none`))}selectPoint(e){let t=e[0],n=t?this.pointDetail(t.datasetIndex,t.index):null;n&&this.dispatchEvent(new Np(n))}renderLegend(e,t=`legend`){return e.length?O`
             <div class=${t} part="legend" role="group" aria-label=${this.seriesLabel}>
                 ${e.map(e=>O`
                     <button
@@ -1857,20 +1861,22 @@ var e=Object.defineProperty,t=(t,n)=>{let r={};for(var i in t)e(r,i,{get:t[i],en
                 `:k}
                 <div class="body" part="body">
                     <div
-                        class="plot"
+                        class=${tr({plot:!0,"html-plot":this.htmlPlot})}
                         part="plot"
                         role="img"
                         aria-roledescription="chart"
                         aria-label=${`${this.label}. ${this.tableAvailableLabel}`}
                         aria-describedby=${this.description?`description`:k}
-                        tabindex=${t&&!n?`0`:`-1`}
+                        tabindex=${t&&!n&&!this.htmlPlot?`0`:`-1`}
                         ?hidden=${!t||n}
                         @keydown=${this.handleKeydown}
                         @blur=${this.clearActive}
                     >
-                        <canvas aria-hidden="true"></canvas>
-                        <div class="overlay" aria-hidden="true">${t?this.renderOverlay():k}</div>
-                        <div class="tooltip" part="tooltip" aria-hidden="true"></div>
+                        ${this.htmlPlot?t?this.renderPlot():k:O`
+                            <canvas aria-hidden="true"></canvas>
+                            <div class="overlay" aria-hidden="true">${t?this.renderOverlay():k}</div>
+                            <div class="tooltip" part="tooltip" aria-hidden="true"></div>
+                        `}
                     </div>
                     ${t&&!n?this.renderSupplement(r):k}
                     <div class=${n?`table-wrap`:`table-wrap sr-only`} part="table" ?hidden=${!t}>
@@ -2013,16 +2019,97 @@ var e=Object.defineProperty,t=(t,n)=>{let r={};for(var i in t)e(r,i,{get:t[i],en
                         font-size: 14px;
                     }
                 }
+
+                .tracks-wrap {
+                    container-type: inline-size;
+                }
+
+                .tracks {
+                    display: grid;
+                    grid-template-columns: repeat(var(--_stage-count), minmax(0, 1fr));
+                    gap: 16px 14px;
+                }
+
+                .track-stage {
+                    display: grid;
+                    align-content: start;
+                    gap: 6px;
+                    min-width: 0;
+                }
+
+                .track-label {
+                    color: var(--pk-chart-text-muted);
+                    font-size: 12px;
+                    font-weight: 600;
+                    line-height: 1.3;
+                    overflow-wrap: break-word;
+                }
+
+                .track-value {
+                    color: var(--pk-chart-text);
+                    font-size: 22px;
+                    font-weight: 700;
+                    line-height: 1.2;
+                    font-variant-numeric: tabular-nums;
+                }
+
+                .track {
+                    position: relative;
+                    height: var(--pk-funnel-track-height, 56px);
+                    overflow: hidden;
+                    border-radius: 6px;
+                    background: var(--pk-funnel-track, color-mix(in srgb, var(--pk-funnel-fill, var(--pk-chart-ordinal-3)) 12%, var(--pk-chart-surface)));
+                }
+
+                .fill {
+                    position: absolute;
+                    inset: auto 0 0;
+                    border-radius: 6px 6px 0 0;
+                    background: var(--pk-funnel-fill, var(--pk-chart-ordinal-3));
+                }
+
+                .track-note {
+                    color: var(--pk-chart-text-secondary);
+                    font-size: 12px;
+                }
+
+                .track-note b {
+                    color: var(--pk-chart-text);
+                    font-weight: 600;
+                }
+
+                @container (max-width: 520px) {
+                    .tracks {
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                    }
+                }
             }
-        `]}get stages(){return this.resolved?.stages??[]}prepare(e){let t=e.rows.map(e=>om(e[1])),n=t[0]??0,r=e.rows.map((e,r)=>({label:String(e[0]??``),value:t[r],ofPrevious:r===0?1:t[r-1]?t[r]/t[r-1]:0,ofFirst:n?t[r]/n:0}));return{...e,stages:r}}colors(e){let t=this.stages.length,n=e.theme.ordinal;return this.stages.map((e,r)=>n[t<=1?n.length-1:Math.round(r*(n.length-1)/(t-1))])}buildConfig(e,t){let{theme:n}=e,r=this.colors(e),i=Math.max(1,...this.stages.map(e=>e.value)),a=K(t.cols[1],{locale:e.locale}),o=K({type:`percent`},{locale:e.locale}),s={backgroundColor:r,hoverBackgroundColor:r.map(e=>Rr(e,.82)),borderRadius:4,pkKey:t.cols[1].id,pkColumn:t.cols[1],pkColor:r[0],pkRaw:this.stages.map(e=>e.value)};return this.shape===`centered`?{type:`bar`,data:{labels:this.stages.map(e=>e.label),datasets:[{...s,data:this.stages.map(e=>[-e.value/2,e.value/2]),borderSkipped:!1,barPercentage:.84,categoryPercentage:1}]},options:{indexAxis:`y`,interaction:{mode:`index`,intersect:!1,axis:`y`},layout:{padding:{[e.rtl?`left`:`right`]:108}},scales:{x:{display:!1,min:-i/2,max:i/2,reverse:e.rtl},y:{position:e.rtl?`right`:`left`,grid:{display:!1},border:{display:!1},ticks:{color:n.secondary,font:{size:12,family:n.font}}}},plugins:{pkValueLabels:{enabled:!0,horizontal:!0,rtl:e.rtl,color:n.secondary,font:n.font,format:(e,t)=>{let n=this.stages[t];return n?`${a(n.value)} · ${o(n.ofFirst)}`:``}}}}}:{type:`bar`,data:{labels:this.stages.map(e=>e.label),datasets:[{...s,data:this.stages.map(e=>e.value),borderSkipped:`start`,barPercentage:.62,categoryPercentage:1,maxBarThickness:72}]},options:{layout:{padding:0},scales:{x:{display:!1,reverse:e.rtl},y:{display:!1,beginAtZero:!0,max:i}}}}}renderSupplement(){if(this.shape===`centered`||!this.env||!this.resolved)return k;let e=K(this.resolved.cols[1],{locale:this.env.locale}),t=K({type:`percent`},{locale:this.env.locale});return O`
+        `]}get htmlPlot(){return this.shape===`tracks`}get stages(){return this.resolved?.stages??[]}prepare(e){let t=e.rows.map(e=>om(e[1])),n=t[0]??0,r=e.rows.map((e,r)=>({label:String(e[0]??``),value:t[r],ofPrevious:r===0?1:t[r-1]?t[r]/t[r-1]:0,ofFirst:n?t[r]/n:0}));return{...e,stages:r}}colors(e){let t=this.stages.length,n=e.theme.ordinal;return this.stages.map((e,r)=>n[t<=1?n.length-1:Math.round(r*(n.length-1)/(t-1))])}buildConfig(e,t){let{theme:n}=e,r=this.colors(e),i=Math.max(1,...this.stages.map(e=>e.value)),a=K(t.cols[1],{locale:e.locale}),o=K({type:`percent`},{locale:e.locale}),s={backgroundColor:r,hoverBackgroundColor:r.map(e=>Rr(e,.82)),borderRadius:4,pkKey:t.cols[1].id,pkColumn:t.cols[1],pkColor:r[0],pkRaw:this.stages.map(e=>e.value)};return this.shape===`centered`?{type:`bar`,data:{labels:this.stages.map(e=>e.label),datasets:[{...s,data:this.stages.map(e=>[-e.value/2,e.value/2]),borderSkipped:!1,barPercentage:.84,categoryPercentage:1}]},options:{indexAxis:`y`,interaction:{mode:`index`,intersect:!1,axis:`y`},layout:{padding:{[e.rtl?`left`:`right`]:108}},scales:{x:{display:!1,min:-i/2,max:i/2,reverse:e.rtl},y:{position:e.rtl?`right`:`left`,grid:{display:!1},border:{display:!1},ticks:{color:n.secondary,font:{size:12,family:n.font}}}},plugins:{pkValueLabels:{enabled:!0,horizontal:!0,rtl:e.rtl,color:n.secondary,font:n.font,format:(e,t)=>{let n=this.stages[t];return n?`${a(n.value)} · ${o(n.ofFirst)}`:``}}}}}:{type:`bar`,data:{labels:this.stages.map(e=>e.label),datasets:[{...s,data:this.stages.map(e=>e.value),borderSkipped:`start`,barPercentage:.62,categoryPercentage:1,maxBarThickness:72}]},options:{layout:{padding:0},scales:{x:{display:!1,reverse:e.rtl},y:{display:!1,beginAtZero:!0,max:i}}}}}renderNote(e,t){let n=this.resolved?.notes?.[e];return typeof n==`string`?n:n?O`<b>${t(n.rate)}</b> ${n.text}`:e?O`<b>${t(this.stages[e].ofPrevious)}</b> ${this.ofPreviousLabel}`:this.resolved?.firstNote??`\xA0`}renderPlot(){if(!this.env||!this.resolved)return k;let e=K(this.resolved.cols[1],{locale:this.env.locale}),t=K({type:`percent`},{locale:this.env.locale}),n=Math.max(1,...this.stages.map(e=>e.value)),r=this.stages.length-1;return O`
+            <div class="tracks-wrap" aria-hidden="true">
+                <div class="tracks" style=${Zr({"--_stage-count":String(this.stages.length)})}>
+                    ${this.stages.map((i,a)=>O`
+                        <div class="track-stage" part="stage">
+                            <span class="track-label">${i.label}</span>
+                            <span class="track-value">${e(i.value)}</span>
+                            <div class="track" part="track">
+                                <span
+                                    class=${a===r?`fill fill-last`:`fill`}
+                                    part=${a===r?`fill fill-last`:`fill`}
+                                    style=${Zr({height:`${i.value/n*100}%`})}
+                                ></span>
+                            </div>
+                            <span class="track-note">${this.renderNote(a,t)}</span>
+                        </div>
+                    `)}
+                </div>
+            </div>
+        `}renderSupplement(){if(this.shape!==`steps`||!this.env||!this.resolved)return k;let e=K(this.resolved.cols[1],{locale:this.env.locale}),t=K({type:`percent`},{locale:this.env.locale});return O`
             <div class="stages" aria-hidden="true" style=${Zr({"--_stage-count":String(this.stages.length)})}>
                 ${this.stages.map((n,r)=>O`
                     <div class="stage">
                         <span class="stage-label">${n.label}</span>
                         <span class="stage-value">${e(n.value)}</span>
-                        <span class="stage-rate">
-                            ${r?O`<b>${t(n.ofPrevious)}</b> ${this.ofPreviousLabel}`:this.resolved?.firstNote??`\xA0`}
-                        </span>
+                        <span class="stage-rate">${this.renderNote(r,t)}</span>
                     </div>
                 `)}
             </div>

@@ -4,7 +4,6 @@ namespace verbb\abandonedcart\controllers;
 use verbb\abandonedcart\AbandonedCart;
 use verbb\abandonedcart\helpers\Duration;
 use verbb\abandonedcart\models\Recovery;
-use verbb\abandonedcart\models\SkippedCart;
 use verbb\abandonedcart\services\Presets;
 use verbb\abandonedcart\services\State;
 
@@ -93,12 +92,17 @@ class OverviewController extends BaseCpController
             'funnelData' => [
                 'cols' => [['id' => 'stage', 'label' => Craft::t('abandoned-cart', 'Stage'), 'type' => 'category'], ['id' => 'carts', 'label' => Craft::t('abandoned-cart', 'Carts'), 'type' => 'number']],
                 'rows' => [
-                    [Craft::t('abandoned-cart', 'Abandoned'), $current['abandoned']],
+                    [Craft::t('abandoned-cart', 'Carts Abandoned'), $current['abandoned']],
                     [Craft::t('abandoned-cart', 'Emailed'), $current['emailed']],
-                    [Craft::t('abandoned-cart', 'Clicked through'), $current['clicked']],
+                    [Craft::t('abandoned-cart', 'Clicked Through'), $current['clicked']],
                     [Craft::t('abandoned-cart', 'Recovered'), $current['recovered']],
                 ],
-                'firstNote' => Craft::t('abandoned-cart', '{value} left in carts', ['value' => Craft::$app->getFormatter()->asCurrency($current['abandonedValue'], $reports->getCurrency())]),
+                'notes' => [
+                    Craft::t('abandoned-cart', '{value} left in carts', ['value' => Craft::$app->getFormatter()->asCurrency($current['abandonedValue'], $reports->getCurrency())]),
+                    ['rate' => $current['abandoned'] ? $current['emailed'] / $current['abandoned'] : 0, 'text' => Craft::t('abandoned-cart', 'reachable · {count} skipped', ['count' => $current['skipped']])],
+                    ['rate' => $current['emailed'] ? $current['clicked'] / $current['emailed'] : 0, 'text' => Craft::t('abandoned-cart', 'of emailed')],
+                    ['rate' => $current['emailed'] ? $current['recovered'] / $current['emailed'] : 0, 'text' => Craft::t('abandoned-cart', 'of emailed')],
+                ],
             ],
             'reasonData' => $this->_reasonData($reasons),
             'sequences' => array_map(fn($sequence): array => [
@@ -202,23 +206,34 @@ class OverviewController extends BaseCpController
         return $checks;
     }
 
+    /**
+     * Recoveries that ended without an attributed order, in the groups the Overview shows. Skipped
+     * carts are in the funnel instead, and 4.x history doesn't say why it ended.
+     */
     private function _reasonData(array $reasons): array
     {
-        $labels = Recovery::endReasonLabels() + SkippedCart::reasonLabels();
+        $ended = $reasons['ended'];
+        $sum = static fn(string ...$keys): int => array_sum(array_map(static fn(string $key): int => $ended[$key] ?? 0, $keys));
+        $failed = $reasons['failed'] ?? 0;
+        $groups = [
+            'finished' => [Craft::t('abandoned-cart', 'Sequence finished without a purchase'), max(0, $sum(Recovery::END_FINISHED, Recovery::END_EXPIRED) - $failed)],
+            'newerCart' => [Craft::t('abandoned-cart', 'Customer started a newer cart'), $sum(Recovery::END_NEWER_CART)],
+            'optedOut' => [Craft::t('abandoned-cart', 'Unsubscribed or on Do Not Email'), $sum(Recovery::END_UNSUBSCRIBED, Recovery::END_DO_NOT_EMAIL)],
+            'emptied' => [Craft::t('abandoned-cart', 'Cart emptied or deleted'), $sum(Recovery::END_CART_EMPTIED, Recovery::END_ORDER_REMOVED)],
+            'ordered' => [Craft::t('abandoned-cart', 'Ordered, but not from an email'), $sum(Recovery::END_COMPLETED_BEFORE_EMAIL, Recovery::END_COMPLETED_OUTSIDE_WINDOW)],
+            'stopped' => [Craft::t('abandoned-cart', 'Stopped by staff'), $sum(Recovery::END_STOPPED)],
+            'failed' => [Craft::t('abandoned-cart', 'Email failed to send'), $failed],
+        ];
         $rows = [];
 
-        foreach (['ended', 'skipped'] as $group) {
-            foreach ($reasons[$group] as $reason => $count) {
-                $label = $group === 'skipped' ? Craft::t('abandoned-cart', 'Skipped: {reason}', ['reason' => mb_strtolower(SkippedCart::reasonLabels()[$reason] ?? $reason)]) : ($labels[$reason] ?? $reason);
-                $rows[] = [$label, $count];
+        foreach ($groups as $key => [$label, $count]) {
+            if ($count > 0) {
+                $rows[] = ['key' => $key, 'label' => $label, 'count' => $count];
             }
         }
 
-        usort($rows, static fn(array $a, array $b): int => $b[1] <=> $a[1]);
+        usort($rows, static fn(array $a, array $b): int => $b['count'] <=> $a['count']);
 
-        return [
-            'cols' => [['id' => 'reason', 'label' => Craft::t('abandoned-cart', 'Reason'), 'type' => 'category'], ['id' => 'carts', 'label' => Craft::t('abandoned-cart', 'Carts'), 'type' => 'number']],
-            'rows' => array_slice($rows, 0, 8),
-        ];
+        return $rows;
     }
 }

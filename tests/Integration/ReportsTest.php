@@ -101,3 +101,22 @@ it('leaves blocked-domain carts out of the Overview but lists them as skipped', 
         ->and($reports->getOutcomeReasons($start, $end)['skipped'])->not->toHaveKey('blockedDomain')
         ->and(array_column($skippedRows, 'reason'))->toBe(['blockedDomain']);
 });
+
+it('counts recoveries that ran out after a failed email as failed', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $this->createCart('failed.one@example.test', idleMinutes: 90);
+    $this->createCart('finished.two@example.test', idleMinutes: 90);
+    AbandonedCart::$plugin->getRecoveries()->run();
+
+    $db = Craft::$app->getDb();
+    $ids = (new craft\db\Query())->select(['r.id'])->from(['r' => verbb\abandonedcart\db\Table::RECOVERIES])
+        ->innerJoin(['c' => verbb\abandonedcart\db\Table::CUSTOMERS], '[[c.id]] = [[r.customerId]]')
+        ->orderBy(['c.email' => SORT_ASC])->column();
+    $db->createCommand()->update(verbb\abandonedcart\db\Table::RECOVERIES, ['status' => Recovery::STATUS_ENDED, 'endReason' => Recovery::END_FINISHED], ['id' => $ids])->execute();
+    $db->createCommand()->update(verbb\abandonedcart\db\Table::ATTEMPTS, ['status' => 'failed'], ['recoveryId' => $ids[0], 'position' => 1])->execute();
+
+    $reasons = AbandonedCart::$plugin->getReports()->getOutcomeReasons(new DateTime('-30 days'), new DateTime('+1 day'));
+
+    expect($reasons['failed'])->toBe(1)
+        ->and($reasons['ended'][Recovery::END_FINISHED])->toBe(2);
+});

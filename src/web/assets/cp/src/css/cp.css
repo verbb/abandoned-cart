@@ -662,7 +662,7 @@
 
 [data-ac-table] pk-data-table {
     display: block;
-    --pk-data-table-toolbar-background: var(--gray-050, #f3f7fc);
+    --pk-data-table-toolbar-background: var(--gray-100, #e4edf6);
 }
 
 /* Cart and customer pages */
@@ -1067,10 +1067,6 @@
     --pk-chart-height: 240px;
 }
 
-.ac-chart--short {
-    --pk-chart-height: 220px;
-}
-
 .ac-live {
     display: inline-flex;
     align-items: center;
@@ -1136,6 +1132,96 @@
     transform: rotate(90deg);
 }
 
+/* Overview funnel and sequence table, as in the redesign mockup */
+.ac-funnel {
+    --pk-funnel-fill: #2563eb;
+    --pk-funnel-track: #e8f0fe;
+}
+
+.ac-funnel::part(fill) {
+    opacity: 0.85;
+}
+
+.ac-funnel::part(fill-last) {
+    background: #0f8a5f;
+}
+
+/* Craft's info icon, drawn as the mockup's outlined glyph */
+.ac-card__head .infoicon-container {
+    align-self: center;
+}
+
+.ac-card__head .info {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: #8a97a5;
+}
+
+.ac-card__head .info::before {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='8'/%3E%3Cpath d='M10 9v5M10 6.5v.01'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.ac-card__head .info:hover,
+.ac-card__head .info:focus-visible {
+    color: var(--text-color, #1f2933);
+}
+
+.ac-performance {
+    border-collapse: collapse;
+}
+
+.ac-performance thead th {
+    padding: 8px 10px;
+    border-bottom: 1px solid #dde5ee;
+    color: var(--light-text-color, #6b7a89);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: start;
+    white-space: nowrap;
+}
+
+.ac-performance tbody th,
+.ac-performance td {
+    padding: 10px;
+    border-bottom: 1px solid #eef2f7;
+    font-weight: normal;
+    text-align: start;
+    vertical-align: middle;
+}
+
+.ac-performance .ac-num {
+    text-align: end;
+    font-variant-numeric: tabular-nums;
+}
+
+.ac-performance tbody:last-child tr:last-child > * {
+    border-bottom: 0;
+}
+
+.ac-rate {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.ac-rate__meter {
+    width: 80px;
+    min-width: 80px;
+    --pk-chart-meter-ok: #0f8a5f;
+}
+
+.ac-rate__meter::part(track) {
+    background: #eef2f7;
+}
+
 .ac-performance__email td {
     background: #fafcfe;
     font-size: 13px;
@@ -1144,6 +1230,55 @@
 .ac-performance__email td:first-child {
     padding-inline-start: 34px;
 }
+
+.ac-feed__value {
+    font-weight: 700;
+}
+
+/* Why carts didn't recover: one stacked bar and its legend */
+.ac-stack {
+    display: flex;
+    gap: 2px;
+    height: 12px;
+    margin: 4px 0 14px;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.ac-stack span {
+    min-width: 4px;
+}
+
+.ac-legend {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ac-legend li {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.ac-legend i {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.ac-reason--finished { background: #9fb4cb; }
+.ac-reason--newerCart { background: #5b8def; }
+.ac-reason--optedOut { background: #e0a33b; }
+.ac-reason--emptied { background: #c4cfdb; }
+.ac-reason--ordered { background: #6dbb98; }
+.ac-reason--stopped { background: #7c8a99; }
+.ac-reason--failed { background: #c42b1c; }
 
 .ac-feed {
     display: grid;
@@ -1482,4 +1617,16 @@
 /* Status labels are single words or short phrases; wrapping them mid-word reads as a glitch. */
 pk-status-label {
     white-space: nowrap;
+}
+
+/* Cart pages' sidebar, laid out like Craft's element sidebar */
+.ac-meta-note {
+    margin: 8px 0 0;
+    padding-inline: 12px;
+    font-size: 12px;
+}
+
+#details .meta.read-only .value {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
