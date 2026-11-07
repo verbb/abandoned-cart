@@ -15,18 +15,18 @@
     <meta name="color-scheme" content="light">
     <title>{{ subject }}</title>
 </head>
-<body style="margin:0;padding:0;background:#f4f5f7;-webkit-text-size-adjust:100%;">
+<body style="margin:0;padding:0;background:#ffffff;-webkit-text-size-adjust:100%;">
     {% if previewText %}
         <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{ previewText }}&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;</div>
     {% endif %}
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;">
+    {# All white, so the email reads as a page rather than a card on a grey background. #}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
         <tr>
-            <td align="center" style="padding:32px 16px;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:{{ ink }};">
-                    <tr><td style="height:6px;background:{{ ink }};font-size:0;line-height:0;">&nbsp;</td></tr>
+            <td align="center" style="padding:16px 8px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:{{ ink }};">
                     <tr>
-                        <td style="padding:32px 36px 8px;">
+                        <td style="padding:24px 24px 8px;">
                             <p style="margin:0 0 24px;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;">{{ storeName }}</p>
 
                             {% if heading %}
@@ -41,7 +41,7 @@
 
                     {% if cart.items %}
                         <tr>
-                            <td style="padding:0 36px;">
+                            <td style="padding:0 24px;">
                                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                     {% for item in cart.items %}
                                         <tr>
@@ -70,7 +70,7 @@
 
                     {% if discountCode %}
                         <tr>
-                            <td style="padding:20px 36px 0;">
+                            <td style="padding:20px 24px 0;">
                                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4ef;border-radius:10px;">
                                     <tr>
                                         <td align="center" style="padding:16px;font-size:13px;color:#5d554e;">
@@ -84,13 +84,13 @@
                     {% endif %}
 
                     <tr>
-                        <td style="padding:24px 36px 32px;">
+                        <td style="padding:24px 24px 28px;">
                             <a href="{{ recoverUrl }}" style="display:inline-block;background:{{ ink }};color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:13px 22px;border-radius:8px;">{{ buttonLabel }}</a>
                         </td>
                     </tr>
 
                     <tr>
-                        <td style="padding:20px 36px 28px;border-top:1px solid {{ line }};font-size:12px;line-height:1.6;color:{{ muted }};">
+                        <td style="padding:20px 24px 24px;border-top:1px solid {{ line }};font-size:12px;line-height:1.6;color:{{ muted }};">
                             {% if storeAddress %}{{ storeName }} · {{ storeAddress }}<br>{% endif %}
                             {{ 'You’re getting this because you left items in your cart at {siteName}.' | t('abandoned-cart', { siteName: site.name ?? storeName }) }}
                             <a href="{{ unsubscribeUrl }}" style="color:{{ muted }};">{{ 'Unsubscribe from cart reminders' | t('abandoned-cart') }}</a>
