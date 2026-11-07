@@ -1252,6 +1252,14 @@
     background: #eef2f7;
 }
 
+tr.ac-toggle-row-host {
+    cursor: pointer;
+}
+
+tr.ac-toggle-row-host:hover > * {
+    background: #f5f8fc;
+}
+
 .ac-performance__email td {
     background: #fafcfe;
     font-size: 13px;
@@ -1318,11 +1326,14 @@
 }
 
 .ac-feed li {
+    position: relative;
     display: grid;
     grid-template-columns: 32px minmax(0, 1fr) auto;
     align-items: center;
     gap: 10px;
-    padding: 9px 0;
+    /* Pulled out to the card edge's inset so the hover tint has room around the content. */
+    margin-inline: -8px;
+    padding: 9px 8px;
     border-bottom: 1px solid var(--hairline-color, #e3e8ef);
 }
 
@@ -1330,10 +1341,37 @@
     border-bottom: 0;
 }
 
+/* The whole row is the link: the name's link stretches over it, and hover tints the row. */
+.ac-feed li:has(a):hover,
+.ac-feed li:has(a:focus-visible) {
+    border-radius: 6px;
+    background: #f5f8fc;
+}
+
+.ac-feed li:has(a:focus-visible) {
+    box-shadow: var(--focus-ring, 0 0 0 2px #2563eb);
+}
+
 .ac-feed a {
     display: grid;
     gap: 2px;
     color: inherit;
+    text-decoration: none;
+}
+
+.ac-feed a:hover {
+    text-decoration: none;
+}
+
+.ac-feed a:focus-visible {
+    box-shadow: none;
+    outline: none;
+}
+
+.ac-feed a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
 }
 
 .ac-feed .light {
