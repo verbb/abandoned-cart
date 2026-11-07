@@ -45,7 +45,7 @@
     {% include 'abandoned-cart/_includes/email-status' %}
 
     <div class="meta read-only">
-        <div class="data"><h5 class="heading">{{ 'Status' | t('app') }}</h5><div class="value flex flex-nowrap"><span class="status orange" aria-hidden="true"></span>{{ 'Skipped' | t('abandoned-cart') }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Status' | t('app') }}</h5><div class="value"><span class="status orange" aria-hidden="true"></span>{{ 'Skipped' | t('abandoned-cart') }}</div></div>
         <div class="data"><h5 class="heading">{{ 'Customer' | t('abandoned-cart') }}</h5><div class="value">{% if customer %}<a href="{{ customer.cpEditUrl }}">{{ customerName ?: customer.email }}</a>{% else %}—{% endif %}</div></div>
         <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email ?? '—' }}</div></div>
         <div class="data"><h5 class="heading">{{ 'Account' | t('abandoned-cart') }}</h5><div class="value">{{ customer and customer.user and customer.user.isCredentialed ? 'Yes' | t('app') : 'Guest' | t('abandoned-cart') }}</div></div>
