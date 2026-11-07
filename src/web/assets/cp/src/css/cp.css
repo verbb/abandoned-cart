@@ -506,10 +506,6 @@
     margin-top: 10px;
 }
 
-.ac-side-actions {
-    padding: 4px 0 0;
-}
-
 .ac-tester__result {
     margin: 10px 0 0;
     font-size: 13px;
@@ -667,7 +663,6 @@
 
 [data-ac-table] {
     min-width: 0;
-    padding: 2px;
 }
 
 [data-ac-table] pk-data-table {
@@ -900,12 +895,6 @@
 
 .meta.read-only > p {
     margin: 4px 0 12px;
-}
-
-.ac-dne-form {
-    display: grid;
-    gap: 8px;
-    padding: 0 0 16px;
 }
 
 .ac-strip {

@@ -42,7 +42,7 @@
 {% endblock %}
 
 {% block details %}
-    {% include 'abandoned-cart/carts/_email-status' %}
+    {% include 'abandoned-cart/_includes/email-status' %}
 
     <div class="meta read-only">
         <div class="data"><h5 class="heading">{{ 'Status' | t('app') }}</h5><div class="value flex flex-nowrap"><span class="status orange" aria-hidden="true"></span>{{ 'Skipped' | t('abandoned-cart') }}</div></div>

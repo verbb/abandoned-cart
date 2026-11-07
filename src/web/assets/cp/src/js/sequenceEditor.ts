@@ -371,23 +371,6 @@ function mountCartTester(): void {
     });
 }
 
-function mountDelete(): void {
-    document.querySelector<HTMLButtonElement>('[data-ac-delete-sequence]')?.addEventListener('click', async (event) => {
-        const button = event.currentTarget as HTMLButtonElement;
-
-        if (!confirm(button.dataset.confirm ?? '')) {
-            return;
-        }
-
-        try {
-            await Craft.sendActionRequest('POST', 'abandoned-cart/sequences/delete', { data: { id: button.dataset.acDeleteSequence } });
-            location.href = Craft.getCpUrl('abandoned-cart/sequences');
-        } catch (error) {
-            Craft.cp.displayError(errorMessage(error));
-        }
-    });
-}
-
 export function mountSequenceEditor(): void {
     const root = document.querySelector<HTMLElement>('[data-ac-sequence-editor]');
 
@@ -399,7 +382,6 @@ export function mountSequenceEditor(): void {
 
     mountAudiences();
     mountCartTester();
-    mountDelete();
 
     document.querySelectorAll<HTMLButtonElement>('[data-ac-edit-email]').forEach(button => button.addEventListener('click', async () => {
         try {

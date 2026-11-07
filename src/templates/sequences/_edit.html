@@ -12,13 +12,17 @@
 {% set currency = craft.abandonedCart.getCurrency() %}
 {% set settings = audienceSettings ?? sequence.audienceSettings %}
 
-{% block actionButton %}
-    {% if canManage %}
-        <div class="btngroup">
-            <button type="submit" class="btn submit">{{ 'Save' | t('app') }}</button>
-        </div>
-    {% endif %}
-{% endblock %}
+{# Craft's own Save button and menu. Everyone Else can't be deleted. #}
+{% if canManage and not sequence.isFallback %}
+    {% set formActions = [{
+        label: 'Delete Sequence' | t('abandoned-cart'),
+        action: 'abandoned-cart/sequences/delete',
+        params: { id: sequence.id },
+        redirect: 'abandoned-cart/sequences' | hash,
+        confirm: 'Delete “{name}”? Carts in it stop getting its emails. Their history stays.' | t('abandoned-cart', { name: sequence.name }),
+        destructive: true,
+    }] %}
+{% endif %}
 
 {% block main %}
     {% include 'abandoned-cart/_includes/details-main' with { content: block('blockContent') } %}
@@ -245,10 +249,4 @@
         <div class="select fullwidth"><select data-ac-cart-select aria-label="{{ 'Cart' | t('abandoned-cart') }}"><option value="">{{ 'Choose a cart…' | t('abandoned-cart') }}</option></select></div>
         <p class="ac-tester__result" data-ac-cart-result aria-live="polite"></p>
     </div>
-
-    {% if canManage and not sequence.isFallback %}
-        <div class="ac-side-actions">
-            <button type="button" class="btn small" data-ac-delete-sequence="{{ sequence.id }}" data-confirm="{{ 'Delete “{name}”? Carts in it stop getting its emails. Their history stays.' | t('abandoned-cart', { name: sequence.name }) }}">{{ 'Delete Sequence' | t('abandoned-cart') }}</button>
-        </div>
-    {% endif %}
 {% endblock %}

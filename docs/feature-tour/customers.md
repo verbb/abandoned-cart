@@ -28,11 +28,11 @@ Unsubscribed and Do not email both stop any recovery that's under way straight a
 
 Use Do Not Email when a customer asks you directly to stop, such as by phone, or for an address that should never receive reminders, such as a staff member who places test orders. You'll need the **Manage Do Not Email** permission.
 
-On a customer's page, enter an optional note, such as "Asked by phone", and choose **Add to Do Not Email**. The note and the person who added it are shown on the page afterwards. To add several customers at once, select them in the list and choose **Add to Do Not Email**. To block an address that hasn't abandoned a cart yet, open the **Do not email** view and choose **Add Address**.
+On a customer's page, enter an optional **Note**, such as "Asked by phone", in the sidebar and switch off **Can be emailed**. The note and the person who added it are shown there afterwards. To add several customers at once, select them in the list and choose **Add to Do Not Email**. To block an address that hasn't abandoned a cart yet, open the **Do not email** view and choose **Add Address**.
 
 You can also switch off **Can be emailed** in a cart's sidebar.
 
-Customers can't change a Do Not Email status themselves, even from their account. **Remove from Do Not Email** on the customer's page, or switching **Can be emailed** back on in a cart's sidebar, lets them be emailed again. Carts that were skipped while they were on the list aren't revisited.
+Customers can't change a Do Not Email status themselves, even from their account. Switching **Can be emailed** back on, on the customer's page or in a cart's sidebar, lets them be emailed again. Carts that were skipped while they were on the list aren't revisited.
 
 Do Not Email records are kept permanently, whatever the **Keep History For** setting.
 

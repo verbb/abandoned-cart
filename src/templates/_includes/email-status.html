@@ -1,4 +1,8 @@
-{# The one thing staff can change from a cart: whether its customer can be emailed. #}
+{#
+ # Whether a customer can be emailed, as a switch in Craft's sidebar: off adds them to Do Not
+ # Email, on removes them. `withNote` adds a note row for the Do Not Email record, and
+ # `changedBy` (a user) says who added them.
+ #}
 {% import '_includes/forms' as forms %}
 
 {% if customer %}
@@ -14,11 +18,23 @@
                 on: customer.status == 'active',
                 disabled: unsubscribed or not canManageStatus,
             }) }}
+            {% if (withNote ?? false) and canManageStatus and customer.status == 'active' %}
+                {{ forms.textField({
+                    label: 'Note' | t('abandoned-cart'),
+                    id: 'ac-email-status-note',
+                    placeholder: 'Such as “Asked by phone”' | t('abandoned-cart'),
+                }) }}
+            {% endif %}
         </div>
         {% if unsubscribed %}
             <p class="light ac-meta-note">{{ 'Unsubscribed {date}. Only the customer can undo this, by opting in again.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
         {% elseif customer.status == 'doNotEmail' %}
-            <p class="light ac-meta-note">{{ 'On Do Not Email.' | t('abandoned-cart') }}{% if customer.statusNote %} “{{ customer.statusNote }}”{% endif %}</p>
+            {% set addedBy = (changedBy ?? null).friendlyName ?? (customer.statusSource == 'upgrade' ? 'the 4.x upgrade' | t('abandoned-cart') : null) %}
+            {% set addedOn = customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' %}
+            <p class="light ac-meta-note">
+                {{- addedBy ? 'Added to Do Not Email by {name} {date}.' | t('abandoned-cart', { name: addedBy, date: addedOn }) : 'Added to Do Not Email {date}.' | t('abandoned-cart', { date: addedOn }) -}}
+                {%- if customer.statusNote %} “{{ customer.statusNote }}”{% endif -%}
+            </p>
         {% elseif canManageStatus %}
             <p class="light ac-meta-note">{{ 'Switching this off adds the customer to Do Not Email and stops their emails.' | t('abandoned-cart') }}</p>
         {% endif %}
@@ -31,7 +47,7 @@
                 const id = {{ customer.id }};
 
                 Craft.sendActionRequest('POST', on ? 'abandoned-cart/customers/remove-do-not-email' : 'abandoned-cart/customers/do-not-email', {
-                    data: on ? { id } : { ids: [id] },
+                    data: on ? { id } : { ids: [id], note: $('#ac-email-status-note').val() ?? '' },
                 }).then(({ data }) => {
                     Craft.cp.displaySuccess(data.message);
                     window.location.reload();

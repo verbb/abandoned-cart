@@ -7,11 +7,14 @@
 {% set crumbs = [{ label: 'Customers' | t('abandoned-cart'), url: url('abandoned-cart/customers') }] %}
 {% set formatter = craft.app.formatter %}
 {% set currency = craft.abandonedCart.getCurrency() %}
-{% set tones = { active: 'green', unsubscribed: 'gray', doNotEmail: 'red' } %}
 {% set canManage = currentUser.can('abandonedCart-manageDoNotEmail') %}
 
 {% block actionButton %}
     {% if user %}<a class="btn" href="{{ url('users/' ~ user.id ~ '/commerce') }}">{{ 'View in Commerce' | t('abandoned-cart') }}</a>{% endif %}
+{% endblock %}
+
+{% block main %}
+    {% include 'abandoned-cart/_includes/details-main' with { content: block('blockContent') } %}
 {% endblock %}
 
 {% block blockContent %}
@@ -19,37 +22,12 @@
 {% endblock %}
 
 {% block details %}
-    <div class="meta read-only">
-        <div class="ac-meta-head"><h2>{{ 'Email Status' | t('abandoned-cart') }}</h2></div>
-        <p><pk-status-label status="{{ tones[customer.status] }}">{{ statusLabels[customer.status] }}</pk-status-label></p>
-        {% if customer.status == 'unsubscribed' %}
-            <p class="light">{{ 'Unsubscribed {date}. Staff can’t undo an unsubscribe; it clears if the customer opts in again at checkout or from their account.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
-        {% elseif customer.status == 'doNotEmail' %}
-            {% if customer.statusNote %}<p>“{{ customer.statusNote }}”</p>{% endif %}
-            {% set addedBy = changedBy.friendlyName ?? (customer.statusSource == 'upgrade' ? 'the 4.x upgrade' | t('abandoned-cart') : null) %}
-            <p class="light">{{ addedBy ? 'Added by {name} {date}.' | t('abandoned-cart', { name: addedBy, date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) : 'Added {date}.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
-            {% if canManage %}
-                <form method="post">
-                    {{ csrfInput() }}{{ actionInput('abandoned-cart/customers/remove-do-not-email') }}{{ hiddenInput('id', customer.id) }}{{ redirectInput(customer.cpEditUrl) }}
-                    <button type="submit" class="btn small">{{ 'Remove from Do Not Email' | t('abandoned-cart') }}</button>
-                </form>
-            {% endif %}
-        {% else %}
-            {% if nextSequenceAt %}<p class="light">{{ 'Can start a new sequence after {date}.' | t('abandoned-cart', { date: nextSequenceAt | date('short') }) }}</p>{% endif %}
-            {% if canManage %}
-                <form method="post" class="ac-dne-form">
-                    {{ csrfInput() }}{{ actionInput('abandoned-cart/customers/do-not-email') }}{{ hiddenInput('ids[]', customer.id) }}{{ redirectInput(customer.cpEditUrl) }}
-                    {{ forms.text({ name: 'note', placeholder: 'Note, such as “Asked by phone”' | t('abandoned-cart') }) }}
-                    <button type="submit" class="btn small">{{ 'Add to Do Not Email' | t('abandoned-cart') }}</button>
-                </form>
-            {% endif %}
-        {% endif %}
-    </div>
+    {% include 'abandoned-cart/_includes/email-status' with { withNote: true } %}
 
     <div class="meta read-only">
-        <div class="ac-meta-head"><h2>{{ 'Customer' | t('abandoned-cart') }}</h2></div>
         <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email }}</div></div>
         <div class="data"><h5 class="heading">{{ 'Account' | t('abandoned-cart') }}</h5><div class="value">{{ user and user.isCredentialed ? 'Yes, since {date}' | t('abandoned-cart', { date: user.dateCreated | date('short') }) : 'Guest' | t('abandoned-cart') }}</div></div>
+        {% if customer.status == 'active' and nextSequenceAt %}<div class="data"><h5 class="heading">{{ 'Next Sequence' | t('abandoned-cart') }}</h5><div class="value">{{ 'After {date}' | t('abandoned-cart', { date: nextSequenceAt | date('short') }) }}</div></div>{% endif %}
         {% if user %}<div class="data"><h5 class="heading">{{ 'Commerce' | t('abandoned-cart') }}</h5><div class="value"><a href="{{ url('users/' ~ user.id ~ '/commerce') }}">{{ 'Customer page' | t('abandoned-cart') }}</a></div></div>{% endif %}
     </div>
 {% endblock %}
