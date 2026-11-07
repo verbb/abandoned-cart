@@ -89,9 +89,9 @@
         disabled: readOnly or template.isDefault,
     }) }}
 
-    <div class="ac-callout">
-        <p>{{ 'Templates receive `subject`, `previewText`, `heading`, `message`, `buttonLabel`, `discountCode`, `cart`, `order`, `site`, `storeName`, `storeAddress`, `recoverUrl` and `unsubscribeUrl`. Use them, or write your own content in Twig.' | t('abandoned-cart') | md(inlineOnly=true) }}</p>
-    </div>
+    <pk-alert class="ac-alert" variant="info">
+        {{ 'Templates receive `subject`, `previewText`, `heading`, `message`, `buttonLabel`, `discountCode`, `cart`, `order`, `site`, `storeName`, `storeAddress`, `recoverUrl` and `unsubscribeUrl`. Use them, or write your own content in Twig.' | t('abandoned-cart') | md(inlineOnly=true) }}
+    </pk-alert>
 
     {% if isNew and not readOnly %}
         {% js %}new Craft.HandleGenerator('#name', '#handle');{% endjs %}

@@ -48,21 +48,27 @@
 {% endblock %}
 
 {% block blockContent %}
-    <div class="ac-callout ac-callout--info">
+    <pk-alert class="ac-alert" variant="info">
         {% if isFresh %}
-            <p>{{ '**Everyone Else** is ready with three reminders and catches every abandoned cart. Check the emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') | md(inlineOnly=true) }}</p>
+            {{ '**Everyone Else** is ready with three reminders and catches every abandoned cart. Check the emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') | md(inlineOnly=true) }}
         {% else %}
-            <p>{{ 'Each abandoned cart gets one sequence: the first one it matches, from the top. Carts that match none get **Everyone Else**.' | t('abandoned-cart') | md(inlineOnly=true) }}</p>
+            {{ 'Each abandoned cart gets one sequence: the first one it matches, from the top. Carts that match none get **Everyone Else**.' | t('abandoned-cart') | md(inlineOnly=true) }}
         {% endif %}
-    </div>
+    </pk-alert>
 
     <div class="ac-seq-list" data-ac-sequences{% if not canManage %} data-readonly{% endif %}>
         {% for item in sequences %}
             {% set sequence = item.sequence %}
             {% set stats = item.stats %}
             <div class="ac-seq{{ sequence.isFallback ? ' ac-seq--fallback' }}" data-id="{{ sequence.id }}">
-                <span class="ac-seq__grip{{ sequence.isFallback or not canManage ? ' invisible' }}" title="{{ 'Drag to change the order' | t('abandoned-cart') }}" aria-hidden="true">{{ svg('@appicons/move.svg') }}</span>
-                <span class="ac-seq__order" aria-hidden="true">{% if sequence.isFallback %}{{ svg('@appicons/check.svg') }}{% else %}{{ loop.index }}{% endif %}</span>
+                {% if sequence.isFallback %}
+                    {# Everyone Else always comes last, so it has no grip, and a lock instead of a position. #}
+                    <span class="ac-seq__grip invisible" aria-hidden="true"></span>
+                    <span class="ac-seq__order ac-seq__order--fallback" title="{{ 'Always last: catches every cart the sequences above don’t' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('lock') }}</span>
+                {% else %}
+                    <span class="ac-seq__grip{{ not canManage ? ' invisible' }}" title="{{ 'Drag to change the order' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('grip-dots-vertical') }}</span>
+                    <span class="ac-seq__order" aria-hidden="true">{{ loop.index }}</span>
+                {% endif %}
                 <div class="ac-seq__main">
                     <a class="ac-seq__name" href="{{ sequence.cpEditUrl }}">{{ sequence.name }}</a>
                     <div class="ac-seq__who">{{ item.audience }}</div>
@@ -91,7 +97,6 @@
                 {{ forms.lightswitch({
                     name: 'enabled-' ~ sequence.id,
                     on: sequence.enabled,
-                    small: true,
                     disabled: not canManage,
                     labelledBy: false,
                     describedBy: false,
@@ -101,10 +106,6 @@
             </div>
         {% endfor %}
     </div>
-
-    {% if canManage and not isFresh %}
-        <p class="light ac-hint">{{ 'Drag to change the order. It applies to new carts straight away.' | t('abandoned-cart') }}</p>
-    {% endif %}
 
     {% if isFresh and canManage %}
         <div class="ac-card ac-fresh-presets">
