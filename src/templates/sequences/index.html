@@ -57,13 +57,15 @@
 {% endblock %}
 
 {% block blockContent %}
-    <pk-alert class="ac-alert" variant="info" appearance="raised">
-        {% if isFresh %}
-            {{ 'Your default sequence is ready with three reminders and catches every abandoned cart. Check its emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') | md(inlineOnly=true) }}
-        {% else %}
-            {{ 'Each abandoned cart gets one sequence: the first one it matches, from the top. Carts that match none get the default sequence at the bottom.' | t('abandoned-cart') | md(inlineOnly=true) }}
-        {% endif %}
-    </pk-alert>
+    {% if isFresh %}
+        <pk-alert class="ac-alert" variant="info" appearance="raised" heading="{{ 'Your default sequence is ready' | t('abandoned-cart') }}">
+            {{ 'It has three reminders and catches every abandoned cart. Check its emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') }}
+        </pk-alert>
+    {% else %}
+        <pk-alert class="ac-alert" variant="info" appearance="raised" heading="{{ 'Each abandoned cart gets one sequence' | t('abandoned-cart') }}">
+            {{ 'It’s the first one the cart matches, from the top. Carts that match none get the default sequence at the bottom.' | t('abandoned-cart') }}
+        </pk-alert>
+    {% endif %}
 
     <div class="ac-seq-list" data-ac-sequences{% if not canManage %} data-readonly{% endif %}>
         {% for item in sequences %}
