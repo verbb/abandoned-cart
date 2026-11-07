@@ -1178,6 +1178,26 @@ var e=Object.defineProperty,t=(t,n)=>{let r={};for(var i in t)e(r,i,{get:t[i],en
             background: transparent;
         }
 
+        /* For tinted surfaces, such as a control panel page: a raised white card with a whisper of the variant
+           colour, so the alert keeps its edge where a pale tint would blend in. Only the edge, icon and title
+           carry colour. */
+        :host([appearance='raised']) {
+            --pk-alert-title-color: var(--pk-alert-color);
+            --pk-alert-body-color: var(--pk-color-gray-700);
+        }
+
+        :host([appearance='raised']) .alert {
+            border-color: transparent;
+            border-inline-start-color: var(--pk-alert-accent);
+            background: color-mix(in srgb, var(--pk-alert-accent) 5%, var(--pk-color-white, #fff));
+            box-shadow: var(
+                --pk-alert-raised-shadow,
+                0 0 0 1px color-mix(in oklab, var(--pk-color-gray-400) 35%, transparent),
+                0 2px 8px -2px color-mix(in oklab, var(--pk-color-gray-900) 12%, transparent)
+            );
+        }
+
+
         .notice {
             display: flex;
             align-items: flex-start;

@@ -57,7 +57,7 @@
 {% endblock %}
 
 {% block blockContent %}
-    <pk-alert class="ac-alert" variant="info">
+    <pk-alert class="ac-alert" variant="info" appearance="raised">
         {% if isFresh %}
             {{ 'Your default sequence is ready with three reminders and catches every abandoned cart. Check its emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') | md(inlineOnly=true) }}
         {% else %}

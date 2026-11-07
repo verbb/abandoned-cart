@@ -32,7 +32,7 @@
 
 {% block blockContent %}
     {% if frequent %}
-        <pk-alert class="ac-alert" variant="info" size="sm">{{ '**{count, plural, =1{1 customer} other{# customers}} abandoned 3 or more carts** in the last 30 days. They’re sorted to the top.' | t('abandoned-cart', { count: frequent }) | md(inlineOnly=true) }}</pk-alert>
+        <pk-alert class="ac-alert" variant="info" appearance="raised" size="sm">{{ '**{count, plural, =1{1 customer} other{# customers}} abandoned 3 or more carts** in the last 30 days. They’re sorted to the top.' | t('abandoned-cart', { count: frequent }) | md(inlineOnly=true) }}</pk-alert>
     {% endif %}
 
     {{ tag('div', {
