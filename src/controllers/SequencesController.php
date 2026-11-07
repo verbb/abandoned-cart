@@ -335,11 +335,12 @@ class SequencesController extends BaseCpController
         $presets = AbandonedCart::$plugin->getPresets();
         $reminders = $presets->getPresetByHandle('remindersThenDiscount')?->emails ?? [];
 
+        // The New Email panel's Start From choices: blank first, then the wording of the built-in discount preset.
         return [
+            'blank' => ['label' => Craft::t('abandoned-cart', 'Blank'), 'subject' => '', 'previewText' => '', 'heading' => '', 'message' => '', 'buttonLabel' => Craft::t('abandoned-cart', 'Return to your cart')],
             'reminder' => ['label' => Craft::t('abandoned-cart', 'A gentle reminder')] + ($reminders[0] ?? []),
             'nudge' => ['label' => Craft::t('abandoned-cart', 'Still thinking it over?')] + ($reminders[1] ?? []),
             'discount' => ['label' => Craft::t('abandoned-cart', 'Last chance, with a discount')] + ($reminders[2] ?? []),
-            'blank' => ['label' => Craft::t('abandoned-cart', 'Blank'), 'subject' => '', 'previewText' => '', 'heading' => '', 'message' => '', 'buttonLabel' => Craft::t('abandoned-cart', 'Return to your cart')],
         ];
     }
 }

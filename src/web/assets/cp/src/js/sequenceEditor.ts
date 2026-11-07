@@ -157,7 +157,7 @@ class EmailPanel {
         if (isNew) {
             const start = el('select', {});
             for (const [key, preset] of Object.entries(this.config.starts)) start.append(el('option', { value: key }, preset.label));
-            start.value = data.position > 1 ? 'nudge' : 'reminder';
+            start.value = 'blank';
             start.addEventListener('change', () => this.applyStart(this.config.starts[start.value]));
             this.form.append(field(t('Start From'), el('div', { class: 'select' }, start), t('Fills in the fields below. Change anything you like.')));
         }
@@ -511,7 +511,8 @@ export function mountSequenceEditor(): void {
 
     document.querySelectorAll<HTMLButtonElement>('[data-ac-add-email]').forEach(button => button.addEventListener('click', () => {
         const position = Number(button.dataset.acAddEmail);
-        const start = config.starts[position > 1 ? 'nudge' : 'reminder'];
+        // New emails start empty; Start From offers the built-in wording.
+        const start = config.starts.blank;
 
         new EmailPanel(config, {
             id: null,
