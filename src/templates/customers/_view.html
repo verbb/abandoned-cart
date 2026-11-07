@@ -25,7 +25,7 @@
     {% include 'abandoned-cart/_includes/email-status' with { withNote: true } %}
 
     <div class="meta read-only">
-        <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email | e | replace({ '@': '@<wbr>' }) | raw }}</div></div>
         <div class="data"><h5 class="heading">{{ 'Account' | t('abandoned-cart') }}</h5><div class="value">{{ user and user.isCredentialed ? 'Yes, since {date}' | t('abandoned-cart', { date: user.dateCreated | date('short') }) : 'Guest' | t('abandoned-cart') }}</div></div>
         {% if customer.status == 'active' and nextSequenceAt %}<div class="data"><h5 class="heading">{{ 'Next Sequence' | t('abandoned-cart') }}</h5><div class="value">{{ 'After {date}' | t('abandoned-cart', { date: nextSequenceAt | date('short') }) }}</div></div>{% endif %}
         {% if user %}<div class="data"><h5 class="heading">{{ 'Commerce' | t('abandoned-cart') }}</h5><div class="value"><a href="{{ url('users/' ~ user.id ~ '/commerce') }}">{{ 'Customer page' | t('abandoned-cart') }}</a></div></div>{% endif %}

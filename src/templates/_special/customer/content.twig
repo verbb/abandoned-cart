@@ -38,7 +38,7 @@
         <form method="post" action="{{ actionUrl }}">
             <button type="submit" style="display:inline-block;min-width:220px;padding:13px 18px;border:0;border-radius:6px;background:#2b2724;color:#fff;font:inherit;font-weight:600;cursor:pointer;">{{ 'Unsubscribe' | t('abandoned-cart') }}</button>
         </form>
-        <p style="margin:16px 0 0;"><a href="{{ homeUrl }}">{{ 'Keep getting reminders' | t('abandoned-cart') }}</a></p>
+        <p style="margin:16px 0 0;"><a href="{{ homeUrl }}" style="color:inherit;">{{ 'Keep getting reminders' | t('abandoned-cart') }}</a></p>
     {% else %}
         <a href="{{ homeUrl }}" style="display:inline-block;min-width:220px;padding:13px 18px;border-radius:6px;background:#2b2724;color:#fff;text-decoration:none;font-weight:600;">{{ 'Continue shopping' | t('abandoned-cart') }}</a>
     {% endif %}

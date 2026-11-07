@@ -1940,6 +1940,7 @@ pk-status-label {
     font-size: 12px;
 }
 
+/* Email addresses carry a <wbr> after the @, so they break there first; anywhere is the fallback for long values. */
 #details .meta.read-only .value {
     min-width: 0;
     overflow-wrap: anywhere;

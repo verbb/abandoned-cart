@@ -114,7 +114,7 @@
     <div class="meta read-only">
         <div class="data"><h5 class="heading">{{ 'Status' | t('app') }}</h5><div class="value"><span class="status {{ states[recovery.status][0] }}" aria-hidden="true"></span>{{ states[recovery.status][1] }}</div></div>
         <div class="data"><h5 class="heading">{{ 'Customer' | t('abandoned-cart') }}</h5><div class="value">{% if customer %}<a href="{{ customer.cpEditUrl }}">{{ customerName ?: customer.email }}</a>{% else %}—{% endif %}</div></div>
-        <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ customer.email ?? '—' }}</div></div>
+        <div class="data"><h5 class="heading">{{ 'Email' | t('app') }}</h5><div class="value">{{ (customer.email ?? '—') | e | replace({ '@': '@<wbr>' }) | raw }}</div></div>
         <div class="data"><h5 class="heading">{{ 'Account' | t('abandoned-cart') }}</h5><div class="value">{{ customer and customer.user and customer.user.isCredentialed ? 'Yes' | t('app') : 'Guest' | t('abandoned-cart') }}{% if previousOrders is not null %} · {{ '{count, plural, =0{no earlier orders} =1{1 earlier order} other{# earlier orders}}' | t('abandoned-cart', { count: previousOrders }) }}{% endif %}</div></div>
         <div class="data"><h5 class="heading">{{ 'Sequence' | t('abandoned-cart') }}</h5><div class="value">{% if sequence %}<a href="{{ sequence.cpEditUrl }}">{{ sequence.name }}</a>{% else %}<span class="light">{{ 'Deleted' | t('abandoned-cart') }}</span>{% endif %}</div></div>
         {% if audience %}<div class="data"><h5 class="heading">{{ 'Audience' | t('abandoned-cart') }}</h5><div class="value">{{ audience }}</div></div>{% endif %}
