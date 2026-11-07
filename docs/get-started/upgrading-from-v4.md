@@ -39,11 +39,11 @@ The 4.x settings are replaced. The migration converts the values saved in the co
 | `passKey` | `passKey`, used only by the [HTTP trigger](#http-trigger) while compatibility mode is on |
 | `includeBlacklisted` | Removed |
 
-Durations in Abandoned Cart 5 are always in minutes. The recovery window is also measured differently: it now starts when the cart is abandoned, not when an email is sent, so it needs to cover the whole sequence.
+Durations in Abandoned Cart 5 are always in minutes. The recovery window is also measured differently. It now starts when the cart is abandoned, not when an email is sent, so it needs to cover the whole sequence.
 
 Settings for individual emails are no longer configuration settings. Edit them on the sequence page, where editors can change them without a deployment. Remove `firstReminderSubject`, `secondReminderSubject`, `firstReminderDelay`, `secondReminderDelay`, `firstReminderTemplate`, `secondReminderTemplate`, `discountCode` and `disableSecondReminder` from your configuration file, along with the other removed settings. Abandoned Cart 5 ignores them, so leaving them in place only suggests they still do something.
 
-Some sites built their subjects in the configuration file, for example by reading a global set through `Craft::$app->getGlobals()` so editors could change the wording. Remove that code too: a configuration file that loads elements runs on every request, and editors can now change each email's subject directly on the sequence page. Check that the default sequence's emails have the subjects you expect after upgrading, and correct them there. If the subject differed per site, create a sequence for each site, or translate the subject with Twig as described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#twig-in-subjects-and-preview-text).
+Some sites built their subjects in the configuration file, for example by reading a global set through `Craft::$app->getGlobals()` so editors could change the wording. Remove that code too, because a configuration file that loads elements runs on every request, and editors can now change each email's subject directly on the sequence page. Check that the default sequence's emails have the subjects you expect after upgrading, and correct them there. If the subject differed per site, create a sequence for each site, or translate the subject with Twig as described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#twig-in-subjects-and-preview-text).
 
 ::: code-group
 ```php [v4]
@@ -109,7 +109,7 @@ While compatibility mode is on, `abandoned-cart/reminders/schedule-emails` runs 
 
 ### HTTP Trigger
 
-While [compatibility mode](#compatibility-mode) is on, the `abandoned-cart/carts/find-carts` endpoint keeps working, so a scheduled request that called it in 4.x carries on sending. The upgrade keeps your `passKey`, and the request works as it did in 4.x: a POST with the key in an `Authorization: Bearer` header. It now runs the 5.0 scheduler and responds with a JSON summary of the run instead of redirecting to the control panel. Each call logs a deprecation warning.
+While [compatibility mode](#compatibility-mode) is on, the `abandoned-cart/carts/find-carts` endpoint keeps working, so a scheduled request that called it in 4.x carries on sending. The upgrade keeps your `passKey`, and the request works as it did in 4.x, as a POST with the key in an `Authorization: Bearer` header. It now runs the 5.0 scheduler and responds with a JSON summary of the run instead of redirecting to the control panel. Each call logs a deprecation warning.
 
 Switch to the [console command](#console-command) from cron when you can. If you can't use cron, Abandoned Cart also queues a run from ordinary site and control panel requests while a sequence is on, as long as Craft's queue is running. [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run) explains both options. Once nothing calls the endpoint, remove the `passKey` from your configuration file and any secrets store. With compatibility mode off, the endpoint returns a 404.
 

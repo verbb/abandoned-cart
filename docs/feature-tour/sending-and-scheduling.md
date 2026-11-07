@@ -47,7 +47,7 @@ The **Scheduler** card shows when the background run last happened and how it's 
 
 The scheduler needs attention when it hasn't run for more than 30 minutes while a sequence is on. The card also shows what the last run did, a strip of the last 24 hours in half-hour slots (how many emails went out, any failures, and gaps where nothing ran), and the **Cron Job** line to copy into your crontab. Once the command has run from the command line, that line uses the path to PHP it ran with; until then it says `php`. Run history is kept for seven days.
 
-**Run Now** does what the cron job does, straight away: it picks up carts that have gone quiet, sends emails that are due and ends finished recoveries. It's handy after changing a setting or while testing, and it isn't counted as a scheduled run. It needs the **Manage sequences and send emails** permission.
+**Run Now** does what the cron job does, straight away. It picks up carts that have gone quiet, sends emails that are due and ends finished recoveries. It's handy after changing a setting or while testing, and it isn't counted as a scheduled run. It needs the **Manage sequences and send emails** permission.
 
 **Health Checks** cover the other things that most often stop emails from going out, with anything that needs attention first and a link to where you'd fix it:
 
@@ -63,7 +63,7 @@ System Status only reads, so it works on production environments where `allowAdm
 
 **Pause All Sending** in **Settings → General Settings** holds every recovery email from every sequence. It's meant for emergencies, such as discovering a mistake in an email that's already going out. Carts keep entering sequences while sending is paused, and their emails wait. When you switch it off, emails that are due go out on the next run, except those whose cart has reached the end of its recovery period in the meantime.
 
-Turning off a single sequence is different: it also stops new carts from entering that sequence, while other sequences carry on as normal.
+Turning off a single sequence is different. It also stops new carts from entering that sequence, while other sequences carry on as normal.
 
 You can also pause sending from your configuration file, for example on development and staging environments that hold a copy of your customers' addresses. [Configuration](../get-started/configuration.md#environment-specific-settings) shows how.
 

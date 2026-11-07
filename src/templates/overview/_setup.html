@@ -18,7 +18,7 @@
         <div>
             <div class="ac-card ac-welcome">
                 <h2>{{ 'Win Back Abandoned Carts' | t('abandoned-cart') }}</h2>
-                <p>{{ 'Your first sequence is ready: friendly reminders an hour, a day and three days after a cart is left. Check the details, send yourself a test, then turn it on.' | t('abandoned-cart') }}</p>
+                <p>{{ 'Your first sequence is ready, with friendly reminders an hour, a day and three days after a cart is left. Check the details, send yourself a test, then turn it on.' | t('abandoned-cart') }}</p>
                 <div class="ac-progress"><span class="ac-progress__bar"><span style="width: {{ (done / 4 * 100) | round }}%"></span></span>{{ '{done} of 4 done' | t('abandoned-cart', { done: done }) }}</div>
             </div>
 
@@ -81,7 +81,7 @@
                         <div><strong>{{ opportunity.withEmail }}</strong><span class="light">{{ 'had an email address' | t('abandoned-cart') }}</span></div>
                         <div><strong>{{ opportunity.carts - opportunity.withEmail }}</strong><span class="light">{{ 'had no email yet' | t('abandoned-cart') }}</span></div>
                     </div>
-                    <p class="light ac-hint">{{ 'These are the carts your emails could have reached, read from your Commerce orders. It shows the opportunity, not a forecast: how many carts are recovered varies from store to store.' | t('abandoned-cart') }}</p>
+                    <p class="light ac-hint">{{ 'These are the carts your emails could have reached, read from your Commerce orders. How many come back varies from store to store.' | t('abandoned-cart') }}</p>
                 {% else %}
                     <p><strong>{{ 'No abandoned carts yet' | t('abandoned-cart') }}</strong></p>
                     <p class="light ac-hint">{{ 'Carts left in your store over the last 30 days will show here, so you can see what your emails could reach.' | t('abandoned-cart') }}</p>

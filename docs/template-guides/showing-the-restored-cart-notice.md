@@ -20,7 +20,7 @@ Many sites already display flash messages in their layout. If yours doesn't, add
 {% endif %}
 ```
 
-If your layout already shows flash messages, leave this out: reading the message removes it, so only the first place that reads it shows it.
+If your layout already shows flash messages, leave this out, because reading the message removes it, so only the first place that reads it shows it.
 
 ## Show the Applied Discount
 

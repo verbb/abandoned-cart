@@ -25,7 +25,7 @@ Sequence Performance compares your sequences and the emails inside them, showing
 <!-- feature-media -->
 ## Different carts, different emails
 
-Most stores do well with one sequence. When some carts deserve something else, add another: a more personal series for carts of $200 or more, a gentler reminder for returning customers, or a discount only for first-time buyers. Target a sequence by cart value, returning or first-time customers, the products in the cart or any Commerce order condition, and limit it to particular sites.
+Most stores do well with one sequence. When some carts deserve something else, add another, such as a more personal series for carts of $200 or more, a gentler reminder for returning customers, or a discount only for first-time buyers. Target a sequence by cart value, returning or first-time customers, the products in the cart or any Commerce order condition, and limit it to particular sites.
 
 Each cart gets the first sequence it matches from the top of the list, and the default sequence catches the rest. Start from a preset, set up to five emails on a timeline, then use Try It With a Real Cart to check which sequence one of your store's carts would get, and why, before you switch it on.
 

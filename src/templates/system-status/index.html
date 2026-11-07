@@ -61,7 +61,7 @@
                         {{ csrfInput() }}
                         {{ actionInput('abandoned-cart/system-status/run') }}
                         {{ redirectInput('abandoned-cart/settings/system-status') }}
-                        <button type="submit" class="btn ac-btn-with-icon" title="{{ 'Does what the cron job does, straight away: picks up carts that have gone quiet, sends emails that are due and ends finished recoveries.' | t('abandoned-cart') }}"><span class="ac-btn-icon" aria-hidden="true">{{ iconSvg('arrows-rotate') }}</span>{{ 'Run Now' | t('abandoned-cart') }}</button>
+                        <button type="submit" class="btn ac-btn-with-icon" title="{{ 'Does what the cron job does, straight away. It picks up carts that have gone quiet, sends emails that are due and ends finished recoveries.' | t('abandoned-cart') }}"><span class="ac-btn-icon" aria-hidden="true">{{ iconSvg('arrows-rotate') }}</span>{{ 'Run Now' | t('abandoned-cart') }}</button>
                     </form>
                 {% endif %}
             </div>

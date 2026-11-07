@@ -1,6 +1,6 @@
 # Configuration
 
-You can customise Abandoned Cart's settings using a PHP configuration file. This is optional: each setting has a default, so you only need to include the values you want to change.
+You can customise Abandoned Cart's settings using a PHP configuration file. This is optional. Each setting has a default, so you only need to include the values you want to change.
 
 To override a setting, create `abandoned-cart.php` in your Craft project's `/config` directory and return an array of setting names and values. For example, the following treats a cart as abandoned after two hours without changes, instead of one:
 
@@ -185,11 +185,11 @@ Keeps developer-facing features from Abandoned Cart 4 working while you update y
 
 **Type:** `string|null` · **Default:** `null`
 
-The key a scheduled request sends to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, in an `Authorization: Bearer` header. It's carried over from Abandoned Cart 4 and only used while `compatibilityMode` is on. It accepts an environment variable. New sites don't need it: run the console command from cron instead, as described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run).
+The key a scheduled request sends to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, in an `Authorization: Bearer` header. It's carried over from Abandoned Cart 4 and only used while `compatibilityMode` is on. It accepts an environment variable. New sites don't need it. Run the console command from cron instead, as described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run).
 :::
 
 ## Control Panel
 
-Administrators can manage most settings by visiting **Abandoned Carts → Settings → General Settings**, or **Settings → Plugins → Abandoned Cart**. These settings are stored in Craft's project config, so they follow the same rules as other project config: change them where admin changes are allowed, such as your development environment, and deploy them to other environments.
+Administrators can manage most settings by visiting **Abandoned Carts → Settings → General Settings**, or **Settings → Plugins → Abandoned Cart**. These settings are stored in Craft's project config, so they follow the same rules as other project config. Change them where admin changes are allowed, such as your development environment, and deploy them to other environments.
 
 The **Settings** section also holds **Email Templates**, described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#email-templates), and **System Status**, described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#system-status).

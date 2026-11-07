@@ -2,7 +2,7 @@
 
 A sequence is a series of up to five emails that Abandoned Cart sends to a customer after they leave a cart. Each sequence decides who it's for, when each email goes out and what the emails say. You'll find them under **Abandoned Carts → Sequences**.
 
-Most stores need only one sequence. Others want to treat some carts differently: a more personal series for carts worth more than a certain amount, a gentler single reminder for repeat customers, or a discount only for first-time buyers. You can have as many sequences as you like, and each abandoned cart gets exactly one of them.
+Most stores need only one sequence. Others want to treat some carts differently, with a more personal series for carts worth more than a certain amount, a gentler single reminder for repeat customers, or a discount only for first-time buyers. You can have as many sequences as you like, and each abandoned cart gets exactly one of them.
 
 ## How Carts Choose a Sequence
 
@@ -14,15 +14,15 @@ The match happens once, when the cart is abandoned. If the customer later adds m
 
 ## The Default Sequence
 
-The default sequence is always last in the list, marked with a tick, and takes every cart that reaches it. It can't be deleted or given an audience, but you can rename it or switch it off. With it off, a cart that doesn't match another sequence isn't emailed: it's recorded as skipped, with the reason **No sequence was on**.
+The default sequence is always last in the list, marked with a tick, and takes every cart that reaches it. It can't be deleted or given an audience, but you can rename it or switch it off. With it off, a cart that doesn't match another sequence isn't emailed. It's recorded as skipped, with the reason **No sequence was on**.
 
-A fresh install creates it as **All Other Carts**, with three emails, using the bundled email design: the first straight away once the cart is abandoned, the second a day later, and the third two days after that. It starts switched off so you can review it first. [Setting Up Your First Sequence](../get-started/setting-up-your-first-sequence.md) walks through that review.
+A fresh install creates it as **All Other Carts**, with three emails, using the bundled email design. The first goes straight away once the cart is abandoned, the second a day later, and the third two days after that. It starts switched off so you can review it first. [Setting Up Your First Sequence](../get-started/setting-up-your-first-sequence.md) walks through that review.
 
 ## Turning a Sequence On and Off
 
-Use the switch beside a sequence in the list, or **Sequence Is On** on its page. There's no separate publishing step: what you've saved is what carts receive.
+Use the switch beside a sequence in the list, or **Sequence Is On** on its page. There's no separate publishing step, so what you've saved is what carts receive.
 
-A sequence that's on takes carts that become abandoned from then on: a cart becomes abandoned once it has gone the **Abandoned After** time without changes. Carts that had already reached that point when you switched it on are left alone, so turning a sequence on never sends reminders about a backlog of old carts. A cart that was still active, such as one changed ten minutes earlier with the default hour, is picked up once its hour passes. This also applies each time you switch a sequence back on after turning it off.
+A sequence that's on takes carts that become abandoned from then on. A cart becomes abandoned once it has gone the **Abandoned After** time without changes. Carts that had already reached that point when you switched it on are left alone, so turning a sequence on never sends reminders about a backlog of old carts. A cart that was still active, such as one changed ten minutes earlier with the default hour, is picked up once its hour passes. This also applies each time you switch a sequence back on after turning it off.
 
 Turning a sequence off stops new carts from entering it and holds the emails it hasn't sent yet. Those emails go out once it's back on, unless the customer has ordered or the cart's recovery period has ended in the meantime. If several emails for the same cart have become due while it was off, they're sent on the same run.
 
@@ -30,7 +30,7 @@ To stop every email from every sequence at once, use **Pause All Sending** inste
 
 ## Audiences
 
-**Who Gets This Sequence** sets the sequence's audience: the carts it's for. Choose one of these:
+**Who Gets This Sequence** sets the sequence's audience, meaning the carts it's for. Choose one of these:
 
 - **All Carts** matches every abandoned cart with an email address. Because it takes every cart, sequences further down the list never receive any.
 - **Cart Value** matches carts whose total is at least an amount, less than an amount, or between two amounts. Until you enter an amount, it matches nothing.
@@ -69,13 +69,13 @@ The whole sequence must fit within the **Recovery Ends After** time, seven days 
 
 Each sequence uses the Recovery Defaults from **Settings → General Settings** unless you switch on **Override Recovery Defaults** on its page. You can then set a different **Abandoned After**, **Return Page**, **Recovery Ends After**, **Attribution Window** and **Contact Limit** for this sequence alone. [Configuration](../get-started/configuration.md#recovery-defaults) explains each one.
 
-A longer recovery window is a common reason to override: a sequence with an email a week after abandonment needs more than the default seven days. A different return page suits a sequence for a particular product range. Like the default, the sequence's **Return Page** can be a relative path, a full URL or an environment variable reference.
+A longer recovery window is a common reason to override. A sequence with an email a week after abandonment needs more than the default seven days. A different return page suits a sequence for a particular product range. Like the default, the sequence's **Return Page** can be a relative path, a full URL or an environment variable reference.
 
 When sequences have different **Abandoned After** times, a cart waits for the first sequence it matches rather than falling through to one further down that would take it sooner.
 
 ## Starting From a Preset
 
-Choose **New Sequence** to create another sequence. You can start from a blank sequence or from a preset: a ready-made starting point with an audience, emails and wording. Abandoned Cart comes with four:
+Choose **New Sequence** to create another sequence. You can start from a blank sequence or from a preset, which is a ready-made starting point with an audience, emails and wording. Abandoned Cart comes with four:
 
 | Preset | Audience | Emails |
 | --- | --- | --- |
@@ -92,7 +92,7 @@ Two presets need finishing before they're useful. **High-Value Carts** matches n
 
 Presets are listed under **Abandoned Carts → Settings → Sequence Presets**, where admins can change any of them, add their own, put them in order or delete them. A preset holds a name, handle and description, an audience, and up to five emails, each with its timing, wording, email template, and whether it's the email for a discount. A cart value audience can hold its amount; a products or custom rules audience is chosen once the sequence exists, because those depend on your catalogue.
 
-Presets are kept in project config, like email templates, so changes travel with the rest of your project and can only be made where admin changes are allowed. Editing a preset never changes sequences already made from it. Deleting all of them is fine: **New Sequence** then offers a blank sequence only.
+Presets are kept in project config, like email templates, so changes travel with the rest of your project and can only be made where admin changes are allowed. Editing a preset never changes sequences already made from it. Deleting all of them is fine, and **New Sequence** then offers a blank sequence only.
 
 The emails in your presets also fill the **Start From** menu when you add an email to a sequence. See [Emails and Email Templates](emails-and-email-templates.md).
 

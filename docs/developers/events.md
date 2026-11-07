@@ -420,7 +420,7 @@ Event::on(Recoveries::class, Recoveries::EVENT_DEFINE_URLS, function(DefineUrlsE
 
 ### The `beforeSend` Event
 
-The event that is triggered before each recovery email is sent, after it has been rendered. `$event->message` is the Craft mail message. Change it, such as adding a header or a BCC address, or replace it with a message of your own, which is sent instead. Set `$event->isValid` to `false` to skip this email: it's marked **Not sent** with the reason "a plugin or module cancelled it", and the cart's later emails are still sent. Test emails sent from the control panel don't trigger this event.
+The event that is triggered before each recovery email is sent, after it has been rendered. `$event->message` is the Craft mail message. Change it, such as adding a header or a BCC address, or replace it with a message of your own, which is sent instead. Set `$event->isValid` to `false` to skip this email. It's marked **Not sent** with the reason "a plugin or module cancelled it", and the cart's later emails are still sent. Test emails sent from the control panel don't trigger this event.
 
 ```php
 use verbb\abandonedcart\events\SendEvent;
@@ -570,7 +570,7 @@ Event::on(Customers::class, Customers::EVENT_AFTER_CHANGE_STATUS, function(Custo
 
 ### The `beforeMailSend` Event
 
-The event that is triggered before each recovery email is sent, after the `beforeSend` event, while the [`compatibilityMode`](../get-started/configuration.md#compatibilitymode) setting is on. It's deprecated: use the [`beforeSend` event](#the-beforesend-event) instead. [Upgrading from v4](../get-started/upgrading-from-v4.md#events) shows how to move a listener across.
+The event that is triggered before each recovery email is sent, after the `beforeSend` event, while the [`compatibilityMode`](../get-started/configuration.md#compatibilitymode) setting is on. It's deprecated, so use the [`beforeSend` event](#the-beforesend-event) instead. [Upgrading from v4](../get-started/upgrading-from-v4.md#events) shows how to move a listener across.
 
 ```php
 use verbb\abandonedcart\events\BeforeMailSend;

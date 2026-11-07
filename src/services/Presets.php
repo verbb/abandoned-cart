@@ -323,7 +323,7 @@ class Presets extends Component
             'buttonLabel' => Craft::t('abandoned-cart', 'Complete your order'),
         ];
         $lastChance = [
-            'subject' => Craft::t('abandoned-cart', 'Last chance: a discount on your cart'),
+            'subject' => Craft::t('abandoned-cart', 'Last chance for a discount on your cart'),
             'previewText' => Craft::t('abandoned-cart', 'Use your code at checkout.'),
             'heading' => Craft::t('abandoned-cart', 'A little something to help you decide'),
             'message' => Craft::t('abandoned-cart', 'This is our last reminder. Use the code below at checkout to save on your order.'),
@@ -335,7 +335,7 @@ class Presets extends Component
             new Preset([
                 'handle' => self::PRESET_THREE_REMINDERS,
                 'name' => Craft::t('abandoned-cart', 'Three Reminders'),
-                'description' => Craft::t('abandoned-cart', 'The common pattern: a quick nudge, a follow-up, and a last reminder.'),
+                'description' => Craft::t('abandoned-cart', 'The usual pattern of a quick nudge, a follow-up and a last reminder.'),
                 'emails' => [
                     ['delayMinutes' => 0] + $reminder,
                     ['delayMinutes' => 1440] + $nudge,

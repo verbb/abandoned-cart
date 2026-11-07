@@ -35,7 +35,7 @@ The **Sequence Performance** table compares your sequences for the chosen period
 
 ## How Recoveries Are Credited
 
-A cart counts as recovered when its customer completes the order within the **Attribution Window** after the last email the cart was sent, five days by default. The customer doesn't have to click: someone who reads the reminder and comes back by typing your address still counts.
+A cart counts as recovered when its customer completes the order within the **Attribution Window** after the last email the cart was sent, five days by default. The customer doesn't have to click. Someone who reads the reminder and comes back by typing your address still counts.
 
 The recovery is credited to the last email the customer clicked. If they didn't click any, it's credited to the last email sent. The cart's page shows which applied, as **Clicked before ordering** or **Bought without clicking**.
 

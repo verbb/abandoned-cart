@@ -14,7 +14,7 @@ The checklist also tells you whether a consent field is in use. Without one, eve
 
 ## Schedule the Background Run
 
-Abandoned Cart works through carts in a short background run: it finds carts that have gone quiet, starts their sequences and sends any emails that are due. Run it every five minutes from cron, using the PHP executable and Craft project path for your server:
+Abandoned Cart works through carts in a short background run. It finds carts that have gone quiet, starts their sequences and sends any emails that are due. Run it every five minutes from cron, using the PHP executable and Craft project path for your server:
 
 ```shell
 */5 * * * * /path/to/php /path/to/project/craft abandoned-cart/recoveries/run
@@ -24,7 +24,7 @@ If you can't add a cron job, Abandoned Cart queues a run from ordinary site and 
 
 ## Review the Emails
 
-Choose **Review the Emails** in the checklist, or go to **Abandoned Carts → Sequences** and select **All Other Carts**. The sequence page shows a timeline: the cart is abandoned after an hour without changes, email 1 goes out straight away, email 2 a day later and email 3 two days after that.
+Choose **Review the Emails** in the checklist, or go to **Abandoned Carts → Sequences** and select **All Other Carts**. The sequence page shows a timeline. The cart is abandoned after an hour without changes, email 1 goes out straight away, email 2 a day later and email 3 two days after that.
 
 Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change; once you've changed one, the checklist marks this step done. [Emails and Email Templates](../feature-tour/emails-and-email-templates.md) explains every field.
 
@@ -44,7 +44,7 @@ The Overview changes to show that recovery is on. Once customers start coming ba
 
 ## Check It Works
 
-With recovery turned on, go to your development or staging site, add a product to a cart and enter an email address you can read at checkout, then leave the order incomplete. Don't touch the cart again: a cart counts as abandoned once it has gone an hour without changes. To try this without waiting, temporarily set **Abandoned After** to a minute or two in **Settings → General Settings**.
+With recovery turned on, go to your development or staging site, add a product to a cart and enter an email address you can read at checkout, then leave the order incomplete. Don't touch the cart again, because a cart counts as abandoned once it has gone an hour without changes. To try this without waiting, temporarily set **Abandoned After** to a minute or two in **Settings → General Settings**.
 
 When the time has passed, run the background run yourself from your Craft project directory:
 
@@ -56,6 +56,6 @@ The command prints a summary such as `Enrolled 1, skipped 0, sent 1, failed 0, n
 
 Open the email and follow its button. Your browser lands on your cart page with the same items, and the cart's history in the control panel records the click. Complete the order, and the cart moves to **Recovered**, credited to the email you followed.
 
-If the run reports a cart as skipped, open it from the **Skipped** view on the Carts screen: it shows the reason, such as a missing consent or a recent email to the same customer. If nothing is enrolled at all, check that the cart has an email address and items, that it's still incomplete, and that enough time has passed since it last changed.
+If the run reports a cart as skipped, open it from the **Skipped** view on the Carts screen. It shows the reason, such as a missing consent or a recent email to the same customer. If nothing is enrolled at all, check that the cart has an email address and items, that it's still incomplete, and that enough time has passed since it last changed.
 
 Remember to restore **Abandoned After** if you changed it. From here, you can add sequences for particular customers or carts, such as a separate series for high-value carts. [Sequences](../feature-tour/sequences.md) explains how carts are matched to them.

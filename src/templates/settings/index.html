@@ -149,7 +149,7 @@
     {{ forms.lightswitchField({
         disabled: readOnly,
         label: 'Pause All Sending' | t('abandoned-cart'),
-        instructions: 'Hold every recovery email, across all sequences. For emergencies: held emails send once it’s off.' | t('abandoned-cart'),
+        instructions: 'Hold every recovery email, across all sequences, in an emergency. Held emails send once it’s off.' | t('abandoned-cart'),
         id: 'deliveryPaused',
         name: 'deliveryPaused',
         on: settings.getDeliveryPaused(),

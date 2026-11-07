@@ -75,7 +75,7 @@
                 {% if sequence.isFallback %}
                     {# The default sequence always comes last, so it has no grip, and a tick instead of a position. #}
                     <span class="ac-seq__grip invisible" aria-hidden="true"></span>
-                    <span class="ac-seq__order ac-seq__order--fallback" title="{{ 'Always last: catches every cart the sequences above don’t' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('check') }}</span>
+                    <span class="ac-seq__order ac-seq__order--fallback" title="{{ 'Always last, and catches every cart the sequences above don’t' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('check') }}</span>
                 {% else %}
                     <span class="ac-seq__grip{{ not canManage ? ' invisible' }}" title="{{ 'Drag to change the order' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('grip-dots-vertical') }}</span>
                     <span class="ac-seq__order" aria-hidden="true">{{ loop.index }}</span>
