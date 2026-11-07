@@ -74,7 +74,7 @@
     <div class="ac-card">
         <div class="ac-card__head"><h2>{{ 'Journey' | t('abandoned-cart') }}</h2></div>
         <ol class="ac-journey">
-            <li><strong>{{ 'Abandoned' | t('abandoned-cart') }}</strong><span>{{ recovery.abandonedAt | datetime('short') }}</span></li>
+            <li class="ac-journey--abandoned"><strong>{{ 'Abandoned' | t('abandoned-cart') }}</strong><span>{{ recovery.abandonedAt | datetime('short') }}</span></li>
             {% for attempt in attempts %}
                 {% set clickedThis = attempt.id in clicked %}
                 <li class="ac-journey--{{ clickedThis ? 'click' : attempt.status }}">

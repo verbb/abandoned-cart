@@ -33,7 +33,7 @@
     <div class="ac-card">
         <div class="ac-card__head"><h2>{{ 'Journey' | t('abandoned-cart') }}</h2></div>
         <ol class="ac-journey">
-            <li><strong>{{ 'Abandoned' | t('abandoned-cart') }}</strong><span>{{ skipped.abandonedAt | datetime('short') }}</span></li>
+            <li class="ac-journey--abandoned"><strong>{{ 'Abandoned' | t('abandoned-cart') }}</strong><span>{{ skipped.abandonedAt | datetime('short') }}</span></li>
             <li class="ac-journey--skipped"><strong>{{ 'Skipped' | t('abandoned-cart') }}</strong><span>{{ skipped.dateCreated | datetime('short') }} · {{ skipped.reasonLabel | lower }}</span></li>
         </ol>
     </div>

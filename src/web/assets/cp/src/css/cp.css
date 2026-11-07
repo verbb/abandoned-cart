@@ -794,6 +794,12 @@
     display: none;
 }
 
+/* Steps that have happened are filled; abandonment is grey so it reads apart from the emails. */
+.ac-journey .ac-journey--abandoned::before {
+    background: var(--gray-300, #9aa5b1);
+    box-shadow: 0 0 0 3px #eef2f7;
+}
+
 .ac-journey .ac-journey--sent::before {
     background: #3b82f6;
     box-shadow: 0 0 0 3px #e8f0fe;
