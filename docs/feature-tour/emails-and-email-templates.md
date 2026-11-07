@@ -23,7 +23,7 @@ Each email has these fields:
 - **Discount Code** is a Commerce coupon code to apply when the customer returns through this email.
 - **Email Template** chooses the design. **Default template** uses whichever template is currently the default.
 
-The preview beside the fields updates as you type. Switch between **Desktop** and **Mobile** to check both widths, and use **Preview cart** to fill the preview with one of your store's real carts instead of the sample cart.
+The preview beside the fields updates as you type. Use **Preview cart** to fill the preview with one of your store's real carts instead of the sample cart.
 
 Changing an email's wording or discount code affects every copy of it that hasn't been sent yet, including emails already scheduled for carts in the sequence. Changing its delay only affects carts that enter the sequence afterwards. [Sequences](sequences.md#editing-a-sequence-in-use) explains why.
 

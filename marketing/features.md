@@ -35,7 +35,7 @@ Each cart gets the first sequence it matches from the top of the list, and the d
 <!-- feature-media -->
 ## On-brand emails without the template work
 
-Write each email's subject, preview text, heading, message and button label in the control panel. Tokens such as `{firstName}` and `{cartTotal}` fill in each customer's details, and the preview beside the fields updates as you type, at desktop or mobile width, using a sample cart or one of your store's real carts. Send yourself a test before any customer sees it.
+Write each email's subject, preview text, heading, message and button label in the control panel. Tokens such as `{firstName}` and `{cartTotal}` fill in each customer's details, and the preview beside the fields updates as you type, using a sample cart or one of your store's real carts. Send yourself a test before any customer sees it.
 
 The bundled design shows the items in the cart, the discount code when there is one and a button back to checkout, with no template files to maintain. When your emails need to match the rest of your store's mail, point an email template at your own Twig files, or copy the bundled design as a starting point.
 
