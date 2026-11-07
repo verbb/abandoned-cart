@@ -59,7 +59,7 @@ The heading, message and button label only support tokens, not Twig. The sandbox
 
 ## Including a Discount
 
-To offer a discount, first create one in Commerce with a coupon code, then enter the code in the email's **Discount Code** field. When a customer returns through that email's link, the code is applied to their cart. The bundled design shows the code in a highlighted box, and `{discountCode}` lets you mention it in the wording.
+To offer a discount, first create one in Commerce with a coupon code, then choose the code in the email's **Discount Code** field, which lists your Commerce coupon codes with the name of their discount. You can also type a code that isn't listed, such as one from another plugin. When a customer returns through that email's link, the code is applied to their cart. The bundled design shows the code in a highlighted box, and `{discountCode}` lets you mention it in the wording.
 
 Abandoned Cart applies the code but doesn't check whether it's valid for the cart: Commerce applies its own conditions, such as a minimum order value or an expiry date, when the customer reaches checkout. Test a discount with a real cart before relying on it. Discounts usually work best in the last email, so customers who were going to come back anyway don't receive one.
 

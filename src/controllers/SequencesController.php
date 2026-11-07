@@ -7,7 +7,7 @@ use verbb\abandonedcart\models\Email;
 use verbb\abandonedcart\models\Sequence;
 
 use Craft;
-
+use craft\db\Query;
 use craft\helpers\DateTimeHelper;
 
 use DateTime;
@@ -15,6 +15,7 @@ use DateTime;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
+use craft\commerce\db\Table as CommerceTable;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 
@@ -83,6 +84,7 @@ class SequencesController extends BaseCpController
                 'starts' => $this->_starts(),
                 'templates' => array_map(static fn($template): array => ['id' => $template->id, 'name' => $template->name, 'isDefault' => $template->isDefault], $plugin->getEmailTemplates()->getAllTemplates()),
                 'abandonedAfter' => Duration::humanize($sequence->getAbandonedAfterMinutes()),
+                'discountCodes' => $this->_discountCodes(),
             ],
             'isSiteMulti' => Craft::$app->getIsMultiSite(),
         ]);
@@ -306,6 +308,26 @@ class SequencesController extends BaseCpController
             // A registered audience keeps whatever settings its own fields post.
             default => $posted,
         };
+    }
+
+    /**
+     * Commerce coupon codes for the email editor's Discount Code menu, with their discount's name. Codes from enabled
+     * discounts come first. A store with many generated codes gets the first 500; others can still be typed.
+     */
+    private function _discountCodes(): array
+    {
+        return array_map(static fn(array $row): array => [
+            'code' => $row['code'],
+            'discount' => $row['name'],
+            'enabled' => (bool)$row['enabled'],
+        ], (new Query())
+            ->select(['c.code', 'd.name', 'd.enabled'])
+            ->from(['c' => CommerceTable::COUPONS])
+            ->innerJoin(['d' => CommerceTable::DISCOUNTS], '[[d.id]] = [[c.discountId]]')
+            ->where(['not', ['c.code' => null]])
+            ->orderBy(['d.enabled' => SORT_DESC, 'd.name' => SORT_ASC, 'c.code' => SORT_ASC])
+            ->limit(500)
+            ->all());
     }
 
     private function _starts(): array

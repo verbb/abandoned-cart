@@ -1,3 +1,4 @@
+import type { PkCombobox } from '@verbb/plugin-kit-web/components/combobox.js';
 import { errorMessage, t, type CraftSlideout } from './craft.js';
 
 type EmailData = {
@@ -25,6 +26,7 @@ type EditorConfig = {
     starts: Record<string, StartPreset>;
     templates: { id: number; name: string; isDefault: boolean }[];
     abandonedAfter: string;
+    discountCodes: { code: string; discount: string; enabled: boolean }[];
 };
 
 type Cart = { id: number; label: string };
@@ -51,14 +53,24 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attributes: Record<st
     return node;
 }
 
-function field(label: string, input: HTMLElement, instructions?: string): HTMLElement {
+function field(label: string, input: HTMLElement, instructions?: string, warning?: string): HTMLElement {
     const id = input.id || `ac-${Math.random().toString(36).slice(2)}`;
     input.id = id;
+
+    // The same markup as a Craft field warning, so it picks up Craft's own styling.
+    const warningNode = warning
+        ? [el('p', { class: 'warning has-icon' },
+            el('span', { class: 'icon', 'aria-hidden': 'true' }),
+            el('span', { class: 'visually-hidden' }, t('Warning:')),
+            el('span', {}, warning),
+        )]
+        : [];
 
     return el('div', { class: 'field' },
         el('div', { class: 'heading' }, el('label', { for: id }, label)),
         ...(instructions ? [el('div', { class: 'instructions' }, el('p', {}, instructions))] : []),
         el('div', { class: 'input ltr' }, input),
+        ...warningNode,
     );
 }
 
@@ -79,6 +91,7 @@ class EmailPanel {
     private status!: HTMLElement;
     private previewTimer = 0;
     private lastFocused: HTMLInputElement | HTMLTextAreaElement | null = null;
+    private discountPicker: PkCombobox | null = null;
 
     constructor(private config: EditorConfig, private email: EmailData) {}
 
@@ -184,8 +197,7 @@ class EmailPanel {
         this.form.append(tokens);
 
         text('buttonLabel', t('Button Label'));
-        const discount = text('discountCode', t('Discount Code'), t('A Commerce coupon code to apply when the customer returns. Discounts work best in the last email.'));
-        discount.classList.add('code');
+        this.form.append(this.buildDiscountPicker(String(data.discountCode ?? '')));
 
         const template = el('select', { name: 'emailTemplateId' }, el('option', { value: '' }, t('Default template')));
         for (const option of this.config.templates) template.append(el('option', { value: String(option.id) }, option.name + (option.isDefault ? ` (${t('default')})` : '')));
@@ -195,6 +207,55 @@ class EmailPanel {
         this.form.addEventListener('input', () => this.schedulePreview());
         this.form.addEventListener('change', () => this.schedulePreview());
         this.form.addEventListener('submit', event => { event.preventDefault(); void this.save(); });
+    }
+
+    /**
+     * Commerce coupon codes to choose from, each with its discount's name. A code that isn't listed, such as one
+     * from another plugin, can still be typed. The hidden input carries the value into the form.
+     */
+    private buildDiscountPicker(current: string): HTMLElement {
+        const hidden = el('input', { type: 'hidden', name: 'discountCode', value: current });
+        const picker = document.createElement('pk-combobox') as PkCombobox;
+        picker.allowCustomValue = true;
+        picker.withClear = true;
+        picker.width = 'full';
+        picker.placeholder = t('No discount');
+        picker.emptyMessage = t('No matching codes. Press Enter to use what you typed.');
+        picker.setAttribute('aria-label', t('Discount Code'));
+
+        const codes = [...this.config.discountCodes];
+
+        if (current && !codes.some(item => item.code === current)) {
+            codes.unshift({ code: current, discount: t('Not found in Commerce'), enabled: false });
+        }
+
+        for (const item of codes) {
+            const option = document.createElement('pk-option');
+            option.setAttribute('value', item.code);
+            option.setAttribute('label', item.code);
+            option.append(
+                el('span', { class: 'code' }, item.code),
+                ' ',
+                el('span', { class: 'light' }, item.enabled ? `· ${item.discount}` : `· ${item.discount} (${t('disabled')})`),
+            );
+            picker.append(option);
+        }
+
+        picker.value = current;
+        picker.addEventListener('pk-change', () => {
+            hidden.value = picker.value;
+            this.schedulePreview();
+        });
+        this.discountPicker = picker;
+
+        const wrapper = el('div', {}, picker, hidden);
+
+        return field(
+            t('Discount Code'),
+            wrapper,
+            t('A Commerce coupon code to apply when the customer returns.'),
+            t('Discounts work best in the last email, so customers who’d buy anyway don’t learn to wait for one.'),
+        );
     }
 
     private buildFooter(isNew: boolean): HTMLElement {
@@ -214,7 +275,7 @@ class EmailPanel {
 
         const note = el('span', { class: 'light ac-panel__note' }, isNew
             ? t('Carts already in this sequence keep their emails. New carts get this one.')
-            : t('Wording changes reach emails that haven’t been sent yet.'));
+            : t('Saved changes also apply to carts already waiting for this email.'));
         const save = el('button', { type: 'button', class: 'btn submit' }, isNew ? t('Add Email') : t('Save'));
         save.addEventListener('click', () => void this.save());
 
@@ -236,6 +297,7 @@ class EmailPanel {
             const input = this.form.elements.namedItem(name) as HTMLInputElement | null;
             if (input) input.value = String(preset[name] ?? '');
         }
+        if (this.discountPicker) this.discountPicker.value = String(preset.discountCode ?? '');
         this.schedulePreview(0);
     }
 

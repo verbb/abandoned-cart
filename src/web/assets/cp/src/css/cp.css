@@ -541,11 +541,12 @@
     padding: 0;
 }
 
+/* Like a native Craft slideout: white body, header and footer in the pane-header tint. */
 .ac-panel {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     height: 100%;
-    background: var(--gray-050, #f3f7fc);
+    background: var(--white, #fff);
 }
 
 .ac-panel__head,
@@ -555,8 +556,8 @@
     align-items: center;
     gap: 10px;
     padding: 14px 20px;
-    background: var(--white, #fff);
-    border-bottom: 1px solid var(--hairline-color, #e3e8ef);
+    background: var(--gray-050, #f3f7fc);
+    border-bottom: 1px solid hsl(211deg 13% 65% / 25%);
 }
 
 .ac-panel__head h2 {
@@ -565,7 +566,7 @@
 }
 
 .ac-panel__foot {
-    border-top: 1px solid var(--hairline-color, #e3e8ef);
+    border-top: 1px solid hsl(211deg 13% 65% / 25%);
     border-bottom: 0;
     justify-content: flex-end;
 }
