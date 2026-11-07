@@ -8,6 +8,15 @@
 {% set canManage = currentUser.can('abandonedCart-manageSequences') %}
 {% set formatter = craft.app.formatter %}
 
+{# A timeline dot; an email with a discount gets a green one. #}
+{% macro dot(discount) %}
+    {%- if discount -%}
+        <i class="ac-mini-timeline__discount" title="{{ 'With a discount code' | t('abandoned-cart') }}"></i>
+    {%- else -%}
+        <i></i>
+    {%- endif -%}
+{% endmacro %}
+
 {% macro presetButton(preset) %}
     <form method="post" class="ac-preset">
         {{ csrfInput() }}
@@ -17,7 +26,7 @@
             <strong>{{ preset.name }}</strong>
             {% if preset.emails | length %}
                 <span class="ac-mini-timeline" aria-hidden="true">
-                    {% for email in preset.emails %}<i></i>{% if not loop.last %}<em></em>{% endif %}{% endfor %}
+                    {% for email in preset.emails %}{{ _self.dot((email.offersDiscount ?? false) or (email.discountCode ?? false)) }}{% if not loop.last %}<em></em>{% endif %}{% endfor %}
                 </span>
             {% endif %}
             <span class="light">{{ preset.description }}</span>
@@ -27,7 +36,7 @@
 
 {% block actionButton %}
     {% if canManage %}
-        <pk-dialog label="{{ 'Start From a Preset' | t('abandoned-cart') }}" size="lg" class="ac-preset-dialog">
+        <pk-dialog label="{{ 'Start From a Preset' | t('abandoned-cart') }}" size="wide" class="ac-preset-dialog">
             <button type="button" slot="trigger" class="btn submit add icon">{{ 'New Sequence' | t('abandoned-cart') }}</button>
             <p class="light">{{ 'The new sequence is a copy you can change freely, and it stays off until you turn it on.' | t('abandoned-cart') }}</p>
             <div class="ac-presets">
@@ -64,7 +73,7 @@
                 {% if sequence.isFallback %}
                     {# Everyone Else always comes last, so it has no grip, and a lock instead of a position. #}
                     <span class="ac-seq__grip invisible" aria-hidden="true"></span>
-                    <span class="ac-seq__order ac-seq__order--fallback" title="{{ 'Always last: catches every cart the sequences above don’t' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('lock') }}</span>
+                    <span class="ac-seq__order ac-seq__order--fallback" title="{{ 'Always last: catches every cart the sequences above don’t' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('check') }}</span>
                 {% else %}
                     <span class="ac-seq__grip{{ not canManage ? ' invisible' }}" title="{{ 'Drag to change the order' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('grip-dots-vertical') }}</span>
                     <span class="ac-seq__order" aria-hidden="true">{{ loop.index }}</span>
@@ -75,7 +84,7 @@
                 </div>
                 <div class="ac-mini-timeline" aria-label="{{ '{count, plural, =1{1 email} other{# emails}}' | t('abandoned-cart', { count: item.schedule | length }) }}">
                     {% for step in item.schedule %}
-                        <span><i></i>{{ step.short }}</span>{% if not loop.last %}<em></em>{% endif %}
+                        <span>{{ _self.dot(step.email.discountCode ?? false) }}{{ step.short }}</span>{% if not loop.last %}<em></em>{% endif %}
                     {% else %}
                         <span class="light">{{ 'No emails yet' | t('abandoned-cart') }}</span>
                     {% endfor %}

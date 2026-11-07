@@ -199,6 +199,12 @@
     box-shadow: 0 0 0 3px #e8f0fe;
 }
 
+/* An email with a discount: the same dot, in green. */
+.ac-mini-timeline i.ac-mini-timeline__discount {
+    background: #0f8a5f;
+    box-shadow: 0 0 0 3px #e3f5ec;
+}
+
 .ac-mini-timeline em {
     flex: none;
     width: 26px;
@@ -226,6 +232,11 @@
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
     margin-top: 12px;
+}
+
+/* Wide enough for three preset cards across. */
+.ac-preset-dialog {
+    --pk-dialog-width: 54rem;
 }
 
 .ac-preset {

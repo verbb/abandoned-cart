@@ -14,7 +14,8 @@ class Preset extends Model
     public string $audienceType = Sequence::AUDIENCE_ALL;
     public array $audienceSettings = [];
 
-    // Each email is an array of Email attributes, plus an optional `emailTemplate` handle.
+    // Each email is an array of Email attributes, plus an optional `emailTemplate` handle and an optional
+    // `offersDiscount` flag that marks the email meant to carry a discount code in the preset picker.
     public array $emails = [];
 
     // Overrides of the Recovery Defaults, keyed by Sequence attribute.

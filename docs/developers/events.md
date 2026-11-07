@@ -70,7 +70,7 @@ Event::on(Sequences::class, Sequences::EVENT_AFTER_DELETE_SEQUENCE, function(Seq
 
 ### The `registerPresets` Event
 
-The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the built-in presets as `Preset` models; add your own, reorder them or remove some. Each preset's `emails` are arrays of email attributes, with an optional `emailTemplate` handle. A sequence created from a preset is a one-time copy, so later changes to a preset don't affect existing sequences.
+The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the built-in presets as `Preset` models; add your own, reorder them or remove some. Each preset's `emails` are arrays of email attributes, with an optional `emailTemplate` handle and an optional `offersDiscount` flag, which marks the email meant to carry a discount code with a green dot in the preset picker. A sequence created from a preset is a one-time copy, so later changes to a preset don't affect existing sequences.
 
 ```php
 use verbb\abandonedcart\events\RegisterPresetsEvent;

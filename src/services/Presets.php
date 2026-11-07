@@ -110,7 +110,7 @@ class Presets extends Component
 
             foreach (array_slice($preset->emails, 0, Email::MAX_PER_SEQUENCE) as $index => $attributes) {
                 $templateHandle = $attributes['emailTemplate'] ?? null;
-                unset($attributes['emailTemplate']);
+                unset($attributes['emailTemplate'], $attributes['offersDiscount']);
 
                 $email = new Email(array_merge($attributes, [
                     'sequenceId' => $sequence->id,
@@ -178,6 +178,7 @@ class Presets extends Component
             'heading' => Craft::t('abandoned-cart', 'A little something to help you decide'),
             'message' => Craft::t('abandoned-cart', 'This is our last reminder. Use the code below at checkout to save on your order.'),
             'buttonLabel' => Craft::t('abandoned-cart', 'Finish your order'),
+            'offersDiscount' => true,
         ];
 
         return [
