@@ -817,10 +817,12 @@
 
 .ac-journey .ac-journey--failed::before {
     background: #dc2626;
+    box-shadow: 0 0 0 3px #fde8e6;
 }
 
 .ac-journey .ac-journey--skipped::before {
     background: #f59e0b;
+    box-shadow: 0 0 0 3px #fdf1dc;
 }
 
 .ac-items {
