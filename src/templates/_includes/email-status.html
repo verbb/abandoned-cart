@@ -15,6 +15,7 @@
             {{ forms.lightswitchField({
                 label: 'Can be emailed' | t('abandoned-cart'),
                 id: 'ac-email-status',
+                instructions: canManageStatus and not unsubscribed ? 'Off adds the customer to Do Not Email and stops their emails. On removes them from it.' | t('abandoned-cart') : null,
                 on: customer.status == 'active',
                 disabled: unsubscribed or not canManageStatus,
             }) }}
@@ -35,8 +36,6 @@
                 {{- addedBy ? 'Added to Do Not Email by {name} {date}.' | t('abandoned-cart', { name: addedBy, date: addedOn }) : 'Added to Do Not Email {date}.' | t('abandoned-cart', { date: addedOn }) -}}
                 {%- if customer.statusNote %} “{{ customer.statusNote }}”{% endif -%}
             </p>
-        {% elseif canManageStatus %}
-            <p class="light ac-meta-note">{{ 'Switching this off adds the customer to Do Not Email and stops their emails.' | t('abandoned-cart') }}</p>
         {% endif %}
     </fieldset>
 
