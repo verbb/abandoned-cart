@@ -8,7 +8,7 @@ You don't need a template of your own to start. Abandoned Cart includes a respon
 
 Open a sequence from **Abandoned Carts → Sequences**. Its emails appear in a timeline after **Cart abandoned**. Select an email to edit it in a panel beside the timeline, or choose **+ Add email** to add one at the end. **+ Add email here** between two emails inserts one at that point, and the emails after it keep their gaps.
 
-A new email starts blank. **Start From** offers some starting wording if you'd like it: a gentle reminder, a "still thinking it over?" nudge, or a last chance with a discount. Choosing one fills in the fields, which you can then change.
+A new email starts blank. **Start From** offers the emails from your [sequence presets](sequences.md#managing-presets), grouped by preset, if you'd like some starting wording. Choosing one fills in the fields, which you can then change.
 
 A sequence can have up to five emails. Two or three suit most stores; more than that tends to annoy customers rather than bring them back.
 

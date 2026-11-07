@@ -9,6 +9,7 @@ export type CraftGlobal = {
     cp: { displaySuccess(message?: string): void; displayError(message?: string): void; displayNotice(message?: string): void };
     escapeHtml(text: string): string;
     Slideout: new (content: HTMLElement | JQuery, settings?: Record<string, unknown>) => CraftSlideout;
+    initUiElements(container?: JQuery): void;
 };
 
 export type CraftSlideout = {

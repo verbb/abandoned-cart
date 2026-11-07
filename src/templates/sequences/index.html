@@ -115,18 +115,4 @@
             </div>
         {% endfor %}
     </div>
-
-    {% if isFresh and canManage %}
-        <div class="ac-card ac-fresh-presets">
-            <div class="ac-card__head">
-                <h2>{{ 'Sequence Presets' | t('abandoned-cart') }}</h2>
-                <span class="light">{{ 'Each creates a new sequence, off, above Everyone Else' | t('abandoned-cart') }}</span>
-            </div>
-            <div class="ac-presets">
-                {% for preset in presets | filter(p => p.handle != 'threeReminders') %}
-                    {{ _self.presetButton(preset) }}
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
 {% endblock %}

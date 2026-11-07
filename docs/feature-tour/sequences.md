@@ -75,7 +75,7 @@ When sequences have different **Abandoned After** times, a cart waits for the fi
 
 ## Starting From a Preset
 
-Choose **New Sequence** to create another sequence. You can start from a blank sequence or from a preset: a ready-made starting point with an audience, emails and wording.
+Choose **New Sequence** to create another sequence. You can start from a blank sequence or from a preset: a ready-made starting point with an audience, emails and wording. Abandoned Cart comes with four:
 
 | Preset | Audience | Emails |
 | --- | --- | --- |
@@ -88,7 +88,15 @@ The new sequence is a copy that you can change freely. It's placed just above Ev
 
 Two presets need finishing before they're useful. **High-Value Carts** matches nothing until you enter its amount, and **Reminders, Then a Discount** mentions a code in its last email but leaves **Discount Code** empty for you to fill in with one of your Commerce coupon codes.
 
-Developers can add their own presets, or remove the built-in ones, with the [`registerPresets` event](../developers/events.md#the-registerpresets-event).
+### Managing Presets
+
+Presets are listed under **Abandoned Carts → Settings → Sequence Presets**, where admins can change any of them, add their own, put them in order or delete them. A preset holds a name, handle and description, an audience, and up to five emails, each with its timing, wording, email template, and whether it's the email for a discount. A cart value audience can hold its amount; a products or custom rules audience is chosen once the sequence exists, because those depend on your catalogue.
+
+Presets are kept in project config, like email templates, so changes travel with the rest of your project and can only be made where admin changes are allowed. Editing a preset never changes sequences already made from it. Deleting all of them is fine: **New Sequence** then offers a blank sequence only.
+
+The emails in your presets also fill the **Start From** menu when you add an email to a sequence. See [Emails and Email Templates](emails-and-email-templates.md).
+
+Developers can add presets from a plugin or module, or change or remove the ones from Settings, with the [`registerPresets` event](../developers/events.md#the-registerpresets-event). Presets added that way are listed under Settings as **Added by Plugins**, and can only be changed in code.
 
 ## Editing a Sequence in Use
 

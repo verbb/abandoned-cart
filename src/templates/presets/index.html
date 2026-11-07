@@ -1,0 +1,104 @@
+{% extends 'abandoned-cart/_layouts/settings' %}
+
+{% requireAdmin false %}
+
+{% set selectedTab = 'presets' %}
+{% set pageTitle = 'Sequence Presets' | t('abandoned-cart') %}
+{% set crumbs = [{ label: pageTitle, url: url('abandoned-cart/settings/presets') }] %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+
+{% macro timeline(preset) %}
+    <span class="ac-mini-timeline" aria-label="{{ '{count, plural, =1{1 email} other{# emails}}' | t('abandoned-cart', { count: preset.emails | length }) }}">
+        {%- for email in preset.emails -%}
+            {%- if preset.hasDiscountEmail(loop.index0) -%}<i class="ac-mini-timeline__discount"></i>{%- else -%}<i></i>{%- endif -%}
+            {%- if not loop.last %}<em></em>{% endif -%}
+        {%- endfor -%}
+    </span>
+{% endmacro %}
+
+{% block actionButton %}
+    {% if not readOnly %}
+        <a href="{{ url('abandoned-cart/settings/presets/new') }}" class="btn submit add icon">{{ 'New Preset' | t('abandoned-cart') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block settingsContent %}
+    <p class="light ac-settings-intro">{{ 'The starting points offered by New Sequence. A sequence made from a preset is a copy, so changing a preset doesn’t change sequences you’ve already made.' | t('abandoned-cart') }}</p>
+
+    {% if presets %}
+        <table class="data fullwidth ac-preset-table" data-ac-presets-table>
+            <thead>
+                <tr>
+                    <th scope="col">{{ 'Name' | t('app') }}</th>
+                    <th scope="col">{{ 'Handle' | t('app') }}</th>
+                    <th scope="col">{{ 'Audience' | t('abandoned-cart') }}</th>
+                    <th scope="col">{{ 'Emails' | t('abandoned-cart') }}</th>
+                    {% if not readOnly %}
+                        <td class="thin"></td>
+                        <td class="thin"></td>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for preset in presets %}
+                    <tr data-id="{{ preset.uid }}" data-name="{{ preset.name }}">
+                        <th scope="row">
+                            <a href="{{ preset.cpEditUrl }}">{{ preset.name }}</a>
+                            {% if preset.description %}<div class="light ac-preset-table__description">{{ preset.description }}</div>{% endif %}
+                        </th>
+                        <td><code>{{ preset.handle }}</code></td>
+                        <td>{{ audienceLabels[preset.audienceType] ?? preset.audienceType }}</td>
+                        <td>{{ _self.timeline(preset) }}</td>
+                        {% if not readOnly %}
+                            <td class="thin"><a class="move icon" title="{{ 'Reorder' | t('app') }}" role="button"></a></td>
+                            <td class="thin"><a class="delete icon" title="{{ 'Delete' | t('app') }}" role="button"></a></td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="light">{{ 'There are no presets, so New Sequence starts from a blank sequence.' | t('abandoned-cart') }}</p>
+    {% endif %}
+
+    {% if pluginPresets %}
+        <h2 class="ac-settings-subhead">{{ 'Added by Plugins' | t('abandoned-cart') }}</h2>
+        <p class="light">{{ 'These come from a plugin or module, so they’re changed in its code rather than here.' | t('abandoned-cart') }}</p>
+        <table class="data fullwidth ac-preset-table">
+            <thead>
+                <tr>
+                    <th scope="col">{{ 'Name' | t('app') }}</th>
+                    <th scope="col">{{ 'Handle' | t('app') }}</th>
+                    <th scope="col">{{ 'Audience' | t('abandoned-cart') }}</th>
+                    <th scope="col">{{ 'Emails' | t('abandoned-cart') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for preset in pluginPresets %}
+                    <tr>
+                        <th scope="row">
+                            {{ preset.name }}
+                            {% if preset.description %}<div class="light ac-preset-table__description">{{ preset.description }}</div>{% endif %}
+                        </th>
+                        <td><code>{{ preset.handle }}</code></td>
+                        <td>{{ audienceLabels[preset.audienceType] ?? preset.audienceType }}</td>
+                        <td>{{ _self.timeline(preset) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if presets and not readOnly %}
+        {% js %}
+            new Craft.AdminTable({
+                tableSelector: '[data-ac-presets-table]',
+                sortable: true,
+                minItems: 0,
+                reorderAction: 'abandoned-cart/presets/reorder',
+                deleteAction: 'abandoned-cart/presets/delete',
+                confirmDeleteMessage: {{ 'Delete “{name}”? Sequences made from it aren’t affected.' | t('abandoned-cart') | json_encode | raw }},
+            });
+        {% endjs %}
+    {% endif %}
+{% endblock %}

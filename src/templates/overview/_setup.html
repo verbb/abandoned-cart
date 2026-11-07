@@ -40,7 +40,7 @@
                         <div>
                             <div class="ac-step__title">{{ 'Review Your Emails' | t('abandoned-cart') }}</div>
                             <p>{{ '{name} has {count} emails, using the bundled design.' | t('abandoned-cart', { name: fallback.name, count: schedule | length - 1 }) }}</p>
-                            <div class="ac-step__action"><a class="btn small" href="{{ fallback.cpEditUrl }}">{{ 'Open {name}' | t('abandoned-cart', { name: fallback.name }) }}</a></div>
+                            <div class="ac-step__action"><a class="btn" href="{{ fallback.cpEditUrl }}">{{ 'Open {name}' | t('abandoned-cart', { name: fallback.name }) }}</a></div>
                         </div>
                     </li>
                     <li class="ac-step{{ testSentAt ? ' ac-step--done' : (emailsEdited ? ' ac-step--current' : '') }}">
@@ -51,7 +51,7 @@
                             <form method="post" class="ac-step__action">
                                 {{ csrfInput() }}{{ actionInput('abandoned-cart/overview/send-tests') }}{{ redirectInput('abandoned-cart') }}
                                 {{ forms.text({ name: 'to', type: 'email', value: currentUser.email, size: 30 }) }}
-                                <button type="submit" class="btn small{{ testSentAt ? '' : ' submit' }}">{{ 'Send {count} Test Emails' | t('abandoned-cart', { count: schedule | length - 1 }) }}</button>
+                                <button type="submit" class="btn{{ testSentAt ? '' : ' submit' }}">{{ 'Send {count} Test Emails' | t('abandoned-cart', { count: schedule | length - 1 }) }}</button>
                             </form>
                         </div>
                     </li>
@@ -63,7 +63,7 @@
                             <form method="post" class="ac-step__action">
                                 {{ csrfInput() }}{{ actionInput('abandoned-cart/sequences/save') }}{{ redirectInput('abandoned-cart') }}
                                 {{ hiddenInput('sequenceId', fallback.id) }}{{ hiddenInput('enabled', 1) }}
-                                <button type="submit" class="btn small{{ testSentAt ? ' submit' : '' }}">{{ 'Turn On' | t('abandoned-cart') }}</button>
+                                <button type="submit" class="btn{{ testSentAt ? ' submit' : '' }}">{{ 'Turn On' | t('abandoned-cart') }}</button>
                             </form>
                         </div>
                     </li>

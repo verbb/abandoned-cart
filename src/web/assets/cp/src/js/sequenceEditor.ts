@@ -16,7 +16,7 @@ type EmailData = {
     emailTemplateId: number | null;
 };
 
-type StartPreset = { label: string; subject?: string; previewText?: string; heading?: string; message?: string; buttonLabel?: string; discountCode?: string; delayMinutes?: number };
+type StartPreset = { label: string; group?: string; subject?: string; previewText?: string; heading?: string; message?: string; buttonLabel?: string; discountCode?: string; delayMinutes?: number };
 
 type EditorConfig = {
     sequenceId: number;
@@ -103,11 +103,7 @@ class EmailPanel {
             ? t('New Email · Email {position}', { position: this.email.position })
             : t('Email {position} · {subject}', { position: this.email.position, subject: this.email.subject });
 
-        const devices = el('div', { class: 'btngroup ac-devices', role: 'group', 'aria-label': t('Preview size') },
-            el('button', { type: 'button', class: 'btn active', 'data-device': 'desktop', 'aria-pressed': 'true' }, t('Desktop')),
-            el('button', { type: 'button', class: 'btn', 'data-device': 'mobile', 'aria-pressed': 'false' }, t('Mobile')),
-        );
-        panel.append(el('header', { class: 'ac-panel__head' }, el('h2', {}, title), devices));
+        panel.append(el('header', { class: 'ac-panel__head' }, el('h2', {}, title)));
 
         this.form = el('form', { class: 'ac-panel__form', novalidate: '' });
         this.buildForm(isNew);
@@ -135,12 +131,6 @@ class EmailPanel {
         panel.append(el('div', { class: 'ac-panel__body' }, this.form, preview));
         panel.append(this.buildFooter(isNew));
 
-        devices.addEventListener('click', (event) => {
-            const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-device]');
-            if (!button) return;
-            devices.querySelectorAll('button').forEach(b => { b.classList.toggle('active', b === button); b.setAttribute('aria-pressed', String(b === button)); });
-            preview.querySelector('.ac-preview')?.classList.toggle('ac-preview--mobile', button.dataset.device === 'mobile');
-        });
         this.slideout = new Craft.Slideout(panel, { containerAttributes: { class: 'ac-slideout' }, closeOnShadeClick: true });
 
         // Craft's disclosure menu needs its trigger and menu in the page, so it starts once the slideout is open.
@@ -156,7 +146,24 @@ class EmailPanel {
 
         if (isNew) {
             const start = el('select', {});
-            for (const [key, preset] of Object.entries(this.config.starts)) start.append(el('option', { value: key }, preset.label));
+            // Each preset's emails are grouped under its name.
+            const groups = new Map<string, HTMLOptGroupElement>();
+            for (const [key, preset] of Object.entries(this.config.starts)) {
+                const option = el('option', { value: key }, preset.label);
+
+                if (!preset.group) {
+                    start.append(option);
+                    continue;
+                }
+
+                if (!groups.has(preset.group)) {
+                    const group = el('optgroup', { label: preset.group });
+                    groups.set(preset.group, group);
+                    start.append(group);
+                }
+
+                groups.get(preset.group)!.append(option);
+            }
             start.value = 'blank';
             start.addEventListener('change', () => this.applyStart(this.config.starts[start.value]));
             this.form.append(field(t('Start From'), el('div', { class: 'select' }, start), t('Fills in the fields below. Change anything you like.')));

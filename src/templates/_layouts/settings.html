@@ -20,6 +20,7 @@
     {% set pageTabs = pageTabs | merge({
         general: { title: 'General Settings' | t('abandoned-cart'), url: url('abandoned-cart/settings') },
         'email-templates': { title: 'Email Templates' | t('abandoned-cart'), url: url('abandoned-cart/settings/email-templates') },
+        presets: { title: 'Sequence Presets' | t('abandoned-cart'), url: url('abandoned-cart/settings/presets') },
     }) %}
 {% endif %}
 {% if currentUser.admin or currentUser.can('abandonedCart-viewSystemStatus') %}

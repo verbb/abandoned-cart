@@ -1,0 +1,164 @@
+{% extends 'abandoned-cart/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+
+{% requireAdmin false %}
+
+{% set selectedTab = 'presets' %}
+{% set fullPageForm = true %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% set pageTitle = isNew ? 'New Preset' | t('abandoned-cart') : preset.name %}
+{% set crumbs = [
+    { label: 'Sequence Presets' | t('abandoned-cart'), url: url('abandoned-cart/settings/presets') },
+] %}
+{% set settings = preset.audienceSettings %}
+
+{# Splits a delay in minutes into the largest whole unit, as the email editor does. #}
+{% macro delayParts(minutes) %}
+    {%- if minutes > 0 and minutes % 1440 == 0 -%}{{ (minutes / 1440) ~ '|days' }}
+    {%- elseif minutes > 0 and minutes % 60 == 0 -%}{{ (minutes / 60) ~ '|hours' }}
+    {%- elseif minutes > 0 -%}{{ minutes ~ '|minutes' }}
+    {%- else -%}0|hours{%- endif -%}
+{% endmacro %}
+
+{% macro emailBlock(key, email, number, templateOptions, readOnly) %}
+    {% import '_includes/forms' as forms %}
+    {% set delay = _self.delayParts(email.delayMinutes ?? 0) | split('|') %}
+    {% set prefix = 'emails[' ~ key ~ ']' %}
+    <div class="ac-preset-email" data-ac-preset-email>
+        <div class="ac-preset-email__head">
+            <h3>{{ 'Email {number}' | t('abandoned-cart', { number: '<span data-ac-email-number>' ~ number ~ '</span>' }) | raw }}</h3>
+            {% if not readOnly %}
+                <div class="ac-preset-email__actions">
+                    <button type="button" class="btn small" data-ac-email-move="-1" aria-label="{{ 'Move up' | t('app') }}" title="{{ 'Move up' | t('app') }}" data-icon="uarr"></button>
+                    <button type="button" class="btn small" data-ac-email-move="1" aria-label="{{ 'Move down' | t('app') }}" title="{{ 'Move down' | t('app') }}" data-icon="darr"></button>
+                    <button type="button" class="btn small" data-ac-email-remove aria-label="{{ 'Remove' | t('app') }}" title="{{ 'Remove' | t('app') }}" data-icon="trash"></button>
+                </div>
+            {% endif %}
+        </div>
+
+        {% embed '_includes/forms/field' with { label: 'Send' | t('abandoned-cart'), id: null } %}
+            {% block input %}
+                {% import '_includes/forms' as forms %}
+                <div class="ac-inline">
+                    {{ forms.text({ name: prefix ~ '[delayValue]', value: delay[0], type: 'number', min: 0, size: 6, disabled: readOnly, inputAttributes: { 'aria-label': 'Delay' | t('abandoned-cart') } }) }}
+                    {{ forms.select({ name: prefix ~ '[delayUnit]', value: delay[1], disabled: readOnly, options: [
+                        { label: 'minutes' | t('abandoned-cart'), value: 'minutes' },
+                        { label: 'hours' | t('abandoned-cart'), value: 'hours' },
+                        { label: 'days' | t('abandoned-cart'), value: 'days' },
+                    ], inputAttributes: { 'aria-label': 'Delay unit' | t('abandoned-cart') } }) }}
+                    <span class="light" data-ac-delay-after data-first="{{ 'after the cart is abandoned' | t('abandoned-cart') }}" data-later="{{ 'after the previous email' | t('abandoned-cart') }}">{{ number == 1 ? 'after the cart is abandoned' | t('abandoned-cart') : 'after the previous email' | t('abandoned-cart') }}</span>
+                </div>
+            {% endblock %}
+        {% endembed %}
+
+        {{ forms.textField({ label: 'Subject' | t('abandoned-cart'), name: prefix ~ '[subject]', value: email.subject ?? '', required: true, disabled: readOnly }) }}
+        {{ forms.textField({ label: 'Preview Text' | t('abandoned-cart'), instructions: 'Shown after the subject in most inboxes.' | t('abandoned-cart'), name: prefix ~ '[previewText]', value: email.previewText ?? '', disabled: readOnly }) }}
+        {{ forms.textField({ label: 'Heading' | t('abandoned-cart'), name: prefix ~ '[heading]', value: email.heading ?? '', disabled: readOnly }) }}
+        {{ forms.textareaField({ label: 'Message' | t('abandoned-cart'), instructions: 'Blank lines start a new paragraph. Tokens such as `{firstName}` work here, as in the email editor.' | t('abandoned-cart'), name: prefix ~ '[message]', value: email.message ?? '', rows: 4, disabled: readOnly }) }}
+        {{ forms.textField({ label: 'Button Label' | t('abandoned-cart'), name: prefix ~ '[buttonLabel]', value: email.buttonLabel ?? '', disabled: readOnly }) }}
+        {{ forms.lightswitchField({
+            label: 'Offers a Discount' | t('abandoned-cart'),
+            instructions: 'Marks this as the email for a discount code. Sequences made from the preset still need a code chosen.' | t('abandoned-cart'),
+            name: prefix ~ '[offersDiscount]',
+            on: (email.offersDiscount ?? false) or (email.discountCode ?? false),
+            disabled: readOnly,
+        }) }}
+        {{ forms.selectField({ label: 'Email Template' | t('abandoned-cart'), name: prefix ~ '[emailTemplate]', value: email.emailTemplate ?? '', options: templateOptions, disabled: readOnly }) }}
+        {% if email.discountCode ?? false %}{{ hiddenInput(prefix ~ '[discountCode]', email.discountCode) }}{% endif %}
+    </div>
+{% endmacro %}
+
+{% block blockContent %}
+    {{ actionInput('abandoned-cart/presets/save') }}
+    {{ redirectInput('abandoned-cart/settings/presets') }}
+    {% if preset.uid %}{{ hiddenInput('uid', preset.uid) }}{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: 'Name' | t('app'),
+        instructions: 'What New Sequence calls this preset. Sequences made from it start with this name.' | t('abandoned-cart'),
+        id: 'name',
+        name: 'name',
+        value: preset.name,
+        errors: preset.getErrors('name'),
+        autofocus: true,
+        required: true,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Handle' | t('app'),
+        instructions: 'How you’ll refer to this preset in code.' | t('abandoned-cart'),
+        id: 'handle',
+        name: 'handle',
+        class: 'code',
+        autocorrect: false,
+        autocapitalize: false,
+        value: preset.handle,
+        errors: preset.getErrors('handle'),
+        required: true,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.textField({
+        label: 'Description' | t('app'),
+        instructions: 'A sentence shown under the name in New Sequence.' | t('abandoned-cart'),
+        id: 'description',
+        name: 'description',
+        value: preset.description,
+        disabled: readOnly,
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Audience' | t('abandoned-cart'),
+        instructions: 'Who sequences made from this preset are for. Products and custom rules are chosen once the sequence exists.' | t('abandoned-cart'),
+        id: 'audienceType',
+        name: 'audienceType',
+        value: preset.audienceType,
+        options: audienceOptions,
+        disabled: readOnly,
+        inputAttributes: { 'data-ac-preset-audience': true },
+    }) }}
+
+    <div class="ac-audience-detail" data-ac-preset-cart-value{% if preset.audienceType != 'cartValue' %} hidden{% endif %}>
+        <div class="ac-inline">
+            <span>{{ 'Cart total is' | t('abandoned-cart') }}</span>
+            {{ forms.select({ name: 'audienceSettings[operator]', value: settings.operator ?? 'atLeast', disabled: readOnly, options: [
+                { label: 'at least' | t('abandoned-cart'), value: 'atLeast' },
+                { label: 'less than' | t('abandoned-cart'), value: 'lessThan' },
+                { label: 'between' | t('abandoned-cart'), value: 'between' },
+            ], inputAttributes: { 'data-ac-preset-operator': true } }) }}
+            {{ forms.text({ name: 'audienceSettings[amount]', value: settings.amount ?? '', type: 'number', min: 0, step: 'any', size: 8, disabled: readOnly }) }}
+            <span data-ac-preset-between{% if (settings.operator ?? '') != 'between' %} hidden{% endif %}>{{ 'and' | t('abandoned-cart') }} {{ forms.text({ name: 'audienceSettings[maxAmount]', value: settings.maxAmount ?? '', type: 'number', min: 0, step: 'any', size: 8, disabled: readOnly }) }}</span>
+        </div>
+        <p class="light">{{ 'Leave the amount empty to choose it when you create the sequence.' | t('abandoned-cart') }}</p>
+    </div>
+
+    <hr>
+
+    <div class="field">
+        <div class="heading"><label>{{ 'Emails' | t('abandoned-cart') }}</label></div>
+        <div class="instructions"><p>{{ 'Up to {max}. Sending stops as soon as the customer buys or unsubscribes.' | t('abandoned-cart', { max: maxEmails }) }}</p></div>
+        {% if preset.getErrors('emails') %}
+            <ul class="errors">{% for error in preset.getErrors('emails') %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+    </div>
+
+    <div class="ac-preset-emails" data-ac-preset-emails data-max="{{ maxEmails }}">
+        {% for email in preset.emails %}
+            {{ _self.emailBlock(loop.index0, email, loop.index, templateOptions, readOnly) }}
+        {% endfor %}
+    </div>
+
+    {% if not readOnly %}
+        <template data-ac-preset-email-template>
+            {{ _self.emailBlock('__KEY__', { delayMinutes: 1440, buttonLabel: 'Return to your cart' | t('abandoned-cart') }, 1, templateOptions, false) }}
+        </template>
+        <button type="button" class="btn add icon dashed" data-ac-preset-add-email>{{ 'Add an email' | t('abandoned-cart') }}</button>
+
+        {% if isNew %}
+            {% js %}new Craft.HandleGenerator('#name', '#handle');{% endjs %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

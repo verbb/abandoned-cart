@@ -286,6 +286,7 @@ class Install extends Migration
             }
         }
 
+        AbandonedCart::$plugin->getPresets()->installBuiltInPresets();
         AbandonedCart::$plugin->getSequences()->createFallbackSequence();
     }
 

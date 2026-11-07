@@ -70,7 +70,7 @@ Event::on(Sequences::class, Sequences::EVENT_AFTER_DELETE_SEQUENCE, function(Seq
 
 ### The `registerPresets` Event
 
-The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the built-in presets as `Preset` models; add your own, reorder them or remove some. Each preset's `emails` are arrays of email attributes, with an optional `emailTemplate` handle and an optional `offersDiscount` flag, which marks the email meant to carry a discount code with a green dot in the preset picker. A sequence created from a preset is a one-time copy, so later changes to a preset don't affect existing sequences.
+The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the presets from **Settings → Sequence Presets**, in their order, as `Preset` models; add your own, reorder them, change them or remove some. Presets you add are listed under Settings as **Added by Plugins** and can't be edited there. Changes you make to presets from Settings apply only while the listener runs; they don't change project config. Each preset's `emails` are arrays of email attributes, with an optional `emailTemplate` handle and an optional `offersDiscount` flag, which marks the email meant to carry a discount code with a green dot in the preset picker. A sequence created from a preset is a one-time copy, so later changes to a preset don't affect existing sequences.
 
 ```php
 use verbb\abandonedcart\events\RegisterPresetsEvent;
@@ -111,7 +111,7 @@ Event::on(Presets::class, Presets::EVENT_REGISTER_PRESETS, function(RegisterPres
 
 A preset needs a unique `handle` and a `name`; invalid presets are left out and logged. When a sequence is created, an `emailTemplate` handle that doesn't exist falls back to the default template, with a notice for the editor.
 
-Abandoned Cart creates Everyone Else from the `threeReminders` preset when the plugin is installed. If a listener has removed that preset, it uses the built-in Three Reminders instead, so removing it only takes it out of **New Sequence**.
+Abandoned Cart creates Everyone Else from the `threeReminders` preset when the plugin is installed. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.
 
 ## Email Events
 

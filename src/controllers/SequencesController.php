@@ -330,17 +330,30 @@ class SequencesController extends BaseCpController
             ->all());
     }
 
+    /**
+     * The New Email panel's Start From choices: blank, then each preset's emails, grouped by preset.
+     */
     private function _starts(): array
     {
-        $presets = AbandonedCart::$plugin->getPresets();
-        $reminders = $presets->getPresetByHandle('remindersThenDiscount')?->emails ?? [];
-
-        // The New Email panel's Start From choices: blank first, then the wording of the built-in discount preset.
-        return [
+        $starts = [
             'blank' => ['label' => Craft::t('abandoned-cart', 'Blank'), 'subject' => '', 'previewText' => '', 'heading' => '', 'message' => '', 'buttonLabel' => Craft::t('abandoned-cart', 'Return to your cart')],
-            'reminder' => ['label' => Craft::t('abandoned-cart', 'A gentle reminder')] + ($reminders[0] ?? []),
-            'nudge' => ['label' => Craft::t('abandoned-cart', 'Still thinking it over?')] + ($reminders[1] ?? []),
-            'discount' => ['label' => Craft::t('abandoned-cart', 'Last chance, with a discount')] + ($reminders[2] ?? []),
         ];
+
+        foreach (AbandonedCart::$plugin->getPresets()->getAllPresets() as $preset) {
+            foreach ($preset->emails as $index => $email) {
+                $starts[$preset->handle . ':' . $index] = [
+                    'label' => $email['subject'] ?? Craft::t('abandoned-cart', 'Email {number}', ['number' => $index + 1]),
+                    'group' => $preset->name,
+                    'subject' => $email['subject'] ?? '',
+                    'previewText' => $email['previewText'] ?? '',
+                    'heading' => $email['heading'] ?? '',
+                    'message' => $email['message'] ?? '',
+                    'buttonLabel' => $email['buttonLabel'] ?? '',
+                    'discountCode' => $email['discountCode'] ?? '',
+                ];
+            }
+        }
+
+        return $starts;
     }
 }

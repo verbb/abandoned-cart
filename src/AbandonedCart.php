@@ -5,6 +5,7 @@ use verbb\abandonedcart\base\PluginTrait;
 use verbb\abandonedcart\controllers\UsersController as AbandonedCartUsersController;
 use verbb\abandonedcart\models\Settings;
 use verbb\abandonedcart\services\EmailTemplates;
+use verbb\abandonedcart\services\Presets;
 use verbb\abandonedcart\variables\AbandonedCartVariable;
 
 use Craft;
@@ -37,7 +38,7 @@ class AbandonedCart extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '5.0.0';
+    public string $schemaVersion = '5.0.1';
     public string $minVersionRequired = '3.0.0';
 
 
@@ -130,6 +131,15 @@ class AbandonedCart extends Plugin
             ->onRemove(EmailTemplates::CONFIG_KEY . '.{uid}', [$emailTemplates, 'handleDeletedTemplate']);
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, [$emailTemplates, 'rebuildProjectConfig']);
+
+        $presets = $this->getPresets();
+
+        Craft::$app->getProjectConfig()
+            ->onAdd(Presets::CONFIG_KEY . '.{uid}', [$presets, 'handleChangedPreset'])
+            ->onUpdate(Presets::CONFIG_KEY . '.{uid}', [$presets, 'handleChangedPreset'])
+            ->onRemove(Presets::CONFIG_KEY . '.{uid}', [$presets, 'handleChangedPreset']);
+
+        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, [$presets, 'rebuildProjectConfig']);
     }
 
     private function _registerVariables(): void
@@ -169,6 +179,9 @@ class AbandonedCart extends Plugin
             $event->rules['abandoned-cart/settings/email-templates'] = 'abandoned-cart/email-templates/index';
             $event->rules['abandoned-cart/settings/email-templates/new'] = 'abandoned-cart/email-templates/edit';
             $event->rules['abandoned-cart/settings/email-templates/<templateId:\d+>'] = 'abandoned-cart/email-templates/edit';
+            $event->rules['abandoned-cart/settings/presets'] = 'abandoned-cart/presets/index';
+            $event->rules['abandoned-cart/settings/presets/new'] = 'abandoned-cart/presets/edit';
+            $event->rules['abandoned-cart/settings/presets/<uid:{uid}>'] = 'abandoned-cart/presets/edit';
             $event->rules['abandoned-cart/settings/system-status'] = 'abandoned-cart/system-status/index';
             $event->rules['myaccount/abandoned-cart'] = 'abandoned-cart/users/index';
             $event->rules['users/<userId:\d+>/abandoned-cart'] = 'abandoned-cart/users/index';

@@ -602,6 +602,9 @@
     gap: 12px;
     overflow: auto;
     padding: 20px;
+    /* Tinted, so the white email reads as a page within it. */
+    background: var(--gray-050, #f3f7fc);
+    border-inline-start: 1px solid hsl(211deg 13% 65% / 25%);
 }
 
 .ac-tokens {
@@ -622,10 +625,6 @@
     background: var(--white, #fff);
     box-shadow: var(--pane-shadow, 0 0 0 1px #cdd8e4);
     transition: max-width 0.2s;
-}
-
-.ac-preview--mobile {
-    max-width: 380px;
 }
 
 .ac-preview__inbox {
@@ -1731,3 +1730,47 @@ pk-status-label {
 .ac-sources a.sel .ac-source-count {
     color: inherit;
 }
+
+/* Sequence Presets under Settings */
+.ac-preset-table__description {
+    font-weight: normal;
+}
+
+.ac-settings-intro {
+    margin-top: 0;
+}
+
+.ac-settings-subhead {
+    margin-top: 32px;
+}
+
+.ac-preset-emails {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.ac-preset-email {
+    padding: 16px 20px;
+    border-radius: var(--large-border-radius, 8px);
+    background: var(--gray-050, #f3f7fc);
+    box-shadow: inset 0 0 0 1px hsl(211deg 13% 65% / 25%);
+}
+
+.ac-preset-email__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.ac-preset-email__head h3 {
+    margin: 0;
+}
+
+.ac-preset-email__actions {
+    display: flex;
+    gap: 4px;
+}
+

@@ -6,7 +6,7 @@
 
 ### Added
 - Added sequences of up to five recovery emails, each with its own audience (cart value, returning customers, first-time customers, products or custom order rules), sites, timing and optional discount code. The Everyone Else sequence catches every cart that no other sequence matches.
-- Added sequence presets, and the `Presets::EVENT_REGISTER_PRESETS` event for adding, reordering or removing them.
+- Added sequence presets, managed under Settings → Sequence Presets and kept in project config, and the `Presets::EVENT_REGISTER_PRESETS` event for adding, changing, reordering or removing them in code.
 - Added an email editor with tokens, live desktop and mobile previews using a sample or real cart, and test sends.
 - Added email templates, stored in project config, with a responsive bundled design that needs no template files and an option to copy it to your own templates.
 - Added the Overview, with recovered revenue, recovery rate, a recovery funnel, sequence and email performance, and a setup checklist for new installs. Carts from blocked domains are left out of its figures.

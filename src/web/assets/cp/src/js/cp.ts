@@ -4,6 +4,7 @@ import { registerPluginKit } from './pluginKit.js';
 import { mountSequenceList } from './sequences.js';
 import { mountSequenceEditor } from './sequenceEditor.js';
 import { mountDataTables } from './dataTables.js';
+import { mountPresetEditor } from './presets.js';
 
 registerPluginKit();
 
@@ -37,6 +38,7 @@ function mount(): void {
     mountSequenceList();
     mountSequenceEditor();
     mountDataTables();
+    mountPresetEditor();
 }
 
 if (document.readyState === 'loading') {

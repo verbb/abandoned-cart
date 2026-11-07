@@ -9,6 +9,9 @@ use verbb\abandonedcart\models\Sequence;
 
 use Craft;
 use craft\base\Component;
+use craft\events\ConfigEvent;
+use craft\events\RebuildConfigEvent;
+use craft\helpers\StringHelper;
 
 use Throwable;
 
@@ -18,6 +21,8 @@ class Presets extends Component
     // =========================================================================
 
     public const EVENT_REGISTER_PRESETS = 'registerPresets';
+
+    public const CONFIG_KEY = EmailTemplates::CONFIG_KEY_ROOT . '.presets';
 
     public const PRESET_THREE_REMINDERS = 'threeReminders';
     public const PRESET_REMINDERS_THEN_DISCOUNT = 'remindersThenDiscount';
@@ -34,10 +39,15 @@ class Presets extends Component
     // Public Methods
     // =========================================================================
 
+    /**
+     * Every preset New Sequence offers: those kept under Settings, in order, after plugins have had their say.
+     *
+     * @return Preset[]
+     */
     public function getAllPresets(): array
     {
         if ($this->_presets === null) {
-            $event = new RegisterPresetsEvent(['presets' => $this->_getBuiltInPresets()]);
+            $event = new RegisterPresetsEvent(['presets' => $this->getSettingsPresets()]);
             $this->trigger(self::EVENT_REGISTER_PRESETS, $event);
 
             $presets = [];
@@ -70,12 +80,149 @@ class Presets extends Component
     }
 
     /**
+     * The presets kept in project config and managed under Settings, in their order, before any plugin changes.
+     *
+     * @return Preset[]
+     */
+    public function getSettingsPresets(): array
+    {
+        $presets = [];
+
+        foreach (Craft::$app->getProjectConfig()->get(self::CONFIG_KEY) ?? [] as $uid => $config) {
+            $presets[] = new Preset(array_merge($config, [
+                'uid' => $uid,
+                'description' => $config['description'] ?? null,
+                'audienceSettings' => $config['audienceSettings'] ?? [],
+                'emails' => array_values($config['emails'] ?? []),
+                'overrides' => $config['overrides'] ?? [],
+                'sortOrder' => (int)($config['sortOrder'] ?? 0),
+                'isEditable' => true,
+            ]));
+        }
+
+        usort($presets, static fn(Preset $a, Preset $b): int => $a->sortOrder <=> $b->sortOrder);
+
+        return $presets;
+    }
+
+    public function getSettingsPresetByUid(string $uid): ?Preset
+    {
+        foreach ($this->getSettingsPresets() as $preset) {
+            if ($preset->uid === $uid) {
+                return $preset;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Presets that plugins add with `EVENT_REGISTER_PRESETS`, which Settings lists but can't change.
+     *
+     * @return Preset[]
+     */
+    public function getPluginPresets(): array
+    {
+        return array_values(array_filter($this->getAllPresets(), static fn(Preset $preset): bool => !$preset->isEditable));
+    }
+
+    public function savePreset(Preset $preset, bool $runValidation = true): bool
+    {
+        $preset->setScenario(Preset::SCENARIO_SETTINGS);
+
+        if ($runValidation && !$preset->validate()) {
+            return false;
+        }
+
+        foreach ($this->getSettingsPresets() as $other) {
+            if ($other->handle === $preset->handle && $other->uid !== $preset->uid) {
+                $preset->addError('handle', Craft::t('abandoned-cart', 'Another preset already uses this handle.'));
+
+                return false;
+            }
+        }
+
+        if (!$preset->uid) {
+            $preset->uid = StringHelper::UUID();
+            $preset->sortOrder = max(array_map(static fn(Preset $other): int => $other->sortOrder, $this->getSettingsPresets()) ?: [0]) + 1;
+        }
+
+        $preset->isEditable = true;
+        Craft::$app->getProjectConfig()->set(self::CONFIG_KEY . '.' . $preset->uid, $preset->getConfig(), "Save the “{$preset->handle}” sequence preset");
+        $this->_presets = null;
+
+        return true;
+    }
+
+    public function deletePreset(Preset $preset): bool
+    {
+        if (!$preset->uid || !$preset->isEditable) {
+            return false;
+        }
+
+        Craft::$app->getProjectConfig()->remove(self::CONFIG_KEY . '.' . $preset->uid, "Delete the “{$preset->handle}” sequence preset");
+        $this->_presets = null;
+
+        return true;
+    }
+
+    /**
+     * @param string[] $uids Settings presets, in their new order.
+     */
+    public function reorderPresets(array $uids): void
+    {
+        $projectConfig = Craft::$app->getProjectConfig();
+
+        foreach (array_values($uids) as $index => $uid) {
+            if ($projectConfig->get(self::CONFIG_KEY . '.' . $uid) !== null) {
+                $projectConfig->set(self::CONFIG_KEY . '.' . $uid . '.sortOrder', $index + 1, 'Reorder sequence presets');
+            }
+        }
+
+        $this->_presets = null;
+    }
+
+    /**
+     * Puts the built-in presets in project config, so a new install has them under Settings. Does nothing when there
+     * already are presets, or when project config is being applied from another environment, which brings its own.
+     */
+    public function installBuiltInPresets(): void
+    {
+        $projectConfig = Craft::$app->getProjectConfig();
+
+        if ($projectConfig->getIsApplyingExternalChanges() || $projectConfig->get(self::CONFIG_KEY)) {
+            return;
+        }
+
+        foreach ($this->getBuiltInPresets() as $index => $preset) {
+            $preset->sortOrder = $index + 1;
+            $preset->uid = StringHelper::UUID();
+            $projectConfig->set(self::CONFIG_KEY . '.' . $preset->uid, $preset->getConfig(), 'Add the built-in sequence presets');
+        }
+
+        $this->_presets = null;
+    }
+
+    /**
+     * Presets live only in project config, so a change from anywhere just clears what's cached.
+     */
+    public function handleChangedPreset(ConfigEvent $event): void
+    {
+        $this->_presets = null;
+    }
+
+    public function rebuildProjectConfig(RebuildConfigEvent $event): void
+    {
+        $event->config[self::CONFIG_KEY] = Craft::$app->getProjectConfig()->get(self::CONFIG_KEY) ?? [];
+    }
+
+    /**
      * The built-in preset with this handle, even when a plugin has removed it from the list. Everyone Else is built
      * from Three Reminders, so it must always be available.
      */
     public function getBuiltInPresetByHandle(string $handle): ?Preset
     {
-        foreach ($this->_getBuiltInPresets() as $preset) {
+        foreach ($this->getBuiltInPresets() as $preset) {
             if ($preset->handle === $handle) {
                 return $preset;
             }
@@ -146,10 +293,13 @@ class Presets extends Component
     }
 
 
-    // Private Methods
-    // =========================================================================
-
-    private function _getBuiltInPresets(): array
+    /**
+     * The presets Abandoned Cart ships with, in the installer's language. They're copied into project config on
+     * install; after that, Settings manages them.
+     *
+     * @return Preset[]
+     */
+    public function getBuiltInPresets(): array
     {
         $reminder = [
             'subject' => Craft::t('abandoned-cart', 'You left something behind'),

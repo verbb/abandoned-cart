@@ -1,5 +1,6 @@
 <?php
 
+use verbb\abandonedcart\AbandonedCart;
 use verbb\abandonedcart\events\RegisterPresetsEvent;
 use verbb\abandonedcart\models\Email;
 use verbb\abandonedcart\models\Preset;
@@ -56,4 +57,54 @@ it('creates a switched-off copy and notes anything the site doesn’t have', fun
             ['On us: free shipping', 2880, 'FREESHIP', null],
         ])
         ->and($notices)->toHaveCount(1);
+});
+
+it('keeps the built-in presets in project config, where Settings can change them', function() {
+    $presets = AbandonedCart::$plugin->getPresets();
+    $settingsPresets = $presets->getSettingsPresets();
+
+    expect(array_map(fn(Preset $preset) => $preset->handle, $settingsPresets))->toBe(['threeReminders', 'remindersThenDiscount', 'highValueCarts', 'singleReminder'])
+        ->and(array_unique(array_map(fn(Preset $preset) => $preset->isEditable, $settingsPresets)))->toBe([true])
+        ->and(Craft::$app->getProjectConfig()->get(Presets::CONFIG_KEY . '.' . $settingsPresets[0]->uid . '.handle'))->toBe('threeReminders');
+});
+
+it('saves, reorders and deletes presets, and keeps handles unique', function() {
+    $presets = AbandonedCart::$plugin->getPresets();
+    $preset = new Preset([
+        'name' => 'VIP Win-Back',
+        'handle' => 'vipWinBack',
+        'audienceType' => Sequence::AUDIENCE_RETURNING,
+        'emails' => [['delayMinutes' => 60, 'subject' => 'Your cart is saved']],
+    ]);
+
+    expect($presets->savePreset($preset))->toBeTrue()
+        ->and($presets->getPresetByHandle('vipWinBack')?->isEditable)->toBeTrue()
+        ->and(array_map(fn(Preset $p) => $p->handle, $presets->getAllPresets()))->toBe(['threeReminders', 'remindersThenDiscount', 'highValueCarts', 'singleReminder', 'vipWinBack']);
+
+    $duplicate = new Preset(['name' => 'Another', 'handle' => 'vipWinBack', 'emails' => [['subject' => 'Hi']]]);
+    $noSubject = new Preset(['name' => 'Empty', 'handle' => 'empty', 'emails' => [['delayMinutes' => 0]]]);
+
+    expect($presets->savePreset($duplicate))->toBeFalse()
+        ->and($duplicate->getErrors('handle'))->not->toBeEmpty()
+        ->and($presets->savePreset($noSubject))->toBeFalse()
+        ->and($noSubject->getErrors('emails'))->not->toBeEmpty();
+
+    $uids = array_map(fn(Preset $p) => $p->uid, $presets->getSettingsPresets());
+    $presets->reorderPresets([$uids[4], ...array_slice($uids, 0, 4)]);
+
+    expect($presets->getAllPresets()[0]->handle)->toBe('vipWinBack');
+
+    expect($presets->deletePreset($presets->getSettingsPresetByUid($preset->uid)))->toBeTrue()
+        ->and($presets->getPresetByHandle('vipWinBack'))->toBeNull();
+});
+
+it('lists presets a plugin adds as read-only', function() {
+    $presets = new Presets();
+    $presets->on(Presets::EVENT_REGISTER_PRESETS, function(RegisterPresetsEvent $event) {
+        $event->presets[] = new Preset(['handle' => 'fromPlugin', 'name' => 'From a Plugin', 'emails' => [['subject' => 'Hello']]]);
+    });
+
+    expect(array_map(fn(Preset $p) => $p->handle, $presets->getPluginPresets()))->toBe(['fromPlugin'])
+        ->and($presets->getPresetByHandle('fromPlugin')->getCpEditUrl())->toBeNull()
+        ->and($presets->deletePreset($presets->getPresetByHandle('fromPlugin')))->toBeFalse();
 });
