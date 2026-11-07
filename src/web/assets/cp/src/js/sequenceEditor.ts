@@ -104,8 +104,8 @@ class EmailPanel {
             : t('Email {position} · {subject}', { position: this.email.position, subject: this.email.subject });
 
         const devices = el('div', { class: 'btngroup ac-devices', role: 'group', 'aria-label': t('Preview size') },
-            el('button', { type: 'button', class: 'btn small active', 'data-device': 'desktop', 'aria-pressed': 'true' }, t('Desktop')),
-            el('button', { type: 'button', class: 'btn small', 'data-device': 'mobile', 'aria-pressed': 'false' }, t('Mobile')),
+            el('button', { type: 'button', class: 'btn active', 'data-device': 'desktop', 'aria-pressed': 'true' }, t('Desktop')),
+            el('button', { type: 'button', class: 'btn', 'data-device': 'mobile', 'aria-pressed': 'false' }, t('Mobile')),
         );
         panel.append(el('header', { class: 'ac-panel__head' }, el('h2', {}, title), devices));
 
