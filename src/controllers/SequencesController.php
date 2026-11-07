@@ -71,7 +71,7 @@ class SequencesController extends BaseCpController
             'audiences' => $plugin->getAudiences()->getAllAudiences(),
             'audienceDescription' => $plugin->getAudiences()->describe($sequence),
             'conditionHtml' => $condition->getBuilderHtml(),
-            'products' => Product::find()->id(array_map('intval', (array)($sequence->audienceSettings['productIds'] ?? [])) ?: null)->status(null)->all(),
+            'products' => $this->_chosenProducts($sequence),
             'inRecovery' => $plugin->getReports()->countActiveRecoveries($sequence->id),
             'settings' => $settings,
             'emailTemplates' => $plugin->getEmailTemplates()->getAllTemplates(),
@@ -328,6 +328,17 @@ class SequencesController extends BaseCpController
             ->orderBy(['d.enabled' => SORT_DESC, 'd.name' => SORT_ASC, 'c.code' => SORT_ASC])
             ->limit(500)
             ->all());
+    }
+
+    /**
+     * The products a Products audience has chosen, in the order they were chosen. None chosen means none: an empty
+     * `id()` would match every product.
+     */
+    private function _chosenProducts(Sequence $sequence): array
+    {
+        $ids = array_values(array_filter(array_map('intval', (array)($sequence->audienceSettings['productIds'] ?? []))));
+
+        return $ids ? Product::find()->id($ids)->fixedOrder()->status(null)->all() : [];
     }
 
     /**
