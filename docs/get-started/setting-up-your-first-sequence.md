@@ -1,6 +1,6 @@
 # Setting Up Your First Sequence
 
-A sequence is the series of emails a customer receives after leaving a cart. Abandoned Cart installs with one ready-made sequence called **Everyone Else**, which sends three friendly reminders: one hour after the cart is left, then a day later, then two days after that. This walkthrough takes you from a fresh install to that sequence emailing real carts, and shows you how to check it's working.
+A sequence is the series of emails a customer receives after leaving a cart. Abandoned Cart installs with one ready-made sequence, the default sequence, called **All Other Carts**. It sends three friendly reminders: one hour after the cart is left, then a day later, then two days after that. This walkthrough takes you from a fresh install to that sequence emailing real carts, and shows you how to check it's working.
 
 You'll need Abandoned Cart installed on a site running Craft Commerce, Craft's email settings configured so the site can send mail, and either an admin account or the **Manage sequences and send emails** permission. Do the final check on a development or staging site where you can create carts of your own.
 
@@ -22,9 +22,9 @@ Abandoned Cart works through carts in a short background run: it finds carts tha
 
 If you can't add a cron job, Abandoned Cart queues a run from ordinary site and control panel traffic instead, as long as Craft's queue is running. Cron keeps the timing regular on quiet sites, so prefer it where you can. [Sending and Scheduling](../feature-tour/sending-and-scheduling.md) covers both options.
 
-## Review the Everyone Else Emails
+## Review the Emails
 
-Choose **Open Everyone Else** in the checklist, or go to **Abandoned Carts → Sequences** and select **Everyone Else**. The sequence page shows a timeline: the cart is abandoned after an hour without changes, email 1 goes out straight away, email 2 a day later and email 3 two days after that.
+Choose **Review the Emails** in the checklist, or go to **Abandoned Carts → Sequences** and select **All Other Carts**. The sequence page shows a timeline: the cart is abandoned after an hour without changes, email 1 goes out straight away, email 2 a day later and email 3 two days after that.
 
 Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change; once you've changed one, the checklist marks this step done. [Emails and Email Templates](../feature-tour/emails-and-email-templates.md) explains every field.
 
@@ -32,13 +32,13 @@ If you'd like the last email to include a discount, create a discount with a cou
 
 ## Send Yourself a Test
 
-Back on the Overview, enter your own address under **Send Yourself a Test** and send the test emails. You'll receive every Everyone Else email, each with `[Test]` at the start of its subject and filled in with a sample cart. Links in test emails are placeholders, so they don't restore anything.
+Back on the Overview, enter your own address under **Send Yourself a Test** and send the test emails. You'll receive every email in the sequence, each with `[Test]` at the start of its subject and filled in with a sample cart. Links in test emails are placeholders, so they don't restore anything.
 
 Check that the emails arrive, that the sender looks right, and that the wording reads well on your phone as well as your desktop. If nothing arrives, use the **Test** button under **Settings → Email** and check your mail provider's logs before going further.
 
 ## Turn On Recovery
 
-Choose **Turn On** in the checklist, or switch on **Sequence Is On** on the Everyone Else page. From that moment, carts that become abandoned on your store are emailed. Carts that had already been abandoned before you turned it on are left alone, so long-forgotten carts don't suddenly receive a reminder.
+Choose **Turn On** in the checklist, or switch on **Sequence Is On** on the sequence's page. From that moment, carts that become abandoned on your store are emailed. Carts that had already been abandoned before you turned it on are left alone, so long-forgotten carts don't suddenly receive a reminder.
 
 The Overview changes to show that recovery is on. Once customers start coming back, it fills with results.
 

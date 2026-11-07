@@ -6,17 +6,17 @@ Most stores need only one sequence. Others want to treat some carts differently:
 
 ## How Carts Choose a Sequence
 
-When a cart is abandoned, Abandoned Cart checks it against your switched-on sequences from the top of the list down. The cart gets the first sequence whose audience it matches, and no other. A cart that matches none of the sequences above it gets **Everyone Else**.
+When a cart is abandoned, Abandoned Cart checks it against your switched-on sequences from the top of the list down. The cart gets the first sequence whose audience it matches, and no other. A cart that matches none of them gets the default sequence at the bottom of the list.
 
-Suppose your list has **High-Value Carts** (for carts of $200 or more), then **Returning Customers**, then **Everyone Else**. A returning customer who leaves $250 in their cart gets High-Value Carts, because it's higher in the list. Drag the sequences into the order you want; the new order applies to carts abandoned from then on.
+Suppose your list has **High-Value Carts** (for carts of $200 or more), then **Returning Customers**, then **All Other Carts**, the default sequence. A returning customer who leaves $250 in their cart gets High-Value Carts, because it's higher in the list. Drag the sequences into the order you want; the new order applies to carts abandoned from then on.
 
 The match happens once, when the cart is abandoned. If the customer later adds more items, the cart stays in the sequence it entered.
 
-## Everyone Else
+## The Default Sequence
 
-Everyone Else is always last in the list and takes every cart that reaches it. It can't be deleted or given an audience, but you can switch it off. With Everyone Else off, a cart that doesn't match another sequence isn't emailed: it's recorded as skipped, with the reason **No sequence was on**.
+The default sequence is always last in the list, marked with a tick, and takes every cart that reaches it. It can't be deleted or given an audience, but you can rename it or switch it off. With it off, a cart that doesn't match another sequence isn't emailed: it's recorded as skipped, with the reason **No sequence was on**.
 
-A fresh install creates Everyone Else with three emails, using the bundled email design: the first straight away once the cart is abandoned, the second a day later, and the third two days after that. It starts switched off so you can review it first. [Setting Up Your First Sequence](../get-started/setting-up-your-first-sequence.md) walks through that review.
+A fresh install creates it as **All Other Carts**, with three emails, using the bundled email design: the first straight away once the cart is abandoned, the second a day later, and the third two days after that. It starts switched off so you can review it first. [Setting Up Your First Sequence](../get-started/setting-up-your-first-sequence.md) walks through that review.
 
 ## Turning a Sequence On and Off
 
@@ -84,7 +84,7 @@ Choose **New Sequence** to create another sequence. You can start from a blank s
 | High-Value Carts | Cart Value, at least an amount you choose | Straight away, then 1 day later |
 | Single Reminder | All Carts | One email, 3 hours after the cart is abandoned |
 
-The new sequence is a copy that you can change freely. It's placed just above Everyone Else and starts switched off. Later changes to a preset never affect sequences already made from it.
+The new sequence is a copy that you can change freely. It's placed just above the default sequence and starts switched off. Later changes to a preset never affect sequences already made from it.
 
 Two presets need finishing before they're useful. **High-Value Carts** matches nothing until you enter its amount, and **Reminders, Then a Discount** mentions a code in its last email but leaves **Discount Code** empty for you to fill in with one of your Commerce coupon codes.
 

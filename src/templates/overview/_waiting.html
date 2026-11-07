@@ -15,7 +15,7 @@
     <div class="ac-card ac-waiting">
         <span class="ac-waiting__icon" aria-hidden="true">{{ svg('@appicons/check.svg') }}</span>
         <h2>{{ 'Recovery Is On' | t('abandoned-cart') }}</h2>
-        <p>{{ 'Carts abandoned from now are emailed by {name}. Results appear here once customers start coming back, usually within a day or two.' | t('abandoned-cart', { name: sequence.name }) }}</p>
+        <p>{{ 'Carts abandoned from now get your reminder emails. Results appear here once customers start coming back, usually within a day or two.' | t('abandoned-cart') }}</p>
         <div class="ac-inline ac-inline--center">
             <a class="btn" href="{{ url('abandoned-cart/carts') }}">{{ 'View Carts' | t('abandoned-cart') }}</a>
             <a class="btn" href="{{ url('abandoned-cart/sequences') }}">{{ 'Edit Sequences' | t('abandoned-cart') }}</a>

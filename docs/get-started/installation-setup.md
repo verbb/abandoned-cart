@@ -28,6 +28,6 @@ You can try Abandoned Cart in a development environment for as long as you like.
 
 ## After Installing
 
-Installing Abandoned Cart creates a **Default** email template and an **Everyone Else** sequence with three reminder emails. The sequence starts switched off, so no customer is emailed until you've reviewed it and turned it on.
+Installing Abandoned Cart creates a **Default** email template and a default sequence, **All Other Carts**, with three reminder emails. The sequence starts switched off, so no customer is emailed until you've reviewed it and turned it on.
 
 Follow [Setting Up Your First Sequence](setting-up-your-first-sequence.md) to check your sending details, schedule the plugin's background run, send yourself a test and start recovering carts.

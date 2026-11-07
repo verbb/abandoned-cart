@@ -30,7 +30,7 @@ use craft\commerce\db\Table as CommerceTable;
 /**
  * Converts a 4.x install (Abandoned Cart 3.x on Craft 4, or 4.x on Craft 5) to 5.0.
  *
- * The 4.x settings become the Everyone Else sequence, email templates, Do Not Email statuses and the 5.0 settings,
+ * The 4.x settings become the default sequence, email templates, Do Not Email statuses and the 5.0 settings,
  * and the 4.x reminder history is imported, so the Overview and customer history start with what 4.x sent.
  */
 class m261106_000000_upgrade_to_5 extends Migration
@@ -345,7 +345,7 @@ class m261106_000000_upgrade_to_5 extends Migration
             $sequence->enabled = true;
 
             if (!$sequences->saveSequence($sequence)) {
-                throw new RuntimeException('Unable to turn on Everyone Else: ' . implode(' ', $sequence->getFirstErrors()));
+                throw new RuntimeException('Unable to turn on the default sequence: ' . implode(' ', $sequence->getFirstErrors()));
             }
         }
 

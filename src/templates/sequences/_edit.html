@@ -12,7 +12,7 @@
 {% set currency = craft.abandonedCart.getCurrency() %}
 {% set settings = audienceSettings ?? sequence.audienceSettings %}
 
-{# Craft's own Save button and menu. Everyone Else can't be deleted. #}
+{# Craft's own Save button and menu. The default sequence can't be deleted. #}
 {% if canManage and not sequence.isFallback %}
     {% set formActions = [{
         label: 'Delete Sequence' | t('abandoned-cart'),
@@ -53,7 +53,7 @@
         </div>
 
         {% if sequence.isFallback %}
-            <p class="light">{{ 'Every cart that doesn’t match a sequence above. Everyone Else is always last, so most stores only need this one.' | t('abandoned-cart') }}</p>
+            <p class="light">{{ 'Every cart that doesn’t match a sequence above. The default sequence is always last, so most stores only need this one.' | t('abandoned-cart') }}</p>
         {% else %}
             {{ hiddenInput('audienceType', sequence.audienceType, { 'data-ac-audience-input': true }) }}
             <div class="ac-audiences" role="radiogroup" aria-label="{{ 'Audience' | t('abandoned-cart') }}">

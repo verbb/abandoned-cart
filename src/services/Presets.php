@@ -217,7 +217,7 @@ class Presets extends Component
     }
 
     /**
-     * The built-in preset with this handle, even when a plugin has removed it from the list. Everyone Else is built
+     * The built-in preset with this handle, even when a plugin has removed it from the list. The default sequence is built
      * from Three Reminders, so it must always be available.
      */
     public function getBuiltInPresetByHandle(string $handle): ?Preset

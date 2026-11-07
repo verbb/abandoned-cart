@@ -38,7 +38,7 @@ class AbandonedCart extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '5.0.1';
+    public string $schemaVersion = '5.0.2';
     public string $minVersionRequired = '3.0.0';
 
 

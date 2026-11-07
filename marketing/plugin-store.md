@@ -5,7 +5,7 @@ A ready-made sequence of three reminders catches every abandoned cart, so a stor
 ## Features
 
 - Send sequences of up to five emails, timed from when a cart goes quiet, that stop as soon as the customer orders or unsubscribes.
-- Target sequences by cart value, returning or first-time customers, products, any Commerce order condition, or site, with Everyone Else catching the rest.
+- Target sequences by cart value, returning or first-time customers, products, any Commerce order condition, or site, with a default sequence catching the rest.
 - Start new sequences from presets, and check which sequence a real cart would get before turning it on.
 - Write each email's subject, heading, message and button in the control panel, with personalisation tokens, live desktop and mobile previews, and test sends.
 - Use the responsive bundled email design with no template files, or your own Twig templates.

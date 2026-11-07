@@ -38,7 +38,7 @@ Event::on(Sequences::class, Sequences::EVENT_AFTER_SAVE_SEQUENCE, function(Seque
 
 ### The `beforeDeleteSequence` Event
 
-The event that is triggered before a sequence is deleted. Set `$event->isValid` to `false` to keep the sequence. The Everyone Else sequence can never be deleted, so this event isn't triggered for it.
+The event that is triggered before a sequence is deleted. Set `$event->isValid` to `false` to keep the sequence. The default sequence can never be deleted, so this event isn't triggered for it.
 
 ```php
 use verbb\abandonedcart\events\SequenceEvent;
@@ -111,7 +111,7 @@ Event::on(Presets::class, Presets::EVENT_REGISTER_PRESETS, function(RegisterPres
 
 A preset needs a unique `handle` and a `name`; invalid presets are left out and logged. When a sequence is created, an `emailTemplate` handle that doesn't exist falls back to the default template, with a notice for the editor.
 
-Abandoned Cart creates Everyone Else from the `threeReminders` preset when the plugin is installed. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.
+Abandoned Cart creates the default sequence from the `threeReminders` preset when the plugin is installed. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.
 
 ## Email Events
 

@@ -25,7 +25,7 @@ function versionCount(Sequence $sequence): int
     return (int)(new Query())->from(Table::SEQUENCE_VERSIONS)->where(['sequenceId' => $sequence->id])->count();
 }
 
-it('generates a unique hidden handle and places new sequences above Everyone Else', function() {
+it('generates a unique hidden handle and places new sequences above the default sequence', function() {
     $first = saveSequence();
     $second = saveSequence();
     $order = array_map(fn(Sequence $sequence) => $sequence->handle, AbandonedCart::$plugin->getSequences()->getAllSequences());
@@ -36,7 +36,7 @@ it('generates a unique hidden handle and places new sequences above Everyone Els
         ->and(AbandonedCart::$plugin->getSequences()->getSequenceById($first->id)->audienceSettings)->toBe(['operator' => 'atLeast', 'amount' => 200]);
 });
 
-it('keeps Everyone Else last whatever order is saved', function() {
+it('keeps the default sequence last whatever order is saved', function() {
     $first = saveSequence();
     $second = saveSequence(['name' => 'Returning Customers', 'audienceType' => Sequence::AUDIENCE_RETURNING]);
     $fallback = AbandonedCart::$plugin->getSequences()->getFallbackSequence();
@@ -64,7 +64,7 @@ it('sets the enrolment start only when a sequence is turned on', function() {
         ->and(AbandonedCart::$plugin->getSequences()->getSequenceById($sequence->id)->enrollmentStartedAt)->toEqual($started);
 });
 
-it('protects Everyone Else', function() {
+it('protects the default sequence', function() {
     $fallback = AbandonedCart::$plugin->getSequences()->getFallbackSequence();
     $second = new Sequence(['name' => 'Another Fallback', 'isFallback' => true]);
 
@@ -141,4 +141,20 @@ it('lets a handler cancel a save and see it afterwards', function() {
     }
 
     expect($seen)->toBe([['Allowed', true]]);
+});
+
+it('renames the default sequence to All Other Carts unless the store has renamed it', function() {
+    $sequences = AbandonedCart::$plugin->getSequences();
+    $db = Craft::$app->getDb();
+    $id = $sequences->getFallbackSequence()->id;
+    $migration = new verbb\abandonedcart\migrations\m261107_010000_rename_default_sequence();
+    $name = fn() => (new craft\db\Query())->select(['name'])->from([verbb\abandonedcart\db\Table::SEQUENCES])->where(['id' => $id])->scalar();
+
+    $db->createCommand()->update(verbb\abandonedcart\db\Table::SEQUENCES, ['name' => 'Everyone Else'], ['id' => $id])->execute();
+    $migration->safeUp();
+    expect($name())->toBe('All Other Carts');
+
+    $db->createCommand()->update(verbb\abandonedcart\db\Table::SEQUENCES, ['name' => 'Our Usual Emails'], ['id' => $id])->execute();
+    $migration->safeUp();
+    expect($name())->toBe('Our Usual Emails');
 });

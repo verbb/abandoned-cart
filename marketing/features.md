@@ -7,7 +7,7 @@ Abandoned Cart wins back Craft Commerce sales by emailing customers about the ca
 
 A customer fills a cart, gets distracted and wanders off. Once the cart has gone quiet, Abandoned Cart sends a short series of reminders, each with a button that puts the cart back exactly as they left it. The emails stop as soon as the customer orders or unsubscribes, so nobody is chased about something they've already bought.
 
-There's nothing to build before you begin. A fresh install includes Everyone Else, a three-email sequence in a responsive bundled design, and the Overview walks you through checking your sending details, reviewing the emails, sending yourself a test and switching recovery on. Only carts abandoned from then on are emailed, so turning it on never fires reminders at a backlog of old carts.
+There's nothing to build before you begin. A fresh install includes All Other Carts, a three-email default sequence in a responsive bundled design, and the Overview walks you through checking your sending details, reviewing the emails, sending yourself a test and switching recovery on. Only carts abandoned from then on are emailed, so turning it on never fires reminders at a backlog of old carts.
 
 ![The Overview's setup checklist beside the value left in abandoned carts over the last 30 days.](../screenshots/overview-first-run.png)
 <!-- feature-section-end -->
@@ -27,7 +27,7 @@ Sequence Performance compares your sequences and the emails inside them, showing
 
 Most stores do well with one sequence. When some carts deserve something else, add another: a more personal series for carts of $200 or more, a gentler reminder for returning customers, or a discount only for first-time buyers. Target a sequence by cart value, returning or first-time customers, the products in the cart or any Commerce order condition, and limit it to particular sites.
 
-Each cart gets the first sequence it matches from the top of the list, and Everyone Else catches the rest. Start from a preset, set up to five emails on a timeline, then use Try It With a Real Cart to check which sequence one of your store's carts would get, and why, before you switch it on.
+Each cart gets the first sequence it matches from the top of the list, and the default sequence catches the rest. Start from a preset, set up to five emails on a timeline, then use Try It With a Real Cart to check which sequence one of your store's carts would get, and why, before you switch it on.
 
 ![A High-Value Carts sequence for carts of $200 or more, with three timed emails and the click rate for each.](../screenshots/sequence.png)
 <!-- feature-media-end -->

@@ -59,9 +59,9 @@
 {% block blockContent %}
     <pk-alert class="ac-alert" variant="info">
         {% if isFresh %}
-            {{ '**Everyone Else** is ready with three reminders and catches every abandoned cart. Check the emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') | md(inlineOnly=true) }}
+            {{ 'Your default sequence is ready with three reminders and catches every abandoned cart. Check its emails and turn it on when you’re ready. Add more sequences later if some carts need different emails.' | t('abandoned-cart') | md(inlineOnly=true) }}
         {% else %}
-            {{ 'Each abandoned cart gets one sequence: the first one it matches, from the top. Carts that match none get **Everyone Else**.' | t('abandoned-cart') | md(inlineOnly=true) }}
+            {{ 'Each abandoned cart gets one sequence: the first one it matches, from the top. Carts that match none get the default sequence at the bottom.' | t('abandoned-cart') | md(inlineOnly=true) }}
         {% endif %}
     </pk-alert>
 
@@ -71,7 +71,7 @@
             {% set stats = item.stats %}
             <div class="ac-seq{{ sequence.isFallback ? ' ac-seq--fallback' }}" data-id="{{ sequence.id }}">
                 {% if sequence.isFallback %}
-                    {# Everyone Else always comes last, so it has no grip, and a lock instead of a position. #}
+                    {# The default sequence always comes last, so it has no grip, and a tick instead of a position. #}
                     <span class="ac-seq__grip invisible" aria-hidden="true"></span>
                     <span class="ac-seq__order ac-seq__order--fallback" title="{{ 'Always last: catches every cart the sequences above don’t' | t('abandoned-cart') }}" aria-hidden="true">{{ iconSvg('check') }}</span>
                 {% else %}

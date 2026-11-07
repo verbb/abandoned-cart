@@ -39,8 +39,8 @@
                         <span class="ac-step__mark" aria-hidden="true">{{ emailsEdited ? '✓' : '2' }}</span>
                         <div>
                             <div class="ac-step__title">{{ 'Review Your Emails' | t('abandoned-cart') }}</div>
-                            <p>{{ '{name} has {count} emails, using the bundled design.' | t('abandoned-cart', { name: fallback.name, count: schedule | length - 1 }) }}</p>
-                            <div class="ac-step__action"><a class="btn" href="{{ fallback.cpEditUrl }}">{{ 'Open {name}' | t('abandoned-cart', { name: fallback.name }) }}</a></div>
+                            <p>{{ 'Your default sequence has {count} emails, using the bundled design.' | t('abandoned-cart', { count: schedule | length - 1 }) }}</p>
+                            <div class="ac-step__action"><a class="btn" href="{{ fallback.cpEditUrl }}">{{ 'Review the Emails' | t('abandoned-cart') }}</a></div>
                         </div>
                     </li>
                     <li class="ac-step{{ testSentAt ? ' ac-step--done' : (emailsEdited ? ' ac-step--current' : '') }}">

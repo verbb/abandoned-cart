@@ -167,7 +167,7 @@ class OverviewController extends BaseCpController
     }
 
     /**
-     * Whether Everyone Else or any of its emails has been changed since the install created them.
+     * Whether the default sequence or any of its emails has been changed since the install created them.
      */
     private function _emailsEdited(?\verbb\abandonedcart\models\Sequence $fallback): bool
     {

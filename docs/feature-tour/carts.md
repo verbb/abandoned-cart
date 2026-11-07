@@ -64,7 +64,7 @@ A skipped cart was abandoned but never entered a sequence. Its page explains the
 | Blocked domain | The email address is at one of the Blocked Domains. |
 | Not a returning customer | Only Returning Customers is switched on, and the customer hasn't ordered before. |
 | Contacted recently | The customer was sent an email about another cart within the Contact Limit. |
-| No sequence was on | No switched-on sequence matched the cart, usually because Everyone Else is off. |
+| No sequence was on | No switched-on sequence matched the cart, usually because the default sequence is off. |
 | Excluded by a plugin | A plugin or module excluded the cart, sometimes with its own explanation. |
 
 Skipped carts appear in the Overview too, so you can see how many carts your rules hold back. If a large share are skipped for one reason, review the matching setting under **Settings → General Settings**.

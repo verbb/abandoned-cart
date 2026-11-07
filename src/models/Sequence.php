@@ -159,14 +159,14 @@ class Sequence extends Model
         $rules[] = [['recoveryWindowMinutes', 'attributionWindowMinutes', 'contactLimitMinutes'], 'integer', 'min' => 0];
         $rules[] = [['audienceType'], function(string $attribute): void {
             if ($this->isFallback && $this->audienceType !== self::AUDIENCE_ALL) {
-                $this->addError($attribute, Craft::t('abandoned-cart', 'Everyone Else always takes every cart that reaches it.'));
+                $this->addError($attribute, Craft::t('abandoned-cart', 'The default sequence always takes every cart that reaches it.'));
             }
         }];
         $rules[] = [['isFallback'], function(string $attribute): void {
             $fallback = AbandonedCart::$plugin->getSequences()->getFallbackSequence();
 
             if ($this->isFallback && $fallback && $fallback->id !== $this->id) {
-                $this->addError($attribute, Craft::t('abandoned-cart', 'There can only be one Everyone Else sequence.'));
+                $this->addError($attribute, Craft::t('abandoned-cart', 'There can only be one default sequence.'));
             }
         }];
         $rules[] = [['handle'], function(string $attribute): void {

@@ -28,7 +28,7 @@ it('creates every 5.0 table and no 4.x table', function() {
     }
 
     expect($db->tableExists(Table::CARTS))->toBeFalse()
-        ->and(AbandonedCart::$plugin->schemaVersion)->toBe('5.0.1');
+        ->and(AbandonedCart::$plugin->schemaVersion)->toBe('5.0.2');
 });
 
 it('creates a default email template that uses the bundled design', function() {
@@ -41,13 +41,13 @@ it('creates a default email template that uses the bundled design', function() {
         ->and(Craft::$app->getProjectConfig()->get('abandoned-cart.emailTemplates.' . $default->uid . '.isDefault'))->toBeTrue();
 });
 
-it('creates Everyone Else switched off, with three reminders', function() {
+it('creates the default sequence, All Other Carts, switched off, with three reminders', function() {
     $sequences = AbandonedCart::$plugin->getSequences()->getAllSequences();
     $fallback = AbandonedCart::$plugin->getSequences()->getFallbackSequence();
     $emails = $fallback->getEmails();
 
     expect($sequences)->toHaveCount(1)
-        ->and($fallback->name)->toBe('Everyone Else')
+        ->and($fallback->name)->toBe('All Other Carts')
         ->and($fallback->isFallback)->toBeTrue()
         ->and($fallback->enabled)->toBeFalse()
         ->and($fallback->enrollmentStartedAt)->toBeNull()

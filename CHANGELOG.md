@@ -5,7 +5,7 @@
 > {warning} Before upgrading to Abandoned Cart 5, review the [Upgrading from v4](https://verbb.io/craft-plugins/abandoned-cart/docs/v5/get-started/upgrading-from-v4) guide for breaking changes and required migration steps.
 
 ### Added
-- Added sequences of up to five recovery emails, each with its own audience (cart value, returning customers, first-time customers, products or custom order rules), sites, timing and optional discount code. The Everyone Else sequence catches every cart that no other sequence matches.
+- Added sequences of up to five recovery emails, each with its own audience (cart value, returning customers, first-time customers, products or custom order rules), sites, timing and optional discount code. A default sequence, All Other Carts, catches every cart that no other sequence matches.
 - Added sequence presets, managed under Settings → Sequence Presets and kept in project config, and the `Presets::EVENT_REGISTER_PRESETS` event for adding, changing, reordering or removing them in code.
 - Added an email editor with tokens, live desktop and mobile previews using a sample or real cart, and test sends.
 - Added email templates, stored in project config, with a responsive bundled design that needs no template files and an option to copy it to your own templates.
@@ -22,7 +22,7 @@
 - Added the `compatibilityMode` setting, on by default, which keeps the 4.x email template variables, the `beforeMailSend` event, the 4.x console command and the 4.x scheduler URL working while sites update. The event, command and URL log deprecation warnings.
 
 ### Changed
-- Upgrading from 4.x runs a one-time migration that converts 4.x settings, reminders, templates and the blocklist into the Everyone Else sequence, email templates, Do Not Email statuses and the new settings, and imports 4.x reminder history.
+- Upgrading from 4.x runs a one-time migration that converts 4.x settings, reminders, templates and the blocklist into the default sequence, email templates, Do Not Email statuses and the new settings, and imports 4.x reminder history.
 - The scheduler command is now `abandoned-cart/recoveries/run`, and sends due emails itself rather than queueing a job for each email. When cron isn't available, web requests queue a run while a sequence is on.
 - Recovery links now restore carts that belong to an account only for that customer, after signing in, and show a page explaining expired or invalid links.
 - An order completed within the attribution window after an email now counts as recovered, even without a click.

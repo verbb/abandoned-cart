@@ -150,7 +150,7 @@ class Sequences extends Component
     public function deleteSequence(Sequence $sequence): bool
     {
         if ($sequence->isFallback) {
-            $sequence->addError('isFallback', Craft::t('abandoned-cart', 'Everyone Else can’t be deleted. Turn it off instead.'));
+            $sequence->addError('isFallback', Craft::t('abandoned-cart', 'The default sequence can’t be deleted. Turn it off instead.'));
 
             return false;
         }
@@ -180,7 +180,7 @@ class Sequences extends Component
 
         try {
             foreach (array_values($ids) as $index => $id) {
-                // Everyone Else always stays last, whatever order is posted.
+                // The default sequence always stays last, whatever order is posted.
                 Db::update(Table::SEQUENCES, ['sortOrder' => $index + 1], ['id' => (int)$id, 'isFallback' => false]);
             }
 
@@ -204,11 +204,11 @@ class Sequences extends Component
         $preset = $presets->getPresetByHandle(Presets::PRESET_THREE_REMINDERS) ?? $presets->getBuiltInPresetByHandle(Presets::PRESET_THREE_REMINDERS);
 
         if (!$preset) {
-            throw new RuntimeException('The Three Reminders preset is needed to create Everyone Else.');
+            throw new RuntimeException('The Three Reminders preset is needed to create the default sequence.');
         }
 
         $sequence = $presets->createSequenceFromPreset($preset, [
-            'name' => Craft::t('abandoned-cart', 'Everyone Else'),
+            'name' => Craft::t('abandoned-cart', 'All Other Carts'),
             'handle' => 'everyoneElse',
             'isFallback' => true,
             'audienceType' => Sequence::AUDIENCE_ALL,
@@ -216,7 +216,7 @@ class Sequences extends Component
         ]);
 
         if (!$sequence->id) {
-            throw new RuntimeException('Unable to create the Everyone Else sequence: ' . implode(' ', $sequence->getFirstErrors()));
+            throw new RuntimeException('Unable to create the default sequence: ' . implode(' ', $sequence->getFirstErrors()));
         }
 
         return $sequence;
@@ -301,7 +301,7 @@ class Sequences extends Component
                 'uid',
             ])
             ->from([Table::SEQUENCES])
-            // Match order: the list from the top, then Everyone Else.
+            // Match order: the list from the top, then the default sequence.
             ->orderBy(['isFallback' => SORT_ASC, 'sortOrder' => SORT_ASC, 'id' => SORT_ASC]);
     }
 

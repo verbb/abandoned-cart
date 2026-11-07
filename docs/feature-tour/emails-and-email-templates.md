@@ -67,7 +67,7 @@ Abandoned Cart applies the code but doesn't check whether it's valid for the car
 
 Choose **Send Test** in the email panel and enter an address. The test uses the cart chosen in **Preview cart**, or the sample cart if you haven't chosen one. Its subject starts with `[Test]`, and its recovery and unsubscribe links are placeholders that don't do anything.
 
-To test every email in Everyone Else at once before you turn recovery on, use **Send Yourself a Test** on the Overview.
+To test every email in the default sequence at once before you turn recovery on, use **Send Yourself a Test** on the Overview.
 
 ## Email Templates
 

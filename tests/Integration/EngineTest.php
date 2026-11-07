@@ -33,7 +33,7 @@ it('does nothing while every sequence is off', function() {
     expect(engine()->run())->toMatchArray(['enrolled' => 0, 'skipped' => 0, 'sent' => 0]);
 });
 
-it('enrols an idle cart in Everyone Else and sends the first email', function() {
+it('enrols an idle cart in the default sequence and sends the first email', function() {
     $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
     $order = $this->createCart('amelia.hart@example.test', idleMinutes: 90);
     $before = $this->sentMailCount();

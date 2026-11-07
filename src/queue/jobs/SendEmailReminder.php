@@ -6,7 +6,7 @@ use craft\queue\BaseJob;
 
 /**
  * Lets 4.x reminder jobs still in the queue after the upgrade finish quietly. The upgrade moves those carts into
- * Everyone Else, which sends their remaining email itself.
+ * the default sequence, which sends their remaining email itself.
  *
  * @deprecated in 5.0.0
  */

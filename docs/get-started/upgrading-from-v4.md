@@ -8,14 +8,14 @@ The upgrade's migration converts your settings, reminders and history automatica
 
 Review each of these that applies to your site:
 
-- **Everyone:** your two reminders become the Everyone Else sequence, and their timing is converted. Check the [reminder timing](#reminder-timing) and the email wording after upgrading.
+- **Everyone:** your two reminders become the default sequence, All Other Carts, and their timing is converted. Check the [reminder timing](#reminder-timing) and the email wording after upgrading.
 - **Sites with an `abandoned-cart.php` configuration file:** the 4.x settings are converted, but no longer read afterwards. Update the file using the [settings mapping](#settings).
 - **Sites that run reminders from cron:** the console command has a new name. The old one keeps working while [compatibility mode](#compatibility-mode) is on. See [Console Command](#console-command).
 - **Sites that trigger reminders over HTTP:** the endpoint keeps working while [compatibility mode](#compatibility-mode) is on, with the same pass key. See [HTTP Trigger](#http-trigger).
 - **Sites with custom reminder templates:** template variables have changed, and the 4.x bundled templates are removed. See [Email Templates](#email-templates).
 - **Modules and plugins that listen to Abandoned Cart events:** the cart save events are removed, and `beforeMailSend` only runs in compatibility mode. See [Events](#events).
 
-Abandoned Cart 5 sends emails from its own background run, so any 4.x reminder jobs still waiting in Craft's queue finish without sending anything after the upgrade. A cart whose second reminder was waiting moves into Everyone Else and receives email 2 from there, as described in [What the Upgrade Converts](#what-the-upgrade-converts). A cart whose first reminder was still waiting isn't emailed.
+Abandoned Cart 5 sends emails from its own background run, so any 4.x reminder jobs still waiting in Craft's queue finish without sending anything after the upgrade. A cart whose second reminder was waiting moves into the default sequence and receives email 2 from there, as described in [What the Upgrade Converts](#what-the-upgrade-converts). A cart whose first reminder was still waiting isn't emailed.
 
 ### Settings
 
@@ -31,11 +31,11 @@ The 4.x settings are replaced. The migration converts the values saved in the co
 | `blacklist` | `blockedDomains` for domains; email addresses move to Do Not Email |
 | `staleRecordRetentionDays` | `historyRetentionDays` |
 | `maxEnrollmentsPerRun` | `maxEnrollmentsPerRun` |
-| `firstReminderDelay`, `secondReminderDelay` | The **Send** delay on the Everyone Else emails |
-| `firstReminderSubject`, `secondReminderSubject` | The **Subject** on the Everyone Else emails |
+| `firstReminderDelay`, `secondReminderDelay` | The **Send** delay on the default sequence's emails |
+| `firstReminderSubject`, `secondReminderSubject` | The **Subject** on the default sequence's emails |
 | `firstReminderTemplate`, `secondReminderTemplate` | An [email template](../feature-tour/emails-and-email-templates.md#email-templates) chosen on each email |
-| `discountCode` | The **Discount Code** on each Everyone Else email |
-| `disableSecondReminder` | Delete the second email from Everyone Else |
+| `discountCode` | The **Discount Code** on each of the default sequence's emails |
+| `disableSecondReminder` | Delete the second email from the default sequence |
 | `passKey` | `passKey`, used only by the [HTTP trigger](#http-trigger) while compatibility mode is on |
 | `includeBlacklisted` | Removed |
 
@@ -43,7 +43,7 @@ Durations in Abandoned Cart 5 are always in minutes. The recovery window is also
 
 Settings for individual emails are no longer configuration settings. Edit them on the sequence page, where editors can change them without a deployment. Remove `firstReminderSubject`, `secondReminderSubject`, `firstReminderDelay`, `secondReminderDelay`, `firstReminderTemplate`, `secondReminderTemplate`, `discountCode` and `disableSecondReminder` from your configuration file, along with the other removed settings. Abandoned Cart 5 ignores them, so leaving them in place only suggests they still do something.
 
-Some sites built their subjects in the configuration file, for example by reading a global set through `Craft::$app->getGlobals()` so editors could change the wording. Remove that code too: a configuration file that loads elements runs on every request, and editors can now change each email's subject directly on the sequence page. Check that the Everyone Else emails have the subjects you expect after upgrading, and correct them there. If the subject differed per site, create a sequence for each site, or translate the subject with Twig as described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#twig-in-subjects-and-preview-text).
+Some sites built their subjects in the configuration file, for example by reading a global set through `Craft::$app->getGlobals()` so editors could change the wording. Remove that code too: a configuration file that loads elements runs on every request, and editors can now change each email's subject directly on the sequence page. Check that the default sequence's emails have the subjects you expect after upgrading, and correct them there. If the subject differed per site, create a sequence for each site, or translate the subject with Twig as described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#twig-in-subjects-and-preview-text).
 
 ::: code-group
 ```php [v4]
@@ -70,7 +70,7 @@ return [
     'blockedDomains' => ['example.com'],
     'returningCustomersOnly' => true,
     // The email delay and discount code are set on each email in
-    // Abandoned Carts → Sequences → Everyone Else. Add sam@example.net
+    // Abandoned Carts → Sequences → All Other Carts. Add sam@example.net
     // to Do Not Email from the Customers screen.
 ];
 ```
@@ -87,7 +87,7 @@ With the 4.x defaults of 1 and 12 hours:
 | Email 1 | 1 hour after the cart is abandoned | 1 hour |
 | Email 2 | 11 hours after email 1 | 12 hours |
 
-A cart counts as abandoned after an hour without changes, as in 4.x, so email 1 arrives about two hours after the customer last touched their cart. Some 4.x sites saw the second reminder arrive later than its setting suggested, because it waited for a separate scheduling pass. If customers were used to that later timing, increase email 2's delay on the Everyone Else page.
+A cart counts as abandoned after an hour without changes, as in 4.x, so email 1 arrives about two hours after the customer last touched their cart. Some 4.x sites saw the second reminder arrive later than its setting suggested, because it waited for a separate scheduling pass. If customers were used to that later timing, increase email 2's delay on the All Other Carts page.
 
 If your Commerce **Active Cart Duration** isn't an hour, set **Abandoned After** in **Settings → General Settings** to match, because Abandoned Cart 5 uses its own setting.
 
@@ -229,7 +229,7 @@ Cancelling either event skips that one email. To keep low-value carts out of rec
 
 The migration runs when you update the plugin. On environments that receive the change through project config, the email templates and settings arrive with it.
 
-**Your reminders become the Everyone Else sequence.** It has two emails, or one if the second reminder was disabled. Each email takes its subject, its delay (converted as described in [Reminder Timing](#reminder-timing)) and the discount code from your 4.x settings. The heading, message and button label come from Abandoned Cart's standard wording, because 4.x kept that text inside its templates. Read through each email on the Everyone Else page.
+**Your reminders become the default sequence, All Other Carts.** It has two emails, or one if the second reminder was disabled. Each email takes its subject, its delay (converted as described in [Reminder Timing](#reminder-timing)) and the discount code from your 4.x settings. The heading, message and button label come from Abandoned Cart's standard wording, because 4.x kept that text inside its templates. Read through each email on the All Other Carts page.
 
 **Templates become email templates.** A **Default** template using the bundled design is created. Each custom 4.x reminder template becomes an email template called **4.x Reminder 1** or **4.x Reminder 2**, pointing at the same file, and the matching email uses it. Emails that used the 4.x bundled templates use Default.
 
@@ -237,9 +237,9 @@ The migration runs when you update the plugin. On environments that receive the 
 
 **Other settings carry over.** **Only Returning Customers**, **Return Page**, **Recovery Ends After** and **Contact Limit** take the matching 4.x values. **Keep History For** takes the 4.x retention only if you'd changed it from 90 days; otherwise it uses the new default of 365 days.
 
-**Sending continues without a gap.** If 4.x sent a reminder in the 30 days before the upgrade, Everyone Else starts switched on and picks up carts that become abandoned from the moment of the upgrade. Older carts aren't swept in. If 4.x wasn't sending, Everyone Else starts off.
+**Sending continues without a gap.** If 4.x sent a reminder in the 30 days before the upgrade, All Other Carts starts switched on and picks up carts that become abandoned from the moment of the upgrade. Older carts aren't swept in. If 4.x wasn't sending, it starts off.
 
-**Carts part-way through 4.x carry on.** A cart that received the first 4.x reminder but not the second, and is still incomplete and within its recovery window, moves into Everyone Else at email 2. Email 2 is timed from when the 4.x reminder was sent; if that time has already passed, it goes out on the first run.
+**Carts part-way through 4.x carry on.** A cart that received the first 4.x reminder but not the second, and is still incomplete and within its recovery window, moves into All Other Carts at email 2. Email 2 is timed from when the 4.x reminder was sent; if that time has already passed, it goes out on the first run.
 
 **History is imported.** Every 4.x cart that was sent a reminder or recovered appears on the Carts screen and in the Overview, marked **Imported from 4.x**. Abandoned Cart 4 only recorded when the latest reminder was sent, so when both were sent, the first one's time is estimated. Recovered carts count as recovered, as do orders completed within the attribution window after the last reminder.
 
@@ -284,7 +284,7 @@ Recovery links in emails sent by 4.x keep working whether compatibility mode is 
 After upgrading, work through these checks:
 
 1. Update your cron job to `abandoned-cart/recoveries/run`, and update your configuration file if you have one.
-2. Open **Abandoned Carts → Sequences → Everyone Else**. Read each email, check its delay and discount code, and send yourself a test.
+2. Open **Abandoned Carts → Sequences → All Other Carts**. Read each email, check its delay and discount code, and send yourself a test.
 3. If you had custom templates, preview an email that uses one with a real cart, and replace `checkoutLink`, `discount` and `currentSite` with the new variables.
 4. Open **Settings → System Status** and check that the scheduler has run and every email template can be found.
 5. Check **Abandoned Carts → Customers → Do not email** for the addresses from your 4.x blocklist.
