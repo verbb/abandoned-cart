@@ -168,7 +168,7 @@
                     {% if canManage %}
                         <button type="button" class="ac-add-between" data-ac-add-email="{{ (schedule | length) + 1 }}"{% if schedule | length >= editorConfig.maxEmails %} disabled{% endif %}>{{ '+ Add email' | t('abandoned-cart') }}</button>
                     {% endif %}
-                    <span class="light ac-hint">{{ schedule | length >= editorConfig.maxEmails ? 'That’s the maximum of {max} emails.' | t('abandoned-cart', { max: editorConfig.maxEmails }) : 'Up to {max}. Two or three works best for most stores.' | t('abandoned-cart', { max: editorConfig.maxEmails }) }}</span>
+                    <span class="light ac-hint">{{ schedule | length >= editorConfig.maxEmails ? 'That’s the maximum of five emails.' | t('abandoned-cart') : 'Up to five emails. Two or three work best for most stores.' | t('abandoned-cart') }}</span>
                 </div>
             </li>
         </ol>

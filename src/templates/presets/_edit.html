@@ -139,7 +139,7 @@
 
     <div class="field">
         <div class="heading"><label>{{ 'Emails' | t('abandoned-cart') }}</label></div>
-        <div class="instructions"><p>{{ 'Up to {max}. Sending stops as soon as the customer buys or unsubscribes.' | t('abandoned-cart', { max: maxEmails }) }}</p></div>
+        <div class="instructions"><p>{{ 'Up to five emails. Sending stops as soon as the customer buys or unsubscribes.' | t('abandoned-cart') }}</p></div>
         {% if preset.getErrors('emails') %}
             <ul class="errors">{% for error in preset.getErrors('emails') %}<li>{{ error }}</li>{% endfor %}</ul>
         {% endif %}
