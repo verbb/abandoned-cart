@@ -103,7 +103,7 @@ The `cart` variable holds plain values, so your template works the same for real
 
 | Property | Contains |
 | --- | --- |
-| `cart.items` | The cart's items. Each has `title`, `description` (such as a variant's title or chosen options, or `null`), `qty`, `price`, `subtotal` and `url` (the product's page, or `null`). |
+| `cart.items` | The cart's items. Each has `title`, `description` (such as a variant's title or chosen options, or `null`), `qty`, `price`, `subtotal`, `url` (the product's page, or `null`) and `purchasableId` (the variant's ID, or `null` for the sample cart). |
 | `cart.total` | The cart's total, as a number. |
 | `cart.subtotal` | The total of the items before shipping, tax and discounts. |
 | `cart.itemCount` | The number of items, counting quantities. |

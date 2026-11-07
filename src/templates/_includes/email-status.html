@@ -19,13 +19,6 @@
                 on: customer.status == 'active',
                 disabled: unsubscribed or not canManageStatus,
             }) }}
-            {% if (withNote ?? false) and canManageStatus and customer.status == 'active' %}
-                {{ forms.textField({
-                    label: 'Note' | t('abandoned-cart'),
-                    id: 'ac-email-status-note',
-                    placeholder: 'Such as “Asked by phone”' | t('abandoned-cart'),
-                }) }}
-            {% endif %}
         </div>
         {% if unsubscribed %}
             <p class="light ac-meta-note">{{ 'Unsubscribed {date}. Only the customer can undo this, by opting in again.' | t('abandoned-cart', { date: customer.statusChangedAt ? customer.statusChangedAt | date('short') : '' }) }}</p>
@@ -38,6 +31,18 @@
             </p>
         {% endif %}
     </fieldset>
+
+    {# Like an entry's "Notes about your changes". #}
+    {% if (withNote ?? false) and canManageStatus and customer.status == 'active' %}
+        {{ forms.textareaField({
+            label: 'Do Not Email Note' | t('abandoned-cart'),
+            labelClass: 'h6',
+            class: ['nicetext', 'notes'],
+            id: 'ac-email-status-note',
+            rows: 1,
+            placeholder: 'Such as “Asked by phone”' | t('abandoned-cart'),
+        }) }}
+    {% endif %}
 
     {% if canManageStatus and not unsubscribed %}
         {% js %}

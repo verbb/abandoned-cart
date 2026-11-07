@@ -28,7 +28,7 @@ class CartSummary extends Model
     public float $subtotal = 0;
     public int $itemCount = 0;
 
-    /** @var array<int, array{title: string, description: ?string, qty: int, price: float, subtotal: float, url: ?string}> */
+    /** @var array<int, array{title: string, description: ?string, qty: int, price: float, subtotal: float, url: ?string, purchasableId?: ?int}> */
     public array $items = [];
 
     public bool $isSample = false;
@@ -60,6 +60,7 @@ class CartSummary extends Model
                 'price' => (float)$item->getSalePrice(),
                 'subtotal' => (float)$item->getSubtotal(),
                 'url' => $item->getPurchasable()?->getUrl(),
+                'purchasableId' => $item->purchasableId,
             ], $order->getLineItems()),
         ]);
     }
@@ -82,6 +83,31 @@ class CartSummary extends Model
             ],
             'isSample' => true,
         ]);
+    }
+
+    /**
+     * Control panel thumbnail HTML for one of `items`: the purchasable's thumbnail, or else its product's, from the
+     * field in its field layout set to "Use for element thumbnails". Null when neither has one.
+     */
+    public function getItemThumbHtml(array $item, int $size = 44): ?string
+    {
+        if (empty($item['purchasableId'])) {
+            return null;
+        }
+
+        $purchasable = Craft::$app->getElements()->getElementById((int)$item['purchasableId'], null, $this->siteId);
+
+        if (!$purchasable) {
+            return null;
+        }
+
+        $html = $purchasable->getThumbHtml($size);
+
+        if (!$html && $purchasable instanceof Variant) {
+            $html = $purchasable->getOwner()?->getThumbHtml($size);
+        }
+
+        return $html ?: null;
     }
 
     public function getFullName(): string

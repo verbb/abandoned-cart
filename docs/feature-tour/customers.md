@@ -10,7 +10,7 @@ Customers who abandoned three or more carts in the last 30 days are highlighted 
 
 ## A Customer's Page
 
-Select a customer to see their profile: carts abandoned in the last 30 days and all time, carts recovered and the revenue they brought in, emails sent and clicked, and their lifetime orders in Commerce. **What We've Noticed** points out patterns, such as a customer who often clicks but rarely buys, or one held back by the Contact Limit. Their carts are listed below, newest first, each linking to its [cart page](carts.md#the-cart-page).
+Select a customer to see their profile: carts abandoned in the last 30 days and all time, carts recovered and the revenue they brought in, emails sent and clicked, and their lifetime orders in Commerce. **Patterns** points out notable behaviour, such as a customer who often clicks but rarely buys, or one held back by the Contact Limit. Their carts are listed below, newest first, each linking to its [cart page](carts.md#the-cart-page).
 
 When the customer was emailed recently, the page also says when they can next start a new sequence under the Contact Limit.
 

@@ -9,7 +9,8 @@
             <tbody>
                 {% for item in cart.items %}
                     <tr>
-                        <td class="ac-items__thumb"><span aria-hidden="true">{{ item.title | slice(0, 1) | upper }}</span></td>
+                        {% set thumb = cart.getItemThumbHtml(item, 44) %}
+                        <td class="ac-items__thumb">{{ thumb ? thumb | raw : tag('span', { text: item.title | slice(0, 1) | upper, class: 'ac-items__initial', 'aria-hidden': 'true' }) }}</td>
                         <td><strong>{{ item.title }}</strong>{% if item.description %}<br><span class="light">{{ item.description }}</span>{% endif %}<br><span class="light">{{ 'Qty {qty}' | t('abandoned-cart', { qty: item.qty }) }}</span></td>
                         <td class="ac-items__price">{{ cart.formatMoney(item.subtotal) }}</td>
                     </tr>
@@ -19,6 +20,7 @@
                 <tr><td></td><td>{{ 'Total' | t('abandoned-cart') }}</td><td class="ac-items__price">{{ cart.formatMoney(cart.total) }}</td></tr>
             </tfoot>
         </table>
+        {% js %}Craft.cp.elementThumbLoader.load($('.ac-items'));{% endjs %}
     {% else %}
         <p class="light">{{ 'Commerce no longer has this cart, so its contents can’t be shown. It was worth {value} when abandoned.' | t('abandoned-cart', { value: total }) }}</p>
     {% endif %}

@@ -14,7 +14,7 @@
 
 {% if noticed %}
     <div class="ac-card">
-        <div class="ac-card__head"><h2>{{ 'What We’ve Noticed' | t('abandoned-cart') }}</h2></div>
+        <div class="ac-card__head"><h2>{{ 'Patterns' | t('abandoned-cart') }}</h2></div>
         <ul class="ac-noticed">
             {% for line in noticed %}<li>{{ line | md(inlineOnly=true) }}</li>{% endfor %}
         </ul>

@@ -846,7 +846,20 @@
     width: 56px;
 }
 
-.ac-items__thumb span {
+.ac-items__thumb .thumb {
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.ac-items__thumb .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ac-items__initial {
     display: grid;
     place-items: center;
     width: 44px;
@@ -940,6 +953,11 @@
     gap: 8px;
     margin: 0;
     padding-inline-start: 18px;
+    list-style: disc;
+}
+
+.ac-noticed li {
+    display: list-item;
 }
 
 .ac-pips {
