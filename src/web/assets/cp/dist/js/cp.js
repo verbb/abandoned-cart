@@ -1186,13 +1186,15 @@ var e=Object.defineProperty,t=(t,n)=>{let r={};for(var i in t)e(r,i,{get:t[i],en
             --pk-alert-body-color: var(--pk-color-gray-700);
         }
 
+        /* The outline is a real border, not a ring shadow, so the accent edge replaces it on the leading side
+           instead of sitting inside it. */
         :host([appearance='raised']) .alert {
-            border-color: transparent;
+            border-color: color-mix(in oklab, var(--pk-color-gray-400) 45%, transparent);
             border-inline-start-color: var(--pk-alert-accent);
             background: color-mix(in srgb, var(--pk-alert-accent) 5%, var(--pk-color-white, #fff));
+            background-clip: padding-box;
             box-shadow: var(
                 --pk-alert-raised-shadow,
-                0 0 0 1px color-mix(in oklab, var(--pk-color-gray-400) 35%, transparent),
                 0 2px 8px -2px color-mix(in oklab, var(--pk-color-gray-900) 12%, transparent)
             );
         }
