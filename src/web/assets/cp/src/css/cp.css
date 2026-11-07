@@ -827,14 +827,13 @@
     margin-top: 22px;
 }
 
-.ac-copyfield {
-    display: flex;
-    gap: 6px;
-    align-items: center;
+.ac-cron__line {
+    display: block;
 }
 
-.ac-copyfield input {
-    background: var(--gray-050, #f3f7fc);
+.ac-cron__line::part(input) {
+    font-family: var(--code-font, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 12.5px;
 }
 
 .ac-cron__tip {
@@ -2002,3 +2001,19 @@ pk-status-label {
     gap: 4px;
 }
 
+/* A Craft button with a leading icon */
+.ac-btn-with-icon {
+    gap: 6px;
+}
+
+.ac-btn-icon {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+}
+
+.ac-btn-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}

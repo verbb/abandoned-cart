@@ -61,7 +61,7 @@
                         {{ csrfInput() }}
                         {{ actionInput('abandoned-cart/system-status/run') }}
                         {{ redirectInput('abandoned-cart/settings/system-status') }}
-                        <button type="submit" class="btn" title="{{ 'Does what the cron job does, straight away: picks up carts that have gone quiet, sends emails that are due and ends finished recoveries.' | t('abandoned-cart') }}">{{ 'Run Now' | t('abandoned-cart') }}</button>
+                        <button type="submit" class="btn ac-btn-with-icon" title="{{ 'Does what the cron job does, straight away: picks up carts that have gone quiet, sends emails that are due and ends finished recoveries.' | t('abandoned-cart') }}"><span class="ac-btn-icon" aria-hidden="true">{{ iconSvg('arrows-rotate') }}</span>{{ 'Run Now' | t('abandoned-cart') }}</button>
                     </form>
                 {% endif %}
             </div>
@@ -106,10 +106,10 @@
                         {{ cron.phpKnown ? 'The paths are filled in for this server.' | t('abandoned-cart') : 'If PHP isn’t on cron’s path, replace `php` with its full path.' | t('abandoned-cart') | md(inlineOnly=true) -}}
                     </p>
                 </div>
-                <div class="ac-copyfield">
-                    <input type="text" id="ac-cron-line" class="text fullwidth code" value="{{ cron.line }}" readonly aria-readonly="true">
-                    <pk-copy-button value="{{ cron.line }}" variant="default" aria-label="{{ 'Copy cron job' | t('abandoned-cart') }}" copied-label="{{ 'Copied' | t('abandoned-cart') }}"></pk-copy-button>
-                </div>
+                {# Plugin Kit's copy pattern: a read-only input with the copy button inside its end slot. #}
+                <pk-input id="ac-cron-line" class="ac-cron__line" value="{{ cron.line }}" readonly aria-label="{{ 'Cron Job' | t('abandoned-cart') }}">
+                    <pk-copy-button slot="end" value="{{ cron.line }}" aria-label="{{ 'Copy cron job' | t('abandoned-cart') }}" copied-label="{{ 'Copied' | t('abandoned-cart') }}"></pk-copy-button>
+                </pk-input>
                 <p class="light ac-cron__tip">{{ 'No cron? Abandoned Cart falls back to Craft’s queue on site visits, but quiet sites send late.' | t('abandoned-cart') }}</p>
             </div>
         </div>
