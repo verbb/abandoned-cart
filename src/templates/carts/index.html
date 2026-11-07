@@ -4,6 +4,30 @@
 {% set selectedSubnavItem = 'carts' %}
 {% set crumbs = [{ label: title, url: url('abandoned-cart/carts') }] %}
 
+{% set status = craft.app.request.getParam('status') ?: 'all' %}
+{% set sequenceId = craft.app.request.getParam('sequenceId') %}
+
+{% block sidebar %}
+    {% set statusItems = [
+        { label: 'All carts' | t('abandoned-cart'), count: counts.all, params: { status: 'all' } },
+        { label: 'In recovery' | t('abandoned-cart'), count: counts.recovery, status: 'blue', params: { status: 'recovery' } },
+        { label: 'Recovered' | t('abandoned-cart'), count: counts.recovered, status: 'green', params: { status: 'recovered' } },
+        { label: 'Not recovered' | t('abandoned-cart'), count: counts.not, status: 'grey', params: { status: 'not' } },
+        { label: 'Skipped' | t('abandoned-cart'), count: counts.skipped, status: 'orange', params: { status: 'skipped' } },
+    ] | map(item => item | merge({ selected: not sequenceId and item.params.status == status })) %}
+    {% set sequenceItems = sequences | map(s => {
+        label: s.name,
+        count: counts.sequences[s.id] ?? 0,
+        params: { sequenceId: s.id },
+        selected: sequenceId == s.id,
+    }) %}
+    {% include 'abandoned-cart/_includes/sources' with {
+        label: 'Carts' | t('abandoned-cart'),
+        baseUrl: 'abandoned-cart/carts',
+        groups: [{ items: statusItems }] | merge(sequenceItems ? [{ heading: 'Sequences' | t('abandoned-cart'), items: sequenceItems }] : []),
+    } only %}
+{% endblock %}
+
 {% block main %}
     <div class="content-grid__main">
         <div id="content" class="ac-unpaned">{{ block('blockContent') }}</div>
@@ -18,10 +42,9 @@
                 kind: 'carts',
                 userId: currentUser.uid,
                 counts: counts,
-                sequences: sequences | map(s => { value: s.id, label: s.name }),
                 reasons: reasons | map((label, value) => { value: value, label: label }) | values,
-                status: craft.app.request.getParam('status') ?: 'all',
-                sequenceId: craft.app.request.getParam('sequenceId'),
+                status: sequenceId ? 'all' : status,
+                sequenceId: sequenceId,
                 search: craft.app.request.getParam('search'),
             },
         },

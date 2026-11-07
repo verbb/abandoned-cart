@@ -4,7 +4,7 @@ Abandoned Cart keeps a record for each email address that has abandoned a cart, 
 
 ## The Customers List
 
-The list shows each customer's email status, how many carts they've abandoned, how many were recovered, their recovery rate and recovered revenue, and when they last abandoned a cart. Search by email address or name, and use the views along the top to show everyone, or only customers who **Can be emailed**, have **Unsubscribed** or are on **Do not email**.
+The list shows each customer's email status, how many carts they've abandoned, how many were recovered, their recovery rate and recovered revenue, and when they last abandoned a cart. Search by email address or name, and use the sidebar to show everyone, or only customers who **Can be emailed**, have **Unsubscribed** or are on **Do not email**. Each shows how many customers it holds.
 
 Customers who abandoned three or more carts in the last 30 days are highlighted at the top. Someone who regularly fills a cart and leaves may be comparing prices, using the cart as a wishlist, or waiting for a discount, so they're worth a closer look before you send them more reminders.
 

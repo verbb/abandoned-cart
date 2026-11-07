@@ -7,7 +7,6 @@ import {
     type DataTableRow,
     type PkDataTable,
 } from '@verbb/plugin-kit-web/components/data-table.js';
-import type { PkOption, PkSelect } from '@verbb/plugin-kit-web/components/select.js';
 
 import { errorMessage, t } from './craft.js';
 
@@ -17,7 +16,6 @@ type TableConfig = {
     kind: Kind;
     userId?: string;
     counts: Record<string, number>;
-    sequences?: Choice[];
     reasons?: Choice[];
     status?: string;
     sequenceId?: string | null;
@@ -79,41 +77,35 @@ function columns(config: TableConfig): DataTableColumn[] {
     ];
 }
 
-function statusChoices(config: TableConfig): Choice[] {
-    const counts = config.counts;
+/**
+ * The sidebar's sources (see `_includes/sources.html`) are plain links. Take them over so a
+ * click switches the table's view in place, keeping the URL in step for reloads and sharing.
+ */
+function bindSources(onSelect: (params: { status?: string; sequenceId?: string | number }) => void): void {
+    const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('#sidebar a[data-ac-source]'));
 
-    return config.kind === 'carts'
-        ? [
-            { value: 'all', label: t('All carts ({count})', { count: counts.all ?? 0 }) },
-            { value: 'recovery', label: t('In recovery ({count})', { count: counts.recovery ?? 0 }) },
-            { value: 'recovered', label: t('Recovered ({count})', { count: counts.recovered ?? 0 }) },
-            { value: 'not', label: t('Not recovered ({count})', { count: counts.not ?? 0 }) },
-            { value: 'skipped', label: t('Skipped ({count})', { count: counts.skipped ?? 0 }) },
-        ]
-        : [
-            { value: 'all', label: t('All customers ({count})', { count: counts.all ?? 0 }) },
-            { value: 'active', label: t('Can be emailed ({count})', { count: counts.active ?? 0 }) },
-            { value: 'unsubscribed', label: t('Unsubscribed ({count})', { count: counts.unsubscribed ?? 0 }) },
-            { value: 'doNotEmail', label: t('Do not email ({count})', { count: counts.doNotEmail ?? 0 }) },
-        ];
-}
+    for (const link of links) {
+        link.addEventListener('click', (event) => {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+                return;
+            }
 
-function select(slot: string, label: string, choices: Choice[], value: string, onChange: (value: string) => void): PkSelect {
-    const control = document.createElement('pk-select') as PkSelect;
-    control.slot = slot;
-    control.setAttribute('aria-label', label);
+            event.preventDefault();
 
-    for (const choice of choices) {
-        const option = document.createElement('pk-option') as PkOption;
-        option.value = String(choice.value);
-        option.textContent = choice.label;
-        control.append(option);
+            for (const other of links) {
+                other.classList.toggle('sel', other === link);
+
+                if (other === link) {
+                    other.setAttribute('aria-current', 'page');
+                } else {
+                    other.removeAttribute('aria-current');
+                }
+            }
+
+            history.replaceState(history.state, '', link.href);
+            onSelect(JSON.parse(link.dataset.acSource ?? '{}'));
+        });
     }
-
-    control.value = value;
-    control.addEventListener('change', () => onChange(control.value as string));
-
-    return control;
 }
 
 function addAddressButton(table: PkDataTable): HTMLElement {
@@ -166,22 +158,16 @@ function mount(container: HTMLElement): void {
 
     let addAddress: HTMLElement | null = null;
 
-    table.append(select('toolbar-start', t('Status'), statusChoices(config), state.status, (value) => {
-        state.status = value;
+    bindSources((params) => {
+        state.status = params.status ?? 'all';
+        state.sequenceId = params.sequenceId ? String(params.sequenceId) : '';
 
         if (addAddress) {
-            addAddress.hidden = value !== 'doNotEmail';
+            addAddress.hidden = state.status !== 'doNotEmail';
         }
 
         void table.refresh();
-    }));
-
-    if (config.kind === 'carts' && config.sequences?.length) {
-        table.append(select('toolbar-controls', t('Sequence'), [{ value: '', label: t('All sequences') }, ...config.sequences], String(state.sequenceId ?? ''), (value) => {
-            state.sequenceId = value;
-            void table.refresh();
-        }));
-    }
+    });
 
     if (config.kind === 'customers' && config.canManage) {
         table.selectable = true;

@@ -4,7 +4,7 @@ The Carts screen lists every abandoned cart Abandoned Cart has dealt with, so yo
 
 ## The Carts List
 
-Each row is one abandoned cart, showing the customer, the cart's value, the sequence it entered, its progress through that sequence's emails, its status and when it was abandoned. Search by email address or name, and filter by sequence. The views along the top group carts by status:
+Each row is one abandoned cart, showing the customer, the cart's value, the sequence it entered, its progress through that sequence's emails, its status and when it was abandoned. Search by email address or name. The sidebar lists the statuses, each with its number of carts, and then your sequences, so you can show just the carts that entered one sequence:
 
 - **In recovery**: the cart is in a sequence and has emails still to come. The **Detail** column says when the next one is due.
 - **Recovered**: the customer completed the order after an email, within the attribution window.

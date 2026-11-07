@@ -1,0 +1,37 @@
+{#
+ # A list screen's sources, in Craft's element-index sidebar. Each group is
+ # `{ heading?, items: [{ label, count, status?, params, selected }] }`. The links work
+ # as plain links; the data table takes them over to switch views without a reload.
+ #}
+<nav aria-label="{{ label }}">
+    <ul class="sources-list ac-sources">
+        {% for group in groups %}
+            {% if group.heading ?? false %}
+                <li class="heading">
+                    <div class="source-item source-item--heading">
+                        <span class="type-heading-small">{{ group.heading }}</span>
+                    </div>
+                    <ul class="sources-list">
+            {% endif %}
+            {% for item in group.items %}
+                <li>
+                    <div class="source-item source-item--link">
+                        {{ tag('a', {
+                            href: url(baseUrl, item.params | filter(v => v is not same as('all'))),
+                            class: item.selected ? 'sel' : false,
+                            'aria-current': item.selected ? 'page' : false,
+                            data: { 'source-item': true, 'ac-source': item.params },
+                            html: (item.status ?? false ? tag('span', { class: ['status', item.status], 'aria-hidden': 'true' }) : '')
+                                ~ tag('span', { class: 'label', text: item.label })
+                                ~ tag('span', { class: 'ac-source-count', text: item.count | number(decimals=0) }),
+                        }) }}
+                    </div>
+                </li>
+            {% endfor %}
+            {% if group.heading ?? false %}
+                    </ul>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>

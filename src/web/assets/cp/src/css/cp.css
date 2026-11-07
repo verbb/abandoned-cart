@@ -1630,3 +1630,16 @@ pk-status-label {
     min-width: 0;
     overflow-wrap: anywhere;
 }
+
+/* List screens' sources in Craft's sidebar */
+.ac-source-count {
+    margin-inline-start: auto;
+    padding-inline-start: 8px;
+    color: var(--light-text-color, #606d7b);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.ac-sources a.sel .ac-source-count {
+    color: inherit;
+}

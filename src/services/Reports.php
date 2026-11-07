@@ -266,12 +266,15 @@ class Reports extends Component
         $recovered = (int)($recoveries[Recovery::STATUS_RECOVERED] ?? 0);
         $ended = (int)($recoveries[Recovery::STATUS_ENDED] ?? 0);
 
+        $sequences = (new Query())->select(['sequenceId', 'count' => 'COUNT(*)'])->from([Table::RECOVERIES])->where(['not', ['sequenceId' => null]])->groupBy(['sequenceId'])->pairs();
+
         return [
             'all' => $active + $recovered + $ended + $skipped,
             'recovery' => $active,
             'recovered' => $recovered,
             'not' => $ended,
             'skipped' => $skipped,
+            'sequences' => array_map('intval', $sequences),
         ];
     }
 

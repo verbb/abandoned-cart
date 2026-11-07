@@ -4,6 +4,21 @@
 {% set selectedSubnavItem = 'customers' %}
 {% set crumbs = [{ label: title, url: url('abandoned-cart/customers') }] %}
 
+{% set status = craft.app.request.getParam('status') ?: 'all' %}
+
+{% block sidebar %}
+    {% include 'abandoned-cart/_includes/sources' with {
+        label: 'Customers' | t('abandoned-cart'),
+        baseUrl: 'abandoned-cart/customers',
+        groups: [{ items: [
+            { label: 'All customers' | t('abandoned-cart'), count: counts.all ?? 0, params: { status: 'all' } },
+            { label: 'Can be emailed' | t('abandoned-cart'), count: counts.active ?? 0, status: 'green', params: { status: 'active' } },
+            { label: 'Unsubscribed' | t('abandoned-cart'), count: counts.unsubscribed ?? 0, status: 'grey', params: { status: 'unsubscribed' } },
+            { label: 'Do not email' | t('abandoned-cart'), count: counts.doNotEmail ?? 0, status: 'red', params: { status: 'doNotEmail' } },
+        ] | map(item => item | merge({ selected: item.params.status == status })) }],
+    } only %}
+{% endblock %}
+
 {% block main %}
     <div class="content-grid__main">
         <div id="content" class="ac-unpaned">{{ block('blockContent') }}</div>
@@ -24,7 +39,7 @@
                 kind: 'customers',
                 userId: currentUser.uid,
                 counts: counts,
-                status: craft.app.request.getParam('status') ?: 'all',
+                status: status,
                 search: craft.app.request.getParam('search'),
                 canManage: currentUser.can('abandonedCart-manageDoNotEmail'),
             },
