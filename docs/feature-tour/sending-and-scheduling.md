@@ -36,16 +36,28 @@ Three settings decide how long Abandoned Cart keeps working on a cart and how it
 
 ## System Status
 
-**Abandoned Carts → Settings → System Status** checks the things that most often stop emails from going out:
+**Abandoned Carts → Settings → System Status** shows whether recovery is working. It opens with a verdict: everything's working, recovery is off, or what needs attention.
 
-- **Sequences**: whether any sequence is switched on.
-- **Scheduler**: when the background run last happened. It needs attention if the run hasn't happened for more than 30 minutes.
-- **Sending**: whether sending is paused, and the address emails come from.
-- **Recent Failures**: how many emails couldn't be sent in the last seven days.
+The **Scheduler** card shows when the background run last happened and how it's being started:
+
+- **Started by the cron job** when recent runs came from the console command at a regular interval.
+- **Started by Craft's queue** when they came from the queue fallback. Add the cron job so emails go out on time on quiet sites.
+- **Started from the command line** when the command ran but not at a regular interval, such as when someone ran it by hand.
+- **Started by the 4.x URL** when the deprecated 4.x scheduler URL is still in use.
+
+The scheduler needs attention when it hasn't run for more than 30 minutes while a sequence is on. The card also shows what the last run did, a strip of the last 24 hours in half-hour slots (how many emails went out, any failures, and gaps where nothing ran), and the **Cron Job** line to copy into your crontab. Once the command has run from the command line, that line uses the path to PHP it ran with; until then it says `php`. Run history is kept for seven days.
+
+**Run Now** does what the cron job does, straight away: it picks up carts that have gone quiet, sends emails that are due and ends finished recoveries. It's handy after changing a setting or while testing, and it isn't counted as a scheduled run. It needs the **Manage sequences and send emails** permission.
+
+**Health Checks** cover the other things that most often stop emails from going out, with anything that needs attention first and a link to where you'd fix it:
+
+- **Sequences**: which sequences are switched on.
+- **Sending**: whether sending is paused, and the name and address emails come from.
+- **Recent Failures**: how many emails couldn't be sent in the last seven days, and the latest reason.
 - **Email Templates**: whether every email template's files can be found.
 - **Consent**: whether a consent field is in use, and whether it exists.
 
-The page also summarises the last run. **Run Now** starts a run straight away, which is handy after changing a setting or while testing. It needs the **Manage sequences and send emails** permission.
+System Status only reads, so it works on production environments where `allowAdminChanges` is off. It's available to admins and to users with the **View System Status** permission. Where admin changes are off, **General Settings**, **Email Templates** and **Sequence Presets** are read-only, as in Craft's own settings.
 
 ## Pausing All Sending
 

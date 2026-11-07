@@ -3,33 +3,129 @@
 {% set selectedTab = 'system-status' %}
 {% set pageTitle = 'System Status' | t('abandoned-cart') %}
 {% set crumbs = [{ label: pageTitle, url: url('abandoned-cart/settings/system-status') }] %}
-{% set statuses = { ready: 'active', attention: 'warning', notice: 'inactive' } %}
+{% set formatter = craft.app.formatter %}
+{% set dots = { ready: 'good', notice: 'off', attention: 'warn', problem: 'bad' } %}
+{% set modes = {
+    cron: ['good', 'Started by the cron job' | t('abandoned-cart')],
+    queue: ['plain', 'Started by Craft’s queue' | t('abandoned-cart')],
+    console: ['plain', 'Started from the command line' | t('abandoned-cart')],
+    legacyUrl: ['warn', 'Started by the 4.x URL' | t('abandoned-cart')],
+} %}
 
-{% block actionButton %}
-    {% if currentUser.can('abandonedCart-manageSequences') %}
-        <form method="post" class="ac-inline-form">
-            {{ csrfInput() }}
-            {{ actionInput('abandoned-cart/system-status/run') }}
-            {{ redirectInput('abandoned-cart/settings/system-status') }}
-            <button type="submit" class="btn">{{ 'Run Now' | t('abandoned-cart') }}</button>
-        </form>
-    {% endif %}
+{# The page's cards sit on the page background, like the rest of the plugin. #}
+{% block main %}
+    <div class="content-grid__main">
+        <div id="content" class="ac-unpaned">{{ block('settingsContent') }}</div>
+    </div>
 {% endblock %}
 
 {% block settingsContent %}
-    <ul class="ac-checks">
-        {% for check in checks %}
-            <li class="ac-check ac-check--{{ check.status }}">
-                <pk-status status="{{ statuses[check.status] }}" aria-hidden="true"></pk-status>
+    <div class="ac-status">
+        {# The verdict: what someone opening this page wants to know first. #}
+        {% if issues %}
+            <div class="ac-status-banner ac-status-banner--warn" role="status">
+                <span class="ac-status-banner__icon" aria-hidden="true">{{ iconSvg('triangle-exclamation') }}</span>
                 <div>
-                    <strong>{{ check.label }}</strong>
-                    <p>{{ check.message | md(inlineOnly=true) }}</p>
+                    <h2>{{ '{count, plural, =1{1 thing needs attention} other{# things need attention}}' | t('abandoned-cart', { count: issues | length }) }}</h2>
+                    <p>{{ issues | map(item => item.issue ?? item.message) | join(' ') }}</p>
                 </div>
-            </li>
-        {% endfor %}
-    </ul>
+            </div>
+        {% elseif not sequencesOn %}
+            <div class="ac-status-banner" role="status">
+                <span class="ac-status-banner__icon ac-status-banner__icon--off" aria-hidden="true">{{ iconSvg('circle-pause') }}</span>
+                <div>
+                    <h2>{{ 'Recovery is off' | t('abandoned-cart') }}</h2>
+                    <p>{{ 'No sequence is on, so no carts are being emailed. Everything else is ready.' | t('abandoned-cart') }}</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="ac-status-banner ac-status-banner--good" role="status">
+                <span class="ac-status-banner__icon" aria-hidden="true">{{ iconSvg('check') }}</span>
+                <div>
+                    <h2>{{ 'Everything’s working' | t('abandoned-cart') }}</h2>
+                    <p>{{ 'Abandoned carts are being picked up and emailed. The last run was {time}.' | t('abandoned-cart', { time: formatter.asRelativeTime(scheduler.lastRun) }) }}</p>
+                </div>
+            </div>
+        {% endif %}
 
-    {% if lastRunSummary %}
-        <p class="light">{{ 'Last run: {enrolled} enrolled, {skipped} skipped, {sent} sent, {failed} failed, {ended} ended.' | t('abandoned-cart', lastRunSummary | merge({ enrolled: lastRunSummary.enrolled ?? 0, skipped: lastRunSummary.skipped ?? 0, sent: lastRunSummary.sent ?? 0, failed: lastRunSummary.failed ?? 0, ended: lastRunSummary.ended ?? 0 })) }}</p>
-    {% endif %}
+        <div class="ac-card">
+            <div class="ac-card__head ac-card__head--center">
+                <h2>{{ 'Scheduler' | t('abandoned-cart') }}</h2>
+                {% if scheduler.status == 'ready' and modes[scheduler.mode] is defined %}
+                    <span class="ac-pill ac-pill--{{ modes[scheduler.mode][0] }}">{{ modes[scheduler.mode][1] }}</span>
+                {% elseif scheduler.status == 'attention' %}
+                    <span class="ac-pill ac-pill--warn">{{ 'Overdue' | t('abandoned-cart') }}</span>
+                {% endif %}
+                {% if currentUser.can('abandonedCart-manageSequences') %}
+                    <form method="post" class="ac-inline-form">
+                        {{ csrfInput() }}
+                        {{ actionInput('abandoned-cart/system-status/run') }}
+                        {{ redirectInput('abandoned-cart/settings/system-status') }}
+                        <button type="submit" class="btn" title="{{ 'Does what the cron job does, straight away: picks up carts that have gone quiet, sends emails that are due and ends finished recoveries.' | t('abandoned-cart') }}">{{ 'Run Now' | t('abandoned-cart') }}</button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <div class="ac-sched">
+                <div class="ac-sched__headline"><span class="ac-dot ac-dot--{{ dots[scheduler.status] }}" aria-hidden="true"></span>{{ scheduler.headline }}</div>
+                <p class="light">{{ scheduler.message }}</p>
+            </div>
+
+            {% if scheduler.summary %}
+                {% set summary = scheduler.summary %}
+                <dl class="ac-sched-stats">
+                    <div><dt>{{ 'Carts picked up' | t('abandoned-cart') }}</dt><dd>{{ summary.enrolled ?? 0 }}</dd></div>
+                    <div><dt>{{ 'Skipped' | t('abandoned-cart') }}</dt><dd>{{ summary.skipped ?? 0 }}</dd></div>
+                    <div><dt>{{ 'Emails sent' | t('abandoned-cart') }}</dt><dd>{{ summary.sent ?? 0 }}</dd></div>
+                    <div{% if summary.failed ?? 0 %} class="ac-sched-stats--bad"{% endif %}><dt>{{ 'Failed' | t('abandoned-cart') }}</dt><dd>{{ summary.failed ?? 0 }}</dd></div>
+                    <div><dt>{{ 'Recoveries ended' | t('abandoned-cart') }}</dt><dd>{{ summary.ended ?? 0 }}</dd></div>
+                </dl>
+                <p class="light ac-sched-stats__note">{{ 'The last run, at {time}' | t('abandoned-cart', { time: formatter.asTime(scheduler.lastRun, 'short') }) }}</p>
+            {% endif %}
+
+            {# The last 24 hours in half-hour slots. Height is emails sent; a slot with no run is empty. #}
+            <div class="ac-runs" role="img" aria-label="{{ 'Scheduler runs over the last 24 hours' | t('abandoned-cart') }}">
+                {% for slot in day %}
+                    {% set kind = slot.runs == 0 ? 'none' : (slot.failed ? 'fail' : (slot.sent ? 'sent' : 'quiet')) %}
+                    {% set height = kind == 'none' ? 100 : (kind == 'quiet' ? 18 : max(30, (slot.sent / maxSent * 100) | round)) %}
+                    <i class="ac-runs__slot ac-runs__slot--{{ kind }}" style="height: {{ height }}%"
+                        title="{{ formatter.asTime(slot.start, 'short') }}: {{ slot.runs ? '{runs, plural, =1{1 run} other{# runs}}, {sent} sent, {failed} failed' | t('abandoned-cart', { runs: slot.runs, sent: slot.sent, failed: slot.failed }) : 'No run' | t('abandoned-cart') }}"></i>
+                {% endfor %}
+            </div>
+            <div class="ac-runs__legend light">
+                <span>{{ '24 hours ago' | t('abandoned-cart') }}</span>
+                <span>{{ 'Green sent emails, red had a failure, grey no run' | t('abandoned-cart') }}</span>
+                <span>{{ 'Now' | t('abandoned-cart') }}</span>
+            </div>
+
+            <div class="field ac-cron">
+                <div class="heading"><label for="ac-cron-line">{{ 'Cron Job' | t('abandoned-cart') }}</label></div>
+                <div class="instructions">
+                    <p>
+                        {{- 'Add this to your server’s crontab so Abandoned Cart runs every five minutes.' | t('abandoned-cart') }}
+                        {{ cron.phpKnown ? 'The paths are filled in for this server.' | t('abandoned-cart') : 'If PHP isn’t on cron’s path, replace `php` with its full path.' | t('abandoned-cart') | md(inlineOnly=true) -}}
+                    </p>
+                </div>
+                <div class="ac-copyfield">
+                    <input type="text" id="ac-cron-line" class="text fullwidth code" value="{{ cron.line }}" readonly aria-readonly="true">
+                    <pk-copy-button value="{{ cron.line }}" variant="default" aria-label="{{ 'Copy cron job' | t('abandoned-cart') }}" copied-label="{{ 'Copied' | t('abandoned-cart') }}"></pk-copy-button>
+                </div>
+                <p class="light ac-cron__tip">{{ 'No cron? Abandoned Cart falls back to Craft’s queue on site visits, but quiet sites send late.' | t('abandoned-cart') }}</p>
+            </div>
+        </div>
+
+        <h2 class="ac-status__heading">{{ 'Health Checks' | t('abandoned-cart') }}</h2>
+        <ul class="ac-health">
+            {% for check in checks %}
+                <li class="ac-health__item ac-health__item--{{ check.status }}">
+                    <span class="ac-dot ac-dot--{{ dots[check.status] }}" aria-hidden="true"></span>
+                    <div>
+                        <h3>{{ check.label }}</h3>
+                        <p>{{ check.message | md(inlineOnly=true) }}</p>
+                    </div>
+                    {% if check.action %}<a href="{{ check.action.url }}" class="ac-health__action">{{ check.action.label }} →</a>{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock %}

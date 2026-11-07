@@ -12,6 +12,7 @@ use verbb\abandonedcart\services\Emails;
 use verbb\abandonedcart\services\Presets;
 use verbb\abandonedcart\services\Recoveries;
 use verbb\abandonedcart\services\Reports;
+use verbb\abandonedcart\services\Runs;
 use verbb\abandonedcart\services\Sequences;
 use verbb\abandonedcart\services\State;
 use verbb\abandonedcart\services\Templates;
@@ -52,6 +53,7 @@ trait PluginTrait
                 'presets' => Presets::class,
                 'recoveries' => Recoveries::class,
                 'reports' => Reports::class,
+                'runs' => Runs::class,
                 'sequences' => Sequences::class,
                 'state' => State::class,
                 'templates' => Templates::class,
@@ -111,6 +113,11 @@ trait PluginTrait
     public function getReports(): Reports
     {
         return $this->get('reports');
+    }
+
+    public function getRuns(): Runs
+    {
+        return $this->get('runs');
     }
 
     public function getSequences(): Sequences

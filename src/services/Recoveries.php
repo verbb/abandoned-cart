@@ -111,9 +111,13 @@ class Recoveries extends Component
     /**
      * One scheduler pass: end what's expired, enrol carts that have gone idle, then send what's due.
      */
-    public function run(?DateTime $now = null): array
+    /**
+     * @param string $trigger What started the run, one of the `Runs::TRIGGER_*` constants, for System Status.
+     */
+    public function run(?DateTime $now = null, string $trigger = Runs::TRIGGER_OTHER): array
     {
         $now ??= new DateTime();
+        $started = microtime(true);
         $mutex = Craft::$app->getMutex();
         $lock = 'abandoned-cart:run';
 
@@ -143,6 +147,12 @@ class Recoveries extends Component
             $state = AbandonedCart::$plugin->getState();
             $state->set(State::LAST_RUN_AT, $now->format(DATE_ATOM));
             $state->set(State::LAST_RUN_SUMMARY, $summary);
+            AbandonedCart::$plugin->getRuns()->record($trigger, $now, (int)round((microtime(true) - $started) * 1000), $summary);
+
+            // The command line's PHP is what a cron job needs, and a web request can't see it.
+            if ($trigger === Runs::TRIGGER_CONSOLE && PHP_BINARY && $state->get(State::CLI_PHP_BINARY) !== PHP_BINARY) {
+                $state->set(State::CLI_PHP_BINARY, PHP_BINARY);
+            }
 
             return $summary;
         } finally {
@@ -627,6 +637,7 @@ class Recoveries extends Component
 
         Db::delete(Table::RECOVERIES, ['and', ['not', ['status' => Recovery::STATUS_ACTIVE]], ['<', 'abandonedAt', $cutoff]]);
         Db::delete(Table::SKIPPED_CARTS, ['<', 'abandonedAt', $cutoff]);
+        AbandonedCart::$plugin->getRuns()->purge();
     }
 
 

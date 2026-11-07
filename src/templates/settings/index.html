@@ -7,15 +7,20 @@
 {% requireAdmin false %}
 
 {% set selectedTab = 'general' %}
-{% set fullPageForm = true %}
+{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{# Settings are saved to project config, so they're read-only where admin changes aren't allowed, as in Craft's own settings. #}
+{% set fullPageForm = not readOnly %}
 {% set pageTitle = 'General Settings' | t('abandoned-cart') %}
 {% set pageAction = 'abandoned-cart/settings/save' %}
 {% set pageUrl = 'abandoned-cart/settings' %}
 {% set crumbs = [{ label: pageTitle, url: url(pageUrl) }] %}
-{% set readOnly = not craft.app.config.general.allowAdminChanges %}
+{% if readOnly %}
+    {% set contentNotice = readOnlyNotice() %}
+{% endif %}
 
 {% block settingsContent %}
     {{ forms.textField({
+        disabled: readOnly,
         label: 'Plugin Name' | t('app'),
         instructions: 'What the plugin is called in the control panel navigation.' | t('abandoned-cart'),
         id: 'pluginName',
@@ -31,6 +36,7 @@
     <p class="light">{{ 'Every sequence uses these unless it overrides them.' | t('abandoned-cart') }}</p>
 
     {{ acMacros.durationField({
+        disabled: readOnly,
         label: 'Abandoned After' | t('abandoned-cart'),
         instructions: 'How long a cart goes without changes before it counts as abandoned.' | t('abandoned-cart'),
         name: 'abandonedAfterMinutes',
@@ -40,6 +46,7 @@
     }) }}
 
     {{ forms.autosuggestField({
+        disabled: readOnly,
         label: 'Return Page' | t('abandoned-cart'),
         instructions: 'Where recovery links take the customer once their cart is restored. Usually your cart or checkout page.' | t('abandoned-cart'),
         id: 'returnUrl',
@@ -52,6 +59,7 @@
     }) }}
 
     {{ acMacros.durationField({
+        disabled: readOnly,
         label: 'Recovery Ends After' | t('abandoned-cart'),
         instructions: 'Unsent emails are cancelled and links stop restoring the cart after this.' | t('abandoned-cart'),
         name: 'recoveryWindowMinutes',
@@ -62,6 +70,7 @@
     }) }}
 
     {{ acMacros.durationField({
+        disabled: readOnly,
         label: 'Attribution Window' | t('abandoned-cart'),
         instructions: 'An order this soon after an email counts as recovered, even if the customer didn’t click.' | t('abandoned-cart'),
         name: 'attributionWindowMinutes',
@@ -73,6 +82,7 @@
     }) }}
 
     {{ acMacros.durationField({
+        disabled: readOnly,
         label: 'Contact Limit' | t('abandoned-cart'),
         instructions: 'Customers who abandon often won’t start a new sequence until this long after their last email.' | t('abandoned-cart'),
         name: 'contactLimitMinutes',
@@ -86,6 +96,7 @@
     <h2>{{ 'Who Can Be Emailed' | t('abandoned-cart') }}</h2>
 
     {{ forms.selectField({
+        disabled: readOnly,
         label: 'Consent Field' | t('abandoned-cart'),
         instructions: 'Only email customers who have this Lightswitch field switched on, on their order or user. Choose None if every eligible cart can be contacted where you trade.' | t('abandoned-cart'),
         id: 'consentFieldHandle',
@@ -96,6 +107,7 @@
     }) }}
 
     {{ forms.lightswitchField({
+        disabled: readOnly,
         label: 'Only Returning Customers' | t('abandoned-cart'),
         instructions: 'Only email customers who have completed an order before.' | t('abandoned-cart'),
         id: 'returningCustomersOnly',
@@ -105,6 +117,7 @@
     }) }}
 
     {{ forms.textareaField({
+        disabled: readOnly,
         label: 'Blocked Domains' | t('abandoned-cart'),
         instructions: 'Never email addresses at these domains, one per line. To stop one person, use Do Not Email on their customer page.' | t('abandoned-cart'),
         id: 'blockedDomains',
@@ -119,6 +132,7 @@
     <h2>{{ 'Customer Pages' | t('abandoned-cart') }}</h2>
 
     {{ forms.autosuggestField({
+        disabled: readOnly,
         label: 'Page Template' | t('abandoned-cart'),
         instructions: 'Expired-link and unsubscribe pages render inside this template’s `content` block, so they look like your site. Leave blank to use the standalone pages.' | t('abandoned-cart'),
         id: 'customerPageTemplate',
@@ -133,6 +147,7 @@
     <h2>{{ 'Sending' | t('abandoned-cart') }}</h2>
 
     {{ forms.lightswitchField({
+        disabled: readOnly,
         label: 'Pause All Sending' | t('abandoned-cart'),
         instructions: 'Hold every recovery email, across all sequences. For emergencies: held emails send once it’s off.' | t('abandoned-cart'),
         id: 'deliveryPaused',
@@ -142,6 +157,7 @@
     }) }}
 
     {{ forms.textField({
+        disabled: readOnly,
         label: 'Keep History For' | t('abandoned-cart'),
         instructions: 'Days to keep finished carts. At least 30, so unsubscribe links keep working. Do Not Email records are never removed.' | t('abandoned-cart'),
         id: 'historyRetentionDays',

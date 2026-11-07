@@ -2,6 +2,7 @@
 namespace verbb\abandonedcart\queue\jobs;
 
 use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\services\Runs;
 
 use Craft;
 use craft\queue\BaseJob;
@@ -13,7 +14,7 @@ class ProcessRecoveries extends BaseJob
 
     public function execute($queue): void
     {
-        AbandonedCart::$plugin->getRecoveries()->run();
+        AbandonedCart::$plugin->getRecoveries()->run(null, Runs::TRIGGER_QUEUE);
     }
 
 

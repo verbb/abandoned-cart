@@ -205,6 +205,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->createRunsTable();
+
         $this->archiveTableIfExists(Table::STATE);
         $this->createTable(Table::STATE, [
             'id' => $this->primaryKey(),
@@ -241,6 +243,30 @@ class Install extends Migration
         $this->createIndex(null, Table::SKIPPED_CARTS, ['customerId']);
         $this->createIndex(null, Table::SKIPPED_CARTS, ['reason', 'abandonedAt']);
         $this->createIndex(null, Table::STATE, ['name'], true);
+        $this->createIndex(null, Table::RUNS, ['startedAt']);
+    }
+
+    /**
+     * One row per scheduler run, for System Status. Kept for 7 days.
+     */
+    public function createRunsTable(): void
+    {
+        $this->archiveTableIfExists(Table::RUNS);
+        $this->createTable(Table::RUNS, [
+            'id' => $this->primaryKey(),
+            'trigger' => $this->string(20)->notNull(),
+            'startedAt' => $this->dateTime()->notNull(),
+            'durationMs' => $this->integer()->notNull()->defaultValue(0),
+            'enrolled' => $this->integer()->notNull()->defaultValue(0),
+            'skipped' => $this->integer()->notNull()->defaultValue(0),
+            'sent' => $this->integer()->notNull()->defaultValue(0),
+            'failed' => $this->integer()->notNull()->defaultValue(0),
+            'notSent' => $this->integer()->notNull()->defaultValue(0),
+            'ended' => $this->integer()->notNull()->defaultValue(0),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
     }
 
     public function addForeignKeys(): void
@@ -316,6 +342,7 @@ class Install extends Migration
             Table::SEQUENCE_VERSIONS,
             Table::SEQUENCES,
             Table::STATE,
+            Table::RUNS,
         ];
     }
 }

@@ -13,6 +13,7 @@ abstract class Table
     public const EMAILS = '{{%abandonedcart_emails}}';
     public const EMAIL_TEMPLATES = '{{%abandonedcart_emailtemplates}}';
     public const RECOVERIES = '{{%abandonedcart_recoveries}}';
+    public const RUNS = '{{%abandonedcart_runs}}';
     public const SEQUENCES = '{{%abandonedcart_sequences}}';
     public const SEQUENCE_VERSIONS = '{{%abandonedcart_sequenceversions}}';
     public const SKIPPED_CARTS = '{{%abandonedcart_skippedcarts}}';

@@ -7,6 +7,7 @@ use verbb\abandonedcart\models\CartSummary;
 use verbb\abandonedcart\models\Customer;
 use verbb\abandonedcart\models\Recovery;
 use verbb\abandonedcart\models\SkippedCart;
+use verbb\abandonedcart\services\Runs;
 
 use Craft;
 use craft\helpers\AdminTable;
@@ -80,7 +81,7 @@ class CartsController extends BaseCpController
 
         Craft::$app->getDeprecator()->log('abandoned-cart/carts/find-carts', 'Abandoned Cart’s `abandoned-cart/carts/find-carts` scheduler URL is deprecated. Run `php craft abandoned-cart/recoveries/run` from cron instead.');
 
-        $summary = $plugin->getRecoveries()->run();
+        $summary = $plugin->getRecoveries()->run(null, Runs::TRIGGER_LEGACY_URL);
 
         return $this->asJson(['success' => !($summary['locked'] ?? false), 'summary' => $summary]);
     }

@@ -2,6 +2,7 @@
 namespace verbb\abandonedcart\console\controllers;
 
 use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\services\Runs;
 
 use craft\console\Controller;
 use craft\helpers\Console;
@@ -22,7 +23,7 @@ class RecoveriesController extends Controller
      */
     public function actionRun(): int
     {
-        $summary = AbandonedCart::$plugin->getRecoveries()->run();
+        $summary = AbandonedCart::$plugin->getRecoveries()->run(null, Runs::TRIGGER_CONSOLE);
 
         if ($summary['locked'] ?? false) {
             $this->stderr('Another run is already in progress.' . PHP_EOL, Console::FG_YELLOW);

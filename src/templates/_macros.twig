@@ -1,7 +1,7 @@
 {% macro durationField(config) %}
     {#
         A number and a unit, posted as `{name}[value]` and `{name}[unit]` and stored in minutes.
-        config: label, instructions, name, minutes, allowBlank (for overrides), placeholder, units (subset of minutes/hours/days), warning
+        config: label, instructions, name, minutes, allowBlank (for overrides), placeholder, units (subset of minutes/hours/days), warning, disabled
     #}
     {% import '_includes/forms' as forms %}
     {% set units = config.units ?? ['minutes', 'hours', 'days'] %}
@@ -37,11 +37,13 @@
                     min: 0,
                     size: 6,
                     placeholder: config.placeholder ?? null,
+                    disabled: config.disabled ?? false,
                 }) }}
                 {{ forms.select({
                     name: config.name ~ '[unit]',
                     value: unit,
                     options: units | map(u => { label: labels[u], value: u }),
+                    disabled: config.disabled ?? false,
                 }) }}
                 {% if config.suffix ?? false %}<span class="light">{{ config.suffix }}</span>{% endif %}
             </div>

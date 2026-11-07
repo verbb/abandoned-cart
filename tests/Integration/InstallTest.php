@@ -23,12 +23,13 @@ it('creates every 5.0 table and no 4.x table', function() {
         Table::ACTIVITIES,
         Table::SKIPPED_CARTS,
         Table::STATE,
+        Table::RUNS,
     ] as $table) {
         expect($db->tableExists($table))->toBeTrue("{$table} is missing.");
     }
 
     expect($db->tableExists(Table::CARTS))->toBeFalse()
-        ->and(AbandonedCart::$plugin->schemaVersion)->toBe('5.0.2');
+        ->and(AbandonedCart::$plugin->schemaVersion)->toBe('5.0.3');
 });
 
 it('creates a default email template that uses the bundled design', function() {

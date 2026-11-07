@@ -16,7 +16,7 @@
 - Added `craft.abandonedCart.getCurrentCustomer()` and the `abandoned-cart/preferences/save` action, so signed-in customers can turn cart reminders off or on from their account.
 - Added the Consent Field, Blocked Domains, Only Returning Customers, Contact Limit, Attribution Window, Recovery Ends After and Pause All Sending settings, with per-sequence overrides for recovery timing and the return page.
 - Added a Page Template setting so expired-link and unsubscribe pages can render inside the site's layout.
-- Added System Status, with checks for the scheduler, sending, recent failures, email templates and consent, and a Run Now action.
+- Added System Status, which shows how the scheduler is being started, its last run and the last 24 hours of runs, the cron job to add, health checks for sending, recent failures, email templates and consent, and a Run Now action. It works where admin changes aren't allowed.
 - Added the Manage sequences and send emails, Manage Do Not Email and View System Status permissions.
 - Added events for sequences, emails, email templates, audiences, enrolment, consent, recovery links, sending, rendering and customers.
 - Added the `compatibilityMode` setting, on by default, which keeps the 4.x email template variables, the `beforeMailSend` event, the 4.x console command and the 4.x scheduler URL working while sites update. The event, command and URL log deprecation warnings.

@@ -20,6 +20,7 @@ class State extends Component
     public const LAST_RUN_SUMMARY = 'lastRunSummary';
     public const LAST_QUEUED_AT = 'lastQueuedAt';
     public const TEST_SENT_AT = 'testSentAt';
+    public const CLI_PHP_BINARY = 'cliPhpBinary';
 
 
     // Public Methods
