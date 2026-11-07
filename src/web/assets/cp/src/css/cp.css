@@ -239,6 +239,10 @@
     --pk-dialog-width: 54rem;
 }
 
+.ac-dialog-intro {
+    margin-top: 0;
+}
+
 .ac-preset {
     margin: 0;
 }
@@ -385,6 +389,11 @@
 .ac-tl__body {
     padding: 11px 0 18px;
     min-width: 0;
+}
+
+/* Room between the abandoned node and the first email's ringed node. */
+.ac-tl--start .ac-tl__body {
+    padding-bottom: 30px;
 }
 
 .ac-tl--email .ac-tl__body {

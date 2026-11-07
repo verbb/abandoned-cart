@@ -38,7 +38,7 @@
     {% if canManage %}
         <pk-dialog label="{{ 'Start From a Preset' | t('abandoned-cart') }}" size="wide" class="ac-preset-dialog">
             <button type="button" slot="trigger" class="btn submit add icon">{{ 'New Sequence' | t('abandoned-cart') }}</button>
-            <p class="light">{{ 'The new sequence is a copy you can change freely, and it stays off until you turn it on.' | t('abandoned-cart') }}</p>
+            <p class="light ac-dialog-intro">{{ 'The new sequence is a copy you can change freely, and it stays off until you turn it on.' | t('abandoned-cart') }}</p>
             <div class="ac-presets">
                 {% for preset in presets %}
                     {{ _self.presetButton(preset) }}
