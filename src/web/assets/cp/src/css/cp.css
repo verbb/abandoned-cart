@@ -1648,3 +1648,10 @@ pk-status-label {
 .ac-sources--toolbar {
     margin-top: 2px;
 }
+
+/* A short note on a list screen's title row, after the title */
+.ac-header-alert {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-start: 16px;
+}

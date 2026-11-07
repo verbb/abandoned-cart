@@ -1,5 +1,6 @@
 import '@verbb/plugin-kit-web/plugin-kit.css';
 
+import { PkAlert } from '@verbb/plugin-kit-web/components/alert.js';
 import { PkButton } from '@verbb/plugin-kit-web/components/button.js';
 import { PkBarChart, PkDonutChart, PkFunnelChart, PkLineChart, PkMeter, PkSparkline } from '@verbb/plugin-kit-web/components/chart.js';
 import { PkDataTable } from '@verbb/plugin-kit-web/components/data-table.js';
@@ -11,7 +12,7 @@ import { PkStatusLabel } from '@verbb/plugin-kit-web/components/status-label.js'
 
 // Importing a component registers it. Listing the constructors keeps them from being tree-shaken out of the bundle.
 const constructors = [
-    PkBarChart, PkButton, PkDataTable, PkDialog, PkDonutChart, PkFunnelChart, PkLineChart, PkMeter, PkOption, PkSelect,
+    PkAlert, PkBarChart, PkButton, PkDataTable, PkDialog, PkDonutChart, PkFunnelChart, PkLineChart, PkMeter, PkOption, PkSelect,
     PkSparkline, PkStatePanel, PkStatus, PkStatusLabel,
 ] as const;
 

@@ -6,10 +6,18 @@
 
 {% set status = craft.app.request.getParam('status') ?: 'all' %}
 
+{# The frequent-abandoner note sits on the title row, so the sidebar and table start level. #}
+{% block toolbar %}
+    {% if frequent %}
+        <pk-alert class="ac-header-alert" variant="info" size="sm">{{ '**{count, plural, =1{1 customer} other{# customers}} abandoned 3 or more carts** in the last 30 days. They’re sorted to the top.' | t('abandoned-cart', { count: frequent }) | md(inlineOnly=true) }}</pk-alert>
+    {% endif %}
+{% endblock %}
+
 {% block sidebar %}
     {% include 'abandoned-cart/_includes/sources' with {
         label: 'Customers' | t('abandoned-cart'),
         baseUrl: 'abandoned-cart/customers',
+        alignToToolbar: true,
         groups: [{ items: [
             { label: 'All customers' | t('abandoned-cart'), count: counts.all ?? 0, params: { status: 'all' } },
             { label: 'Can be emailed' | t('abandoned-cart'), count: counts.active ?? 0, status: 'green', params: { status: 'active' } },
@@ -26,12 +34,6 @@
 {% endblock %}
 
 {% block blockContent %}
-    {% if frequent %}
-        <div class="ac-callout">
-            <p>{{ '**{count, plural, =1{1 customer} other{# customers}} abandoned 3 or more carts** in the last 30 days. They’re sorted to the top.' | t('abandoned-cart', { count: frequent }) | md(inlineOnly=true) }}</p>
-        </div>
-    {% endif %}
-
     {{ tag('div', {
         class: 'ac-table--index',
         data: {
