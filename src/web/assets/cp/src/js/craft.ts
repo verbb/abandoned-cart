@@ -25,6 +25,7 @@ declare global {
     const Craft: CraftGlobal;
     const Garnish: {
         DragSort: new (items: HTMLElement[] | JQuery, settings: Record<string, unknown>) => { $items: JQuery };
+        DisclosureMenu: new (trigger: HTMLElement | JQuery) => { hide(): void };
     };
     const $: (target: unknown) => JQuery;
 }

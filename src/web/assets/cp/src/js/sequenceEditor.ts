@@ -1,4 +1,5 @@
 import type { PkCombobox } from '@verbb/plugin-kit-web/components/combobox.js';
+import type { PkDialog } from '@verbb/plugin-kit-web/components/dialog.js';
 import { errorMessage, t, type CraftSlideout } from './craft.js';
 
 type EmailData = {
@@ -106,9 +107,7 @@ class EmailPanel {
             el('button', { type: 'button', class: 'btn small active', 'data-device': 'desktop', 'aria-pressed': 'true' }, t('Desktop')),
             el('button', { type: 'button', class: 'btn small', 'data-device': 'mobile', 'aria-pressed': 'false' }, t('Mobile')),
         );
-        const close = el('button', { type: 'button', class: 'btn small', 'data-close': '' }, t('Close'));
-
-        panel.append(el('header', { class: 'ac-panel__head' }, el('h2', {}, title), devices, close));
+        panel.append(el('header', { class: 'ac-panel__head' }, el('h2', {}, title), devices));
 
         this.form = el('form', { class: 'ac-panel__form', novalidate: '' });
         this.buildForm(isNew);
@@ -142,9 +141,12 @@ class EmailPanel {
             devices.querySelectorAll('button').forEach(b => { b.classList.toggle('active', b === button); b.setAttribute('aria-pressed', String(b === button)); });
             preview.querySelector('.ac-preview')?.classList.toggle('ac-preview--mobile', button.dataset.device === 'mobile');
         });
-        close.addEventListener('click', () => this.slideout?.close());
-
         this.slideout = new Craft.Slideout(panel, { containerAttributes: { class: 'ac-slideout' }, closeOnShadeClick: true });
+
+        // Craft's disclosure menu needs its trigger and menu in the page, so it starts once the slideout is open.
+        const menuTrigger = panel.querySelector<HTMLElement>('[data-disclosure-trigger]');
+        if (menuTrigger) new Garnish.DisclosureMenu(menuTrigger);
+
         this.slideout.on('close', () => window.setTimeout(() => this.slideout?.destroy(), 300));
         this.schedulePreview(0);
     }
@@ -258,38 +260,91 @@ class EmailPanel {
         );
     }
 
+    /** Craft's slideout footer: Send Test, Close, and Save with Delete in its menu. */
     private buildFooter(isNew: boolean): HTMLElement {
-        const to = el('input', { type: 'email', class: 'text', value: this.config.testEmail ?? '', 'aria-label': t('Send test to'), placeholder: t('you@example.com') });
         const test = el('button', { type: 'button', class: 'btn' }, t('Send Test'));
-        test.addEventListener('click', async () => {
-            test.classList.add('loading');
-            try {
-                const response = await Craft.sendActionRequest('POST', 'abandoned-cart/emails/send-test', { data: { ...this.values(), to: to.value } });
-                Craft.cp.displaySuccess(response.data.message);
-            } catch (error) {
-                Craft.cp.displayError(errorMessage(error));
-            } finally {
-                test.classList.remove('loading');
-            }
-        });
+        test.addEventListener('click', () => void this.openTestDialog());
 
         const note = el('span', { class: 'light ac-panel__note' }, isNew
             ? t('Carts already in this sequence keep their emails. New carts get this one.')
             : t('Saved changes also apply to carts already waiting for this email.'));
+        const close = el('button', { type: 'button', class: 'btn' }, t('Close'));
+        close.addEventListener('click', () => this.slideout?.close());
         const save = el('button', { type: 'button', class: 'btn submit' }, isNew ? t('Add Email') : t('Save'));
         save.addEventListener('click', () => void this.save());
 
-        const footer = el('footer', { class: 'ac-panel__foot' }, note, to, test);
+        const footer = el('footer', { class: 'ac-panel__foot' }, note, test, close);
 
-        if (!isNew) {
-            const remove = el('button', { type: 'button', class: 'btn', 'data-icon': 'trash' }, t('Delete'));
-            remove.addEventListener('click', () => void this.remove());
-            footer.append(remove);
+        if (isNew) {
+            footer.append(save);
+
+            return footer;
         }
 
-        footer.append(save);
+        const menuId = `ac-email-menu-${this.email.id}`;
+        const remove = el('button', { type: 'button', class: 'menu-item error' }, t('Delete'));
+        remove.addEventListener('click', () => void this.remove());
+        footer.append(el('div', { class: 'btngroup' },
+            save,
+            el('button', { type: 'button', class: 'btn submit menubtn', 'aria-label': t('More actions'), 'aria-controls': menuId, 'data-disclosure-trigger': '' }),
+            el('div', { id: menuId, class: 'menu menu--disclosure', 'data-align': 'right' }, el('ul', {}, el('li', {}, remove))),
+        ));
 
         return footer;
+    }
+
+    /** A dialog for the test address, with room to show why a send failed. */
+    private async openTestDialog(): Promise<void> {
+        const dialog = document.createElement('pk-dialog') as PkDialog;
+        dialog.label = t('Send a Test');
+
+        const input = el('input', { type: 'email', class: 'text fullwidth', autocomplete: 'email', required: '', value: this.config.testEmail ?? '' });
+        const error = el('p', { class: 'error ac-test-error', role: 'alert' });
+        error.hidden = true;
+        const form = el('form', { novalidate: '' },
+            field(t('Send To'), input, t('The email is sent as it is now, including changes you haven’t saved, using the cart you’re previewing with.')),
+            error,
+        );
+
+        const cancel = el('button', { type: 'button', class: 'btn', slot: 'footer' }, t('Cancel'));
+        const send = el('button', { type: 'button', class: 'btn submit', slot: 'footer' }, t('Send'));
+        cancel.addEventListener('click', () => void dialog.hide());
+        send.addEventListener('click', () => form.requestSubmit());
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            error.hidden = true;
+
+            if (!input.value.trim() || !input.checkValidity()) {
+                error.textContent = t('Enter a valid email address.');
+                error.hidden = false;
+                input.focus();
+
+                return;
+            }
+
+            send.classList.add('loading');
+            send.disabled = true;
+            try {
+                const response = await Craft.sendActionRequest('POST', 'abandoned-cart/emails/send-test', { data: { ...this.values(), to: input.value.trim() } });
+                Craft.cp.displaySuccess(response.data.message);
+                void dialog.hide();
+            } catch (failure) {
+                error.textContent = errorMessage(failure) ?? t('The test couldn’t be sent.');
+                error.hidden = false;
+            } finally {
+                send.classList.remove('loading');
+                send.disabled = false;
+            }
+        });
+
+        dialog.append(form, cancel, send);
+        dialog.addEventListener('pk-after-hide', () => dialog.remove());
+        document.body.append(dialog);
+        await dialog.updateComplete;
+        await dialog.show();
+        input.focus();
+        input.select();
     }
 
     private applyStart(preset: StartPreset): void {
