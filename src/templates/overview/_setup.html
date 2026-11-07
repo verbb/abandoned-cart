@@ -81,7 +81,7 @@
                         <div><strong>{{ opportunity.withEmail }}</strong><span class="light">{{ 'had an email address' | t('abandoned-cart') }}</span></div>
                         <div><strong>{{ opportunity.carts - opportunity.withEmail }}</strong><span class="light">{{ 'had no email yet' | t('abandoned-cart') }}</span></div>
                     </div>
-                    <p class="light ac-hint">{{ 'These are the carts your emails could have reached, read from your Commerce orders. We don’t promise a recovery rate, because nobody can.' | t('abandoned-cart') }}</p>
+                    <p class="light ac-hint">{{ 'These are the carts your emails could have reached, read from your Commerce orders. It shows the opportunity, not a forecast: how many carts are recovered varies from store to store.' | t('abandoned-cart') }}</p>
                 {% else %}
                     <p><strong>{{ 'No abandoned carts yet' | t('abandoned-cart') }}</strong></p>
                     <p class="light ac-hint">{{ 'Carts left in your store over the last 30 days will show here, so you can see what your emails could reach.' | t('abandoned-cart') }}</p>
