@@ -4,7 +4,8 @@
  # as plain links; the data table takes them over to switch views without a reload.
  #}
 <nav aria-label="{{ label }}">
-    <ul class="sources-list ac-sources">
+    {# `alignToToolbar` drops the list to line up with a data table toolbar's search field. #}
+    <ul class="sources-list ac-sources{{ (alignToToolbar ?? false) ? ' ac-sources--toolbar' }}">
         {% for group in groups %}
             {% if group.heading ?? false %}
                 <li class="heading">

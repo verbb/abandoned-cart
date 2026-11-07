@@ -1643,3 +1643,8 @@ pk-status-label {
 .ac-sources a.sel .ac-source-count {
     color: inherit;
 }
+
+/* The data table's sticky toolbar pads its controls by 2px; match it so the first source lines up with the search field. */
+.ac-sources--toolbar {
+    margin-top: 2px;
+}

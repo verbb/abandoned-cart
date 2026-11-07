@@ -33,7 +33,8 @@ const sub = 'font-size: 12px; color: var(--pk-color-gray-550, #596673);';
 function personCell(row: DataTableRow) {
     const name = row.customer as string | null;
 
-    return html`<a href=${String(row.url)} style=${stack}><span style="font-weight: 500;">${name || row.email}</span>${name ? html`<span style=${sub}>${row.email}</span>` : null}</a>`;
+    // Only the name is the link, so hovering doesn't underline the email beneath it too.
+    return html`<span style=${stack}><a href=${String(row.url)} style="font-weight: 500; justify-self: start;">${name || row.email}</a>${name ? html`<span style=${sub}>${row.email}</span>` : null}</span>`;
 }
 
 function statusCell(tone: string, label: string, detail?: unknown) {

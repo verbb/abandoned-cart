@@ -24,6 +24,7 @@
     {% include 'abandoned-cart/_includes/sources' with {
         label: 'Carts' | t('abandoned-cart'),
         baseUrl: 'abandoned-cart/carts',
+        alignToToolbar: true,
         groups: [{ items: statusItems }] | merge(sequenceItems ? [{ heading: 'Sequences' | t('abandoned-cart'), items: sequenceItems }] : []),
     } only %}
 {% endblock %}
