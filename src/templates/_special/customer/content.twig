@@ -1,45 +1,65 @@
 {#
     Customer pages for recovery links and unsubscribing. This content renders inside the Customer Pages template set
-    in Settings, or inside a standalone page when none is set.
+    in Settings, or inside a standalone page when none is set. Styles are inline so the card looks right in either.
 #}
+{% set icons = {
+    mail: '<path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/>',
+    check: '<path d="m6 12.5 4 4 8-9"/>',
+    clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 2"/>',
+    cart: '<path d="M3 4h2l2.4 10.5h10.2L20 8H7"/><circle cx="9.5" cy="19" r="1.3"/><circle cx="17" cy="19" r="1.3"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.7 0l2.8-2.8a4 4 0 0 0-5.7-5.7L11.5 6.8"/><path d="M14 10a4 4 0 0 0-5.7 0l-2.8 2.8a4 4 0 0 0 5.7 5.7l1.3-1.3"/>',
+} %}
+{% set email = '<strong style="color:#111827;font-weight:600;">' ~ (customer.email ?? '') | e ~ '</strong>' %}
 {% set pages = {
     notFound: {
+        icon: 'link',
         heading: 'This link isn’t valid' | t('abandoned-cart'),
-        message: 'It may be incomplete, or it may have come from an old email. You can still visit the shop.' | t('abandoned-cart'),
+        message: 'It may be incomplete, or it may have come from an old email. You can still visit the shop.' | t('abandoned-cart') | e,
     },
     expired: {
+        icon: 'clock',
         heading: 'This link has expired' | t('abandoned-cart'),
-        message: 'Cart links only last a little while, to keep your details safe. Your items may still be in stock.' | t('abandoned-cart'),
+        message: 'Cart links only last a little while, to keep your details safe. Your items may still be in stock.' | t('abandoned-cart') | e,
     },
     alreadyCompleted: {
+        icon: 'check',
+        done: true,
         heading: 'This order is already complete' | t('abandoned-cart'),
-        message: 'Thanks for your order. There’s nothing left in this cart to finish.' | t('abandoned-cart'),
+        message: 'Thanks for your order. There’s nothing left in this cart to finish.' | t('abandoned-cart') | e,
     },
     cartEmpty: {
+        icon: 'cart',
         heading: 'This cart is empty' | t('abandoned-cart'),
-        message: 'The items in it may have changed since we emailed you.' | t('abandoned-cart'),
+        message: 'The items in it may have changed since we emailed you.' | t('abandoned-cart') | e,
     },
     unsubscribe: {
+        icon: 'mail',
         heading: 'Stop cart reminders?' | t('abandoned-cart'),
-        message: 'We won’t email {email} about carts left at {siteName} again. Order confirmations and receipts still arrive as normal.' | t('abandoned-cart', { email: customer.email ?? '', siteName: siteName }),
+        message: 'We won’t email {email} about carts left at {siteName} again. Order confirmations and receipts still arrive as normal.' | t('abandoned-cart', { email: '{email}', siteName: siteName }) | e | replace({ '{email}': email }),
     },
     unsubscribed: {
+        icon: 'check',
+        done: true,
         heading: 'You’re unsubscribed' | t('abandoned-cart'),
-        message: 'You won’t get any more cart reminders from us.' | t('abandoned-cart'),
+        message: 'You won’t get any more cart reminders from us.' | t('abandoned-cart') | e,
     },
 } %}
 {% set content = pages[page] ?? pages.notFound %}
+{% set button = 'display:inline-flex;justify-content:center;min-width:200px;padding:12px 20px;border:0;border-radius:8px;background:#111827;color:#fff;font:inherit;font-weight:600;line-height:1.2;text-decoration:none;cursor:pointer;' %}
 
-<div class="abandoned-cart-page" data-page="{{ page }}" style="max-width:460px;margin:48px auto;text-align:center;font-family:inherit;">
-    <h1 style="margin:0 0 14px;">{{ content.heading }}</h1>
-    <p style="margin:0 0 24px;line-height:1.6;">{{ content.message }}</p>
+<div class="abandoned-cart-page" data-page="{{ page }}" style="box-sizing:border-box;width:100%;max-width:440px;margin:0 auto;padding:36px 32px 30px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);text-align:center;font-family:inherit;color:#111827;">
+    <div aria-hidden="true" style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;margin:0 auto 18px;border-radius:50%;background:{{ (content.done ?? false) ? '#ecfdf3' : '#f3f4f6' }};color:{{ (content.done ?? false) ? '#067647' : '#4b5563' }};">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{{ icons[content.icon] | raw }}</svg>
+    </div>
+    <h1 style="margin:0 0 10px;font-size:22px;line-height:1.3;">{{ content.heading }}</h1>
+    <p style="margin:0 0 24px;color:#4b5563;line-height:1.6;">{{ content.message | raw }}</p>
 
     {% if page == 'unsubscribe' %}
-        <form method="post" action="{{ actionUrl }}">
-            <button type="submit" style="display:inline-block;min-width:220px;padding:13px 18px;border:0;border-radius:6px;background:#2b2724;color:#fff;font:inherit;font-weight:600;cursor:pointer;">{{ 'Unsubscribe' | t('abandoned-cart') }}</button>
+        <form method="post" action="{{ actionUrl }}" style="margin:0;">
+            <button type="submit" style="{{ button }}">{{ 'Unsubscribe' | t('abandoned-cart') }}</button>
         </form>
-        <p style="margin:16px 0 0;"><a href="{{ homeUrl }}" style="color:inherit;">{{ 'Keep getting reminders' | t('abandoned-cart') }}</a></p>
+        <p style="margin:14px 0 0;"><a href="{{ homeUrl }}" style="color:#4b5563;text-underline-offset:3px;">{{ 'Keep getting reminders' | t('abandoned-cart') }}</a></p>
     {% else %}
-        <a href="{{ homeUrl }}" style="display:inline-block;min-width:220px;padding:13px 18px;border-radius:6px;background:#2b2724;color:#fff;text-decoration:none;font-weight:600;">{{ 'Continue shopping' | t('abandoned-cart') }}</a>
+        <a href="{{ homeUrl }}" style="{{ button }}">{{ 'Continue shopping' | t('abandoned-cart') }}</a>
     {% endif %}
 </div>

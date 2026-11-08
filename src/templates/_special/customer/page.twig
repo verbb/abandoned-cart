@@ -6,10 +6,15 @@
     <meta name="robots" content="noindex">
     <title>{{ siteName }}</title>
 </head>
-<body style="margin:0;padding:24px;background:#faf8f5;color:#2b2724;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-    <header style="max-width:960px;margin:0 auto;padding:8px 0 24px;border-bottom:1px solid #ece6df;">
-        <a href="{{ homeUrl }}" style="color:inherit;text-decoration:none;font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:14px;">{{ siteName }}</a>
-    </header>
-    <main>{{ body | raw }}</main>
+{# A plain shop frame for when no Page Template is set: the store's name, a way back to the shop, and a grey page for the content's card. #}
+<body style="margin:0;background:#f3f4f6;color:#111827;font:16px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="display:flex;flex-direction:column;min-height:100vh;">
+        <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 28px;border-bottom:1px solid #e5e7eb;background:#fff;">
+            <a href="{{ homeUrl }}" style="color:#111827;text-decoration:none;font-weight:700;font-size:17px;">{{ siteName }}</a>
+            <a href="{{ homeUrl }}" style="color:#4b5563;text-decoration:none;font-size:14px;">{{ 'Continue shopping' | t('abandoned-cart') }} →</a>
+        </header>
+        <main style="flex:1;display:grid;place-items:center;padding:48px 20px;">{{ body | raw }}</main>
+        <footer style="padding:18px 28px;border-top:1px solid #e5e7eb;background:#fff;color:#6b7280;font-size:13px;">© {{ now | date('Y') }} {{ siteName }}</footer>
+    </div>
 </body>
 </html>

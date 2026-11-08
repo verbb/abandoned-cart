@@ -1,6 +1,6 @@
 # Styling Customer Pages
 
-Customers sometimes reach a page from Abandoned Cart instead of their cart: when a recovery link has expired, when the order is already complete, when the cart is empty or the link isn't valid, and when they unsubscribe. By default, these are simple standalone pages with your site's name at the top. This guide shows you how to display them inside your site's own layout, so they have your header, navigation and footer like the rest of the store.
+Customers sometimes reach a page from Abandoned Cart instead of their cart: when a recovery link has expired, when the order is already complete, when the cart is empty or the link isn't valid, and when they unsubscribe. By default, these are simple standalone pages, with your site's name and a link back to the shop above a card that holds the message. This guide shows you how to display them inside your site's own layout, so they have your header, navigation and footer like the rest of the store.
 
 ## Prepare Your Layout
 
@@ -57,13 +57,14 @@ Each page's content is wrapped in an element you can target from your stylesheet
 
 ```html
 <div class="abandoned-cart-page" data-page="expired">
+    <div aria-hidden="true"><svg>…</svg></div>
     <h1>This link has expired</h1>
     <p>…</p>
     <a href="…">Continue shopping</a>
 </div>
 ```
 
-The `data-page` attribute identifies the page: `notFound`, `expired`, `alreadyCompleted`, `cartEmpty`, `unsubscribe` or `unsubscribed`. The content has some inline spacing and button styles, so it looks reasonable in any layout. To restyle the button to match your own, target it from your stylesheet:
+The `data-page` attribute identifies the page: `notFound`, `expired`, `alreadyCompleted`, `cartEmpty`, `unsubscribe` or `unsubscribed`. The content is a white card with an icon and some inline spacing and button styles, so it looks reasonable in any layout. To restyle the button to match your own, target it from your stylesheet:
 
 ```css
 .abandoned-cart-page a,
