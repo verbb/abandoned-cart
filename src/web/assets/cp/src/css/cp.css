@@ -51,9 +51,10 @@
     display: inline;
 }
 
+/* Sits on the text's baseline; centring on the line box leaves the pill looking low beside heavier text. */
 .ac-inline-label {
     margin-inline-start: 6px;
-    vertical-align: middle;
+    vertical-align: baseline;
 }
 
 .ac-duration {
@@ -95,7 +96,8 @@
 }
 
 /* Pages whose cards sit on the page background instead of Craft's white pane */
-#content.ac-unpaned {
+#content.ac-unpaned,
+#content:has(.ac-user-screen) {
     padding: 0;
     background: transparent;
     box-shadow: none;
