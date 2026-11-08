@@ -1908,9 +1908,15 @@ tr.ac-toggle-row-host:hover > * {
     padding-bottom: 8px;
 }
 
+/* Tables in narrow cards, such as a user account's sidebar-squeezed screen, scroll rather than spill out. */
+.ac-table-scroll {
+    overflow-x: auto;
+}
+
 /* The Abandoned Cart screen on a user's account */
 .ac-user-screen {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--ac-gap, 16px);
 }
 

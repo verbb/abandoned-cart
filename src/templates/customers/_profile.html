@@ -24,26 +24,28 @@
 <div class="ac-card ac-card--table">
     <div class="ac-card__head"><h2>{{ 'Carts' | t('abandoned-cart') }}</h2><span class="light">{{ 'Newest first' | t('abandoned-cart') }}</span></div>
     {% if history %}
-        <table class="data fullwidth">
-            <thead><tr><th>{{ 'Abandoned' | t('abandoned-cart') }}</th><th class="ac-num">{{ 'Value' | t('abandoned-cart') }}</th><th>{{ 'Sequence' | t('abandoned-cart') }}</th><th>{{ 'Emails' | t('abandoned-cart') }}</th><th>{{ 'Outcome' | t('abandoned-cart') }}</th></tr></thead>
-            <tbody>
-                {% for row in history %}
-                    {% set state = row.kind == 'skipped' ? 'skipped' : row.status %}
-                    <tr>
-                        <td><a href="{{ url(row.kind == 'skipped' ? 'abandoned-cart/carts/skipped/' ~ row.id : 'abandoned-cart/carts/' ~ row.id) }}">{{ row.abandonedAt | datetime('short') }}</a></td>
-                        <td class="ac-num">{{ formatter.asCurrency(row.cartTotal, row.currency ?: currency) }}</td>
-                        <td>{{ row.sequenceId ? (sequences[row.sequenceId] ?? '—') : '—' }}</td>
-                        <td>
-                            <span class="ac-pips">{% for step in progress[row.id] ?? [] %}<i class="ac-pip ac-pip--{{ step.status }}"></i>{% else %}—{% endfor %}</span>
-                        </td>
-                        <td>
-                            <pk-status-label status="{{ rowStates[state][0] }}">{{ rowStates[state][1] }}</pk-status-label>
-                            {% if row.kind == 'skipped' %}<span class="light ac-sub">{{ reasonLabels[row.reason] ?? row.reason }}</span>{% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="ac-table-scroll">
+            <table class="data fullwidth">
+                <thead><tr><th>{{ 'Abandoned' | t('abandoned-cart') }}</th><th class="ac-num">{{ 'Value' | t('abandoned-cart') }}</th><th>{{ 'Sequence' | t('abandoned-cart') }}</th><th>{{ 'Emails' | t('abandoned-cart') }}</th><th>{{ 'Outcome' | t('abandoned-cart') }}</th></tr></thead>
+                <tbody>
+                    {% for row in history %}
+                        {% set state = row.kind == 'skipped' ? 'skipped' : row.status %}
+                        <tr>
+                            <td><a href="{{ url(row.kind == 'skipped' ? 'abandoned-cart/carts/skipped/' ~ row.id : 'abandoned-cart/carts/' ~ row.id) }}">{{ row.abandonedAt | datetime('short') }}</a></td>
+                            <td class="ac-num">{{ formatter.asCurrency(row.cartTotal, row.currency ?: currency) }}</td>
+                            <td>{{ row.sequenceId ? (sequences[row.sequenceId] ?? '—') : '—' }}</td>
+                            <td>
+                                <span class="ac-pips">{% for step in progress[row.id] ?? [] %}<i class="ac-pip ac-pip--{{ step.status }}"></i>{% else %}—{% endfor %}</span>
+                            </td>
+                            <td>
+                                <pk-status-label status="{{ rowStates[state][0] }}">{{ rowStates[state][1] }}</pk-status-label>
+                                {% if row.kind == 'skipped' %}<span class="light ac-sub">{{ reasonLabels[row.reason] ?? row.reason }}</span>{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% else %}
         <p class="light">{{ 'No carts yet.' | t('abandoned-cart') }}</p>
     {% endif %}
