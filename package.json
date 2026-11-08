@@ -3,9 +3,13 @@
     "version": "5.0.0-alpha.1",
     "private": true,
     "type": "module",
+    "workspaces": [
+        "docs"
+    ],
     "scripts": {
         "build": "vite build",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "dev:plugin-docs": "npm run docs:dev --prefix docs"
     },
     "dependencies": {
         "@verbb/plugin-kit-web": "file:../../../plugin-kit/plugin-kit/plugin-kit-web",
