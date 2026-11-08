@@ -598,8 +598,10 @@
     border-inline-end: 1px solid var(--hairline-color, #e3e8ef);
 }
 
+/* The single track is pinned to the column, so the preview shrinks with a narrow slideout instead of overflowing it. */
 .ac-panel__preview {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     align-content: start;
     gap: 12px;
     overflow: auto;
