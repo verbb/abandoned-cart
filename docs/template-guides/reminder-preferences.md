@@ -1,6 +1,6 @@
-# Letting Customers Manage Reminder Emails
+# Reminder Preferences
 
-Customers can always stop cart reminders with the unsubscribe link in an email, but some look for the setting in their account instead, alongside their addresses and order history. This guide adds a "Email me about items I leave in my cart" checkbox to an account page on your site. Signed-in customers can turn reminders off, and turn them back on later, without waiting for an email.
+Customers can always stop cart reminders with the unsubscribe link in an email, but some look for the setting in their account instead, alongside their addresses and order history. This guide adds an "Email me about items I leave in my cart" checkbox to an account page on your site. Signed-in customers can turn reminders off, and turn them back on later, without waiting for an email.
 
 The form needs a page that only signed-in customers can reach, such as the account area most Commerce stores already have. The example assumes a template at `templates/account/preferences.twig`, shown at `/account/preferences`.
 

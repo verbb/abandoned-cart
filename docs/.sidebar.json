@@ -17,7 +17,7 @@
             "feature-tour/sequences",
             "feature-tour/emails-and-email-templates",
             "feature-tour/sending-and-scheduling",
-            "feature-tour/recovery-links-and-unsubscribing",
+            "feature-tour/recovery-links",
             "feature-tour/carts",
             "feature-tour/customers",
             "feature-tour/overview",
@@ -30,8 +30,8 @@
         "children": [
             "template-guides/custom-email-templates",
             "template-guides/styling-customer-pages",
-            "template-guides/showing-the-restored-cart-notice",
-            "template-guides/letting-customers-manage-reminder-emails"
+            "template-guides/restored-cart-notice",
+            "template-guides/reminder-preferences"
         ]
     },
     {

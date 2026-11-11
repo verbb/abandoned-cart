@@ -1,4 +1,4 @@
-# Showing the Restored Cart Notice
+# Restored Cart Notice
 
 When a customer follows a recovery link, Abandoned Cart restores their cart and sends them to your cart page with a short notice: "Welcome back. Your cart is just as you left it." A visible welcome reassures the customer that they've arrived in the right place, and confirms that any discount from the email has been applied. This guide shows how to display that notice, and the discount, in your cart template.
 

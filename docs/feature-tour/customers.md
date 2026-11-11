@@ -19,7 +19,7 @@ When the customer was emailed recently, the page also says when they can next st
 Every customer has one of three statuses:
 
 - **Can be emailed**: the customer's carts can enter sequences, subject to your other settings.
-- **Unsubscribed**: the customer used an unsubscribe link, or turned cart reminders off from their account on your site. Only the customer can reverse this, by opting in again at checkout or from their account. [Recovery Links and Unsubscribing](recovery-links-and-unsubscribing.md#unsubscribing) explains how.
+- **Unsubscribed**: the customer used an unsubscribe link, or turned cart reminders off from their account on your site. Only the customer can reverse this, by opting in again at checkout or from their account. [Unsubscribing](recovery-links.md#unsubscribing) explains how.
 - **Do not email**: staff have asked Abandoned Cart never to email this address about carts.
 
 Unsubscribed and Do not email both stop any recovery that's under way straight away, and the customer's later carts are recorded as skipped.

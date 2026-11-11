@@ -1,4 +1,4 @@
-# Recovery Links and Unsubscribing
+# Recovery Links
 
 Every recovery email carries two links for the customer: a recovery link, behind the email's button, that brings their cart back, and an unsubscribe link that stops cart reminders. This page describes what happens when a customer follows each one.
 
@@ -6,7 +6,7 @@ Every recovery email carries two links for the customer: a recovery link, behind
 
 When a customer follows a recovery link, Abandoned Cart puts their cart back into their browser session, so the items are waiting exactly as they left them. If the email has a discount code, the code is applied to the cart at the same time. The customer then lands on the **Return Page**, usually your cart or checkout page, with a notice that reads "Welcome back. Your cart is just as you left it."
 
-The click is recorded against the email the customer followed. You'll see it in the cart's history, and if they go on to complete the order, the recovery is credited to that email. [Showing the Restored Cart Notice](../template-guides/showing-the-restored-cart-notice.md) explains how to display the notice in your cart template.
+The click is recorded against the email the customer followed. You'll see it in the cart's history, and if they go on to complete the order, the recovery is credited to that email. [Restored Cart Notice](../template-guides/restored-cart-notice.md) explains how to display the notice in your cart template.
 
 The Return Page comes from **Settings → General Settings**, unless the cart's sequence overrides it. A relative path such as `shop/cart` is resolved against the site the cart belongs to.
 
@@ -35,4 +35,4 @@ Abandoned Cart also adds `List-Unsubscribe` and `List-Unsubscribe-Post` headers 
 
 Unsubscribing stops every cart reminder to that email address, across all sequences, and ends any recovery that's under way. It doesn't affect Commerce's order confirmations or other emails your store sends. The customer's status changes to **Unsubscribed** on the [Customers](customers.md) screen.
 
-Staff can't undo an unsubscribe. A customer can, in two ways. When a consent field is in use and the customer switches it on for an order they complete, their status returns to **Can be emailed**. Customers with an account can also turn cart reminders off and on again from an account page on your site, if you add the form described in [Letting Customers Manage Reminder Emails](../template-guides/letting-customers-manage-reminder-emails.md).
+Staff can't undo an unsubscribe. A customer can, in two ways. When a consent field is in use and the customer switches it on for an order they complete, their status returns to **Can be emailed**. Customers with an account can also turn cart reminders off and on again from an account page on your site, if you add the form described in [Reminder Preferences](../template-guides/reminder-preferences.md).
