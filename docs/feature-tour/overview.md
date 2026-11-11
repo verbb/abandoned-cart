@@ -4,7 +4,7 @@ The Overview is the first screen under **Abandoned Carts**. It shows what cart r
 
 ## Before Recovery Starts
 
-Until a sequence is switched on, the Overview shows a setup checklist: check your sending details, review the default sequence's emails, send yourself a test and turn on recovery. Beside it, **Last 30 Days** shows the value left in incomplete carts over the past month, read from your Commerce orders, and how many of those carts had an email address. Those are the carts your emails could have reached. [Setting Up Your First Sequence](../get-started/setting-up-your-first-sequence.md) follows the checklist step by step.
+Until a sequence is switched on, the Overview shows a setup checklist: check your sending details, review the default sequence's emails, send yourself a test and turn on recovery. Beside it, **Last 30 Days** shows the value left in incomplete carts over the past month, read from your Commerce orders, and how many of those carts had an email address. Those are the carts your emails could have reached. [Create Your First Sequence](../get-started/create-your-first-sequence.md) follows the checklist step by step.
 
 Once a sequence is on, the Overview explains what happens next until the first carts have been through recovery. Results usually start appearing within a day or two.
 

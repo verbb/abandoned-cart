@@ -16,7 +16,7 @@ The match happens once, when the cart is abandoned. If the customer later adds m
 
 The default sequence is always last in the list, marked with a tick, and takes every cart that reaches it. It can't be deleted or given an audience, but you can rename it or switch it off. With it off, a cart that doesn't match another sequence isn't emailed. It's recorded as skipped, with the reason **No sequence was on**.
 
-A fresh install creates it as **All Other Carts**, with three emails, using the bundled email design. The first goes straight away once the cart is abandoned, the second a day later, and the third two days after that. It starts switched off so you can review it first. [Setting Up Your First Sequence](../get-started/setting-up-your-first-sequence.md) walks through that review.
+A fresh install creates it as **All Other Carts**, with three emails, using the bundled email design. The first goes straight away once the cart is abandoned, the second a day later, and the third two days after that. It starts switched off so you can review it first. [Create Your First Sequence](../get-started/create-your-first-sequence.md) walks through that review.
 
 ## Turning a Sequence On and Off
 

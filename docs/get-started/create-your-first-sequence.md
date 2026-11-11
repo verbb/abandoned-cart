@@ -1,4 +1,4 @@
-# Setting Up Your First Sequence
+# Create Your First Sequence
 
 A sequence is the series of emails a customer receives after leaving a cart. Abandoned Cart installs with one ready-made sequence, the default sequence, called **All Other Carts**. It sends three friendly reminders: one hour after the cart is left, then a day later, then two days after that. This walkthrough takes you from a fresh install to that sequence emailing real carts, and shows you how to check it's working.
 
