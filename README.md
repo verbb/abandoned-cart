@@ -18,13 +18,16 @@ Abandoned Cart keeps the complete recovery workflow inside Craft. Choose when re
 - Test the workflow before sending live reminders.
 
 ## Documentation
+
 Visit the [Abandoned Cart Plugin page](https://verbb.io/craft-plugins/abandoned-cart) for all documentation, guides, pricing and developer resources.
 
 ## Credit & Thanks
+
 Originally created by Myles Beardsmore.
 
 ## Support
-Get in touch with us via the [Abandoned Cart Support page](https://verbb.io/craft-plugins/abandoned-cart/support) or by [creating a Github issue](https://github.com/verbb/abandoned-cart/issues)
+
+Get in touch with us via the [Abandoned Cart Support page](https://verbb.io/craft-plugins/abandoned-cart/support) or by [creating a GitHub issue](https://github.com/verbb/abandoned-cart/issues).
 
 <h2></h2>
 
