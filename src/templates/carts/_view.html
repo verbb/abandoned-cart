@@ -74,7 +74,11 @@
             <div>
                 <h2>{{ 'Not recovered: {reason}' | t('abandoned-cart', { reason: recovery.endReasonLabel | lower }) }}</h2>
                 <p>{{ 'Recovery ended {date}.' | t('abandoned-cart', { date: recovery.endedAt ? recovery.endedAt | datetime('short') : '' }) }}</p>
+                {% if continuedIn %}
+                    <p>{{ 'The customer left a newer cart, so this cart’s emails, including any already sent, carry on with that one.' | t('abandoned-cart') }}</p>
+                {% endif %}
             </div>
+            {% if continuedIn %}<a class="btn" href="{{ continuedIn.cpEditUrl }}">{{ 'View Newer Cart' | t('abandoned-cart') }}</a>{% endif %}
         </div>
     {% endif %}
 
@@ -95,6 +99,9 @@
                     {% endif %}
                 </li>
             {% endfor %}
+            {% if continuedIn and not attempts %}
+                <li class="ac-journey--cancelled"><strong>{{ 'Emails moved to a newer cart' | t('abandoned-cart') }}</strong><span>{{ recovery.endedAt ? recovery.endedAt | datetime('short') : '' }}</span></li>
+            {% endif %}
             {% if recovery.status == 'recovered' %}
                 <li class="ac-journey--order"><strong>{{ 'Ordered' | t('abandoned-cart') }}</strong><span>{{ recovery.recoveredAt | datetime('short') }}</span></li>
             {% endif %}

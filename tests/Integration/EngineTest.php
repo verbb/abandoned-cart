@@ -440,3 +440,22 @@ it('doesn’t move later emails back when a recovery link applies a discount cod
         ->and($dueDates($recovery))->toEqual($due)
         ->and(craft\commerce\elements\Order::find()->id($order->id)->status(null)->one()->couponCode)->toBe('COMEBACK10');
 });
+
+it('points the older cart at the recovery that carried on after a takeover', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $older = $this->createCart('moved.on@example.test', idleMinutes: 300);
+    engine()->run();
+    $customer = AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('moved.on@example.test');
+    $original = engine()->getRecoveriesByCustomerId($customer->id)[0];
+
+    $this->createCart('moved.on@example.test', idleMinutes: 90);
+    engine()->run();
+
+    $ended = array_values(array_filter(engine()->getRecoveriesByCustomerId($customer->id), fn(Recovery $recovery) => $recovery->orderId === $older->id))[0];
+    $activities = AbandonedCart::$plugin->getActivities()->getActivitiesByRecoveryId($ended->id);
+
+    expect($ended->getAttempts())->toBeEmpty()
+        ->and($activities)->toHaveCount(1)
+        ->and($activities[0]['type'])->toBe(verbb\abandonedcart\services\Activities::TYPE_ENDED)
+        ->and($activities[0]['data']['recoveryId'])->toBe($original->id);
+});

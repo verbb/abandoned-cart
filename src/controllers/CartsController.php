@@ -7,6 +7,7 @@ use verbb\abandonedcart\models\CartSummary;
 use verbb\abandonedcart\models\Customer;
 use verbb\abandonedcart\models\Recovery;
 use verbb\abandonedcart\models\SkippedCart;
+use verbb\abandonedcart\services\Activities;
 use verbb\abandonedcart\services\Runs;
 
 use Craft;
@@ -179,6 +180,7 @@ class CartsController extends BaseCpController
             'sequence' => $sequence,
             'audience' => $sequence ? $plugin->getAudiences()->describe($sequence) : null,
             'clicked' => array_unique(array_column(array_filter($activities, static fn(array $a): bool => $a['type'] === 'clicked'), 'attemptId')),
+            'continuedIn' => $this->_continuedIn($recovery, $activities),
         ]);
     }
 
@@ -303,6 +305,24 @@ class CartsController extends BaseCpController
         }
 
         return $steps ? Craft::t('abandoned-cart', 'All emails sent') : null;
+    }
+
+    /**
+     * When a newer cart took over this cart's recovery, the recovery it carried on as, with the emails already sent.
+     */
+    private function _continuedIn(Recovery $recovery, array $activities): ?Recovery
+    {
+        if ($recovery->endReason !== Recovery::END_NEWER_CART) {
+            return null;
+        }
+
+        foreach ($activities as $activity) {
+            if ($activity['type'] === Activities::TYPE_ENDED && !empty($activity['data']['recoveryId'])) {
+                return AbandonedCart::$plugin->getRecoveries()->getRecoveryById((int)$activity['data']['recoveryId']);
+            }
+        }
+
+        return null;
     }
 
     private function _userNames(array $userIds): array

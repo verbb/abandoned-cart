@@ -696,7 +696,8 @@ class Recoveries extends Component
             ], ['id' => $current->id]);
 
             $activities = AbandonedCart::$plugin->getActivities();
-            $activities->log($older->id, Activities::TYPE_ENDED, null, ['reason' => $label]);
+            // The older cart's page links to where its emails went.
+            $activities->log($older->id, Activities::TYPE_ENDED, null, ['reason' => $label, 'recoveryId' => $current->id]);
             $activities->log($current->id, Activities::TYPE_TAKEN_OVER, null, ['number' => $order->getShortNumber()]);
 
             $transaction->commit();
