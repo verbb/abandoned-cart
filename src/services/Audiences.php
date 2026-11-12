@@ -7,8 +7,6 @@ use verbb\abandonedcart\models\Sequence;
 
 use Craft;
 use craft\base\Component;
-use craft\db\Query;
-use craft\db\Table as CraftTable;
 use craft\elements\conditions\ElementConditionInterface;
 
 use Throwable;
@@ -154,9 +152,8 @@ class Audiences extends Component
     private function _matchesProducts(Order $order, array $settings): bool
     {
         $productIds = array_map('intval', (array)($settings['productIds'] ?? []));
-        $categoryIds = array_map('intval', (array)($settings['categoryIds'] ?? []));
 
-        if (!$productIds && !$categoryIds) {
+        if (!$productIds) {
             return false;
         }
 
@@ -174,17 +171,7 @@ class Audiences extends Component
 
         $cartProductIds = array_values(array_unique(array_filter($cartProductIds)));
 
-        if ($categoryIds && $cartProductIds) {
-            $related = (new Query())
-                ->select(['sourceId'])
-                ->distinct()
-                ->from([CraftTable::RELATIONS])
-                ->where(['sourceId' => $cartProductIds, 'targetId' => $categoryIds])
-                ->column();
-            $productIds = [...$productIds, ...array_map('intval', $related)];
-        }
-
-        if (($settings['match'] ?? 'any') === 'all' && !$categoryIds) {
+        if (($settings['match'] ?? 'any') === 'all') {
             return !array_diff($productIds, $cartProductIds);
         }
 

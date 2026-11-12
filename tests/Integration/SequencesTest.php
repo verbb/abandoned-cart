@@ -158,3 +158,20 @@ it('renames the default sequence to All Other Carts unless the store has renamed
     $migration->safeUp();
     expect($name())->toBe('Our Usual Emails');
 });
+
+it('matches the Products audience on the products chosen, and nothing else', function() {
+    $audiences = AbandonedCart::$plugin->getAudiences();
+    $wallet = $this->createVariant();
+    $bag = $this->createVariant();
+    $cart = $this->createCart('products@example.test', $wallet);
+    $sequence = saveSequence(['audienceType' => Sequence::AUDIENCE_PRODUCTS, 'audienceSettings' => ['match' => 'any', 'productIds' => [$wallet->primaryOwnerId]]]);
+
+    expect($audiences->matches($sequence, $cart))->toBeTrue();
+
+    $sequence->audienceSettings = ['match' => 'all', 'productIds' => [$wallet->primaryOwnerId, $bag->primaryOwnerId]];
+    expect($audiences->matches($sequence, $cart))->toBeFalse();
+
+    // There's no category setting. One left in a sequence's settings is ignored.
+    $sequence->audienceSettings = ['match' => 'any', 'productIds' => [], 'categoryIds' => [123]];
+    expect($audiences->matches($sequence, $cart))->toBeFalse();
+});
