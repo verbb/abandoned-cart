@@ -20,6 +20,7 @@ use verbb\abandonedcart\records\SkippedCart as SkippedCartRecord;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use craft\db\Table as CraftTable;
 use craft\elements\User;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
@@ -36,6 +37,7 @@ use yii\base\InvalidArgumentException as YiiInvalidArgumentException;
 use Throwable;
 use yii\base\Event;
 
+use craft\commerce\db\Table as CommerceTable;
 use craft\commerce\elements\Order;
 
 class Recoveries extends Component
@@ -586,6 +588,24 @@ class Recoveries extends Component
         $id = (new Query())->select(['id'])->from([Table::CUSTOMERS])->where(['uid' => $uid])->scalar();
 
         return $id ? AbandonedCart::$plugin->getCustomers()->getCustomerById((int)$id) : null;
+    }
+
+    /**
+     * Applies an email's discount code to the cart a recovery link restores. Saving the order would make it look
+     * changed, which moves the remaining emails later, so the cart keeps the time the customer last changed it.
+     */
+    public function applyDiscountCode(Order $order, string $couponCode): void
+    {
+        $lastChanged = Db::prepareDateForDb($order->dateUpdated);
+        $order->couponCode = $couponCode;
+        Craft::$app->getElements()->saveElement($order, false);
+
+        if ($lastChanged) {
+            Db::update(CraftTable::ELEMENTS, ['dateUpdated' => $lastChanged], ['id' => $order->id], [], false);
+            Db::update(CraftTable::ELEMENTS_SITES, ['dateUpdated' => $lastChanged], ['elementId' => $order->id], [], false);
+            Db::update(CommerceTable::ORDERS, ['dateUpdated' => $lastChanged], ['id' => $order->id], [], false);
+            $order->dateUpdated = DateTimeHelper::toDateTime($lastChanged);
+        }
     }
 
     public function recordVisit(Recovery $recovery, ?Attempt $attempt, string $result): void

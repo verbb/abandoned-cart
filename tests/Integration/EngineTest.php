@@ -415,3 +415,28 @@ it('gives no click credit for a link that didn’t restore the cart', function()
         ->and($recovery->creditedAttemptId)->toBe($recovery->getAttempts()[0]->id)
         ->and($recovery->clickedBeforeOrder)->toBeFalse();
 });
+
+it('doesn’t move later emails back when a recovery link applies a discount code', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $order = $this->createCart('discount.saver@example.test', idleMinutes: 90);
+    $other = $this->createCart('plain.saver@example.test', idleMinutes: 90);
+    engine()->run();
+    $recoveryFor = fn(string $email) => engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail($email)->id)[0];
+    $dueDates = fn(Recovery $recovery) => array_map(fn(Attempt $attempt) => $attempt->dueAt, engine()->getRecoveryById($recovery->id)->getAttempts());
+    $recovery = $recoveryFor('discount.saver@example.test');
+    $otherRecovery = $recoveryFor('plain.saver@example.test');
+    $due = $dueDates($recovery);
+    $otherDue = $dueDates($otherRecovery);
+
+    // Saving the order with a code is a cart change, as far as the scheduler can tell.
+    $other->couponCode = 'COMEBACK10';
+    Craft::$app->getElements()->saveElement($other, false);
+
+    // The recovery link applies its code without the cart looking changed.
+    engine()->applyDiscountCode($order, 'COMEBACK10');
+    engine()->rescheduleChangedCarts();
+
+    expect($dueDates($otherRecovery)[1] > $otherDue[1])->toBeTrue()
+        ->and($dueDates($recovery))->toEqual($due)
+        ->and(craft\commerce\elements\Order::find()->id($order->id)->status(null)->one()->couponCode)->toBe('COMEBACK10');
+});

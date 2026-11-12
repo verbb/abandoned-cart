@@ -150,8 +150,7 @@ class RecoveryController extends Controller
         }
 
         if ($couponCode && $order->couponCode !== $couponCode) {
-            $order->couponCode = $couponCode;
-            Craft::$app->getElements()->saveElement($order, false);
+            $recoveries->applyDiscountCode($order, $couponCode);
         }
 
         $carts = Commerce::getInstance()->getCarts();

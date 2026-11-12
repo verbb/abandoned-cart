@@ -25,7 +25,7 @@
 - Upgrading from 4.x runs a one-time migration that converts 4.x settings, reminders, templates and the blocklist into the default sequence, email templates, Do Not Email statuses and the new settings, and imports 4.x reminder history.
 - The scheduler command is now `abandoned-cart/recoveries/run`, and sends due emails itself rather than queueing a job for each email. When cron isn't available, web requests queue a run while a sequence is on.
 - Recovery links now restore carts that belong to an account only for that customer, after signing in, and show a page explaining expired or invalid links.
-- Recovery links now apply the email’s discount code to the restored cart, and the bundled email says so.
+- Recovery links now apply the email’s discount code to the restored cart, and the bundled email says so. Applying the code doesn’t count as a cart change, so the remaining emails keep their times.
 - When a customer abandons a newer cart, it now takes over the recovery of their older one, keeping its sequence and the times of its remaining emails.
 - Any order a customer completes now ends their recovery, even when it’s from a different cart, and counts as recovered when it comes within the attribution window after an email, with or without a click.
 - Failed emails are now retried automatically, up to three tries.
