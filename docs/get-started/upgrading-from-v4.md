@@ -302,7 +302,7 @@ A cart that received the first 4.x reminder but not the second, and is still inc
 
 ### History
 
-Every 4.x cart that was sent a reminder or recovered appears on the Carts screen and in the Overview. Its history on the cart's page starts with "Imported from 4.x reminder history", followed by the reminders 4.x sent. Abandoned Cart 4 only recorded when the latest reminder was sent, so when both were sent, the first one's time is estimated. Recovered carts count as recovered, as do orders completed within the attribution window after the last reminder. Other imported carts end with the reason that fits what happened, such as **Emails finished** or **Ordered after the attribution window**.
+Every 4.x cart that was sent a reminder or recovered appears on the Carts screen and in the Overview. Its history on the cart's page starts with "Imported from 4.x reminder history", followed by the reminders 4.x sent. Abandoned Cart 4 only recorded when the latest reminder was sent, so when both were sent, the first one's time is estimated. Recovered carts count as recovered, as do orders completed within the attribution window after the last reminder. Other imported carts end with the reason that fits what happened, such as **Emails finished** or **Ordered after the attribution window**. A cart whose 4.x reminders stopped before the last one, without an order, ends as **Imported from 4.x**, because Abandoned Cart 4 didn't record why. The Overview leaves those carts out of **Why Carts Didn't Recover**.
 
 ### Recovery Links
 

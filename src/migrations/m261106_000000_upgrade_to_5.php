@@ -440,7 +440,9 @@ class m261106_000000_upgrade_to_5 extends Migration
                 // Part-way through 4.x: email 2 follows on, timed from the 4.x reminder.
                 $status = Recovery::STATUS_ACTIVE;
             } else {
-                $endReason = ($sentSecond || ($sentFirst && !$hasSecond)) ? Recovery::END_FINISHED : Recovery::END_EXPIRED;
+                // 4.x didn't record why its reminders stopped before the last one, so that outcome stays marked as imported
+                // rather than guessed, and the Overview leaves it out of the reasons carts didn't recover.
+                $endReason = ($sentSecond || ($sentFirst && !$hasSecond)) ? Recovery::END_FINISHED : Recovery::END_IMPORTED;
                 $endedAt = min($this->_now, $expiresAt);
             }
 

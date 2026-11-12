@@ -136,6 +136,7 @@ it('upgrades a 4.x install on Craft 5', function() {
         $orders['partWay'] = $this->createCart('part.way@example.test', idleMinutes: 300);
         $orders['finished'] = $this->createCart('both.sent@example.test', idleMinutes: 300);
         $orders['unsent'] = $this->createCart('never.sent@example.test', idleMinutes: 300);
+        $orders['stalled'] = $this->createCart('stalled@example.test', idleMinutes: 300);
         $this->completeOrder($orders['recovered']);
 
         rebuildLegacyInstall([
@@ -164,6 +165,7 @@ it('upgrades a 4.x install on Craft 5', function() {
         insertLegacyCart($orders['partWay'], ['firstReminder' => true, 'isSent' => true, 'isScheduled' => false, 'dateCreated' => $hoursAgo(5), 'dateLastSent' => Db::prepareDateForDb($hoursAgo(3)), 'recipientKey' => 'part.way@example.test']);
         insertLegacyCart($orders['finished'], ['firstReminder' => true, 'secondReminder' => true, 'isSent' => true, 'dateCreated' => $hoursAgo(240), 'dateLastSent' => Db::prepareDateForDb($hoursAgo(214))]);
         insertLegacyCart($orders['unsent'], ['isScheduled' => true, 'dateCreated' => $hoursAgo(1)]);
+        insertLegacyCart($orders['stalled'], ['firstReminder' => true, 'isSent' => true, 'dateCreated' => $hoursAgo(240), 'dateLastSent' => Db::prepareDateForDb($hoursAgo(238))]);
 
         upgradeToFive();
 
@@ -199,6 +201,7 @@ it('upgrades a 4.x install on Craft 5', function() {
             ->and(recoveryForOrder($orders['recovered'])?->clickedBeforeOrder)->toBeTrue()
             ->and(recoveryForOrder($orders['finished'])?->endReason)->toBe(Recovery::END_FINISHED)
             ->and(recoveryForOrder($orders['unsent']))->toBeNull()
+            ->and(recoveryForOrder($orders['stalled'])?->endReason)->toBe(Recovery::END_IMPORTED)
             ->and($partWay->status)->toBe(Recovery::STATUS_ACTIVE)
             ->and(array_map(fn(Attempt $attempt) => $attempt->status, $partWayAttempts))->toBe([Attempt::STATUS_SENT, Attempt::STATUS_SCHEDULED])
             ->and(abs($partWayAttempts[1]->dueAt->getTimestamp() - (new DateTime('+21 hours'))->getTimestamp()))->toBeLessThan(120);

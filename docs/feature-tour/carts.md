@@ -59,6 +59,7 @@ When a cart leaves recovery without being recovered, its page and the **Not reco
 | Cart emptied | All the items were removed from the cart, which is noticed when its next email falls due. |
 | Cart deleted | The Commerce order was deleted. |
 | Stopped by staff | Someone chose **Stop Emails**. |
+| Imported from 4.x | The cart came from Abandoned Cart 4, which stopped before its last reminder without recording why. These carts aren't counted in the Overview's reasons carts didn't recover. |
 
 ## Skipped Carts
 
