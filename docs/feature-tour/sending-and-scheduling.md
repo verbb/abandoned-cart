@@ -77,7 +77,7 @@ Apart from **Run Now**, System Status only displays information, so it works on 
 
 If the switch is greyed out on your live site, ask your developer to pause sending in the site's configuration file.
 
-General Settings are stored in project config, so on a production environment where `allowAdminChanges` is off, the switch is read-only. To pause sending there, set `deliveryPaused` in your configuration file, or point it at an environment variable you can change without a deployment. [Configuration](../get-started/configuration.md#environment-specific-settings) shows how. The same setting suits development and staging environments that hold a copy of your customers' addresses.
+General Settings are stored in project config, so on a production environment where `allowAdminChanges` is off, the switch is read-only. To pause sending there, set `deliveryPaused` in your configuration file, or point it at an environment variable you can change without a deployment. [`deliveryPaused`](../get-started/configuration.md#deliverypaused) shows how. The same setting suits development and staging environments that hold a copy of your customers' addresses.
 
 Turning off a single sequence is different. It also stops new carts from entering that sequence, while other sequences carry on as normal.
 

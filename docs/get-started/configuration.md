@@ -14,33 +14,7 @@ return [
 
 All other settings keep their defaults. Add any further settings you want to change to the same array. Settings whose names end in `Minutes` take a number of minutes, so a day is `1440` and a week is `10080`. `historyRetentionDays` is the one setting given in days.
 
-Values in this file take precedence over those saved in the control panel. The matching field under **Abandoned Carts → Settings → General Settings** shows a warning to explain that the file is in control.
-
-## Environment-Specific Settings
-
-Craft reads environment keys in a configuration file, so you can change a setting for one environment only. A common example is pausing every recovery email on development and staging sites, where a copy of the production database contains real customers' addresses:
-
-```php
-<?php
-
-return [
-    '*' => [
-        'abandonedAfterMinutes' => 60,
-    ],
-    'dev' => [
-        'deliveryPaused' => true,
-    ],
-    'staging' => [
-        'deliveryPaused' => true,
-    ],
-];
-```
-
-The keys match each environment's `CRAFT_ENVIRONMENT` value, so `'dev'` applies where `CRAFT_ENVIRONMENT=dev`, and `'*'` applies everywhere.
-
-Pausing matters on a development site even without cron. Abandoned Cart also starts its background run from ordinary site and control panel requests, so browsing a development site that holds a copy of production's database, with its sequences switched on, sends real emails to real customers unless sending is paused there.
-
-`deliveryPaused`, `returnUrl` and `passKey` also accept an environment variable reference such as `'$ABANDONED_CART_PAUSED'`, if you'd rather control them from your `.env` file. `deliveryPaused` reads `true`, `1`, `on` or `yes` as paused.
+Values in this file take precedence over those saved in the control panel. The options below explain the available settings and their defaults.
 
 ## Configuration Options
 
@@ -157,7 +131,9 @@ A site template that Abandoned Cart's customer pages render inside, so they look
 
 **Type:** `bool|string` · **Default:** `false`
 
-Holds every recovery email across all sequences. Carts still enter sequences while sending is paused, and their emails wait. Once sending resumes, any that are due go out on the next run, unless the cart's recovery period has ended in the meantime. Use it for emergencies, such as a problem with an email's wording, or to stop a development environment from emailing customers. The control panel switch is read-only where admin changes are off, so on a live site this setting, or an environment variable it points to, is how you pause. [Pausing All Sending](../feature-tour/sending-and-scheduling.md#pausing-all-sending) explains more.
+Holds every recovery email across all sequences. Carts still enter sequences while sending is paused, and their emails wait. Once sending resumes, any that are due go out on the next run, unless the cart's recovery period has ended in the meantime. Use it for emergencies, such as a problem with an email's wording, or to stop a development environment from emailing customers. The control panel switch is read-only where admin changes are off, so on a live site this setting is how you pause. It accepts an environment variable reference such as `'$ABANDONED_CART_PAUSED'`, and reads `true`, `1`, `on` or `yes` as paused.
+
+Pause sending on any development or staging site that holds a copy of production's database. The background run also starts from ordinary site and control panel requests, so browsing that site would otherwise email real customers, even without cron. [Pausing All Sending](../feature-tour/sending-and-scheduling.md#pausing-all-sending) explains more.
 :::
 
 ::: reference
