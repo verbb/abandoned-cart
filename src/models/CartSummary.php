@@ -78,8 +78,8 @@ class CartSummary extends Model
             'subtotal' => 238,
             'itemCount' => 3,
             'items' => [
-                ['title' => Craft::t('abandoned-cart', 'Leather Card Wallet'), 'description' => Craft::t('abandoned-cart', 'Tan'), 'qty' => 2, 'price' => 69, 'subtotal' => 138, 'url' => null],
-                ['title' => Craft::t('abandoned-cart', 'Canvas Weekender'), 'description' => Craft::t('abandoned-cart', 'Slate'), 'qty' => 1, 'price' => 100, 'subtotal' => 100, 'url' => null],
+                ['title' => Craft::t('abandoned-cart', 'Leather Card Wallet'), 'description' => Craft::t('abandoned-cart', 'Tan'), 'qty' => 2, 'price' => 69, 'subtotal' => 138, 'url' => null, 'purchasableId' => null],
+                ['title' => Craft::t('abandoned-cart', 'Canvas Weekender'), 'description' => Craft::t('abandoned-cart', 'Slate'), 'qty' => 1, 'price' => 100, 'subtotal' => 100, 'url' => null, 'purchasableId' => null],
             ],
             'isSample' => true,
         ]);

@@ -9,7 +9,7 @@
 {{ 'Subtotal' | t('abandoned-cart') }}: {{ cart.formatMoney(cart.subtotal) }}
 {% if discountCode %}
 
-{{ 'Use this code at checkout' | t('abandoned-cart') }}: {{ discountCode }}
+{{ 'This code is added to your cart when you return' | t('abandoned-cart') }}: {{ discountCode }}
 {% endif %}
 
 {{ buttonLabel }}: {{ recoverUrl }}

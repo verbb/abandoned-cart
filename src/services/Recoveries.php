@@ -262,6 +262,14 @@ class Recoveries extends Component
             return $this->skip($order, $customer, $abandonedAt, SkippedCart::REASON_NOT_RETURNING);
         }
 
+        // A customer follows one cart at a time. A newer cart takes over the recovery already under way, keeping its
+        // sequence and schedule, so the customer isn't emailed more often and later emails show what's in the cart now.
+        foreach ($this->_getActiveRecoveriesForCustomer($customer->id) as $current) {
+            if ($current->orderId !== $order->id && $current->getSequence()) {
+                return $this->_takeOver($current, $order, $customer, $abandonedAt, $now);
+            }
+        }
+
         $sequence = null;
 
         foreach (AbandonedCart::$plugin->getSequences()->getEnabledSequences() as $candidate) {
@@ -400,8 +408,11 @@ class Recoveries extends Component
         $customers = AbandonedCart::$plugin->getCustomers();
         $customer = $order->getEmail() ? $customers->getCustomerByEmail($order->getEmail()) : null;
 
-        // Opting in at checkout is the customer's own choice, so it undoes an earlier unsubscribe.
-        if ($customer && $customer->status === Customer::STATUS_UNSUBSCRIBED && AbandonedCart::$plugin->getSettings()->consentFieldHandle && $this->hasConsent($order, $customer)) {
+        // Opting in on this order is the customer's own, fresh choice, so it undoes an earlier unsubscribe. A value
+        // already saved on their account isn't, as the unsubscribe is the more recent decision.
+        $handle = AbandonedCart::$plugin->getSettings()->consentFieldHandle;
+
+        if ($customer && $customer->status === Customer::STATUS_UNSUBSCRIBED && $handle && $this->_readConsent($order, $handle) === true) {
             $customers->changeStatus($customer, Customer::STATUS_ACTIVE, Customer::SOURCE_CHECKOUT);
         }
 
@@ -651,6 +662,75 @@ class Recoveries extends Component
         }
 
         return (bool)$element->getFieldValue($handle);
+    }
+
+    /**
+     * Moves a recovery under way to the customer's newer cart. The recovery keeps its id, emails and links, so a link
+     * in an email already sent restores the newer cart. The older cart gets an ended record of its own, which shows
+     * why it stopped and keeps it from being picked up again unless the customer changes it.
+     */
+    private function _takeOver(Recovery $current, Order $order, Customer $customer, DateTime $abandonedAt, DateTime $now): Recovery|SkippedCart|null
+    {
+        $sequence = $current->getSequence();
+        $idleMinutes = ($now->getTimestamp() - $abandonedAt->getTimestamp()) / 60;
+
+        if ($idleMinutes < $sequence->getAbandonedAfterMinutes()) {
+            return null;
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_ENROLL)) {
+            $event = new EnrollmentEvent(['order' => $order, 'customer' => $customer, 'sequence' => $sequence]);
+            $this->trigger(self::EVENT_BEFORE_ENROLL, $event);
+
+            if (!$event->isValid) {
+                return $this->skip($order, $customer, $abandonedAt, SkippedCart::REASON_CANCELLED, $event->skipReason);
+            }
+        }
+
+        $label = Recovery::endReasonLabels()[Recovery::END_NEWER_CART];
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            $older = new RecoveryRecord();
+            $older->orderId = $current->orderId;
+            $older->customerId = $current->customerId;
+            $older->siteId = $current->siteId;
+            $older->sequenceId = $current->sequenceId;
+            $older->sequenceVersionId = $current->sequenceVersionId;
+            $older->status = Recovery::STATUS_ENDED;
+            $older->endReason = Recovery::END_NEWER_CART;
+            $older->cartTotal = (float)$current->cartTotal;
+            $older->currency = $current->currency;
+            $older->attributionWindowMinutes = $current->attributionWindowMinutes;
+            $older->abandonedAt = Db::prepareDateForDb($current->abandonedAt);
+            $older->expiresAt = Db::prepareDateForDb($current->expiresAt);
+            $older->endedAt = Db::prepareDateForDb($now);
+            $older->save(false);
+
+            Db::update(Table::RECOVERIES, [
+                'orderId' => $order->id,
+                'siteId' => $order->orderSiteId,
+                'cartTotal' => (float)$order->getTotal(),
+                'currency' => $order->currency,
+                'abandonedAt' => Db::prepareDateForDb($abandonedAt),
+            ], ['id' => $current->id]);
+
+            $activities = AbandonedCart::$plugin->getActivities();
+            $activities->log($older->id, Activities::TYPE_ENDED, null, ['reason' => $label]);
+            $activities->log($current->id, Activities::TYPE_TAKEN_OVER, null, ['number' => $order->getShortNumber()]);
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+
+            throw $e;
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_END)) {
+            $this->trigger(self::EVENT_AFTER_END, new RecoveryEvent(['recovery' => $this->getRecoveryById($older->id)]));
+        }
+
+        return $this->getRecoveryById($current->id);
     }
 
     private function _wasContactedRecently(Customer $customer, Sequence $sequence, DateTime $now, Order $order): bool

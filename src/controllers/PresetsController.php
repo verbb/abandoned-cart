@@ -122,7 +122,7 @@ class PresetsController extends BaseAdminController
             Sequence::AUDIENCE_FIRST_TIME => Craft::t('abandoned-cart', 'First-time customers'),
             Sequence::AUDIENCE_PRODUCTS => Craft::t('abandoned-cart', 'Products'),
             Sequence::AUDIENCE_CUSTOM => Craft::t('abandoned-cart', 'Custom rules'),
-        ];
+        ] + array_map(static fn(array $audience): string => $audience['label'], AbandonedCart::$plugin->getAudiences()->getAllAudiences());
     }
 
     /**

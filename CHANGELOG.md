@@ -25,8 +25,11 @@
 - Upgrading from 4.x runs a one-time migration that converts 4.x settings, reminders, templates and the blocklist into the default sequence, email templates, Do Not Email statuses and the new settings, and imports 4.x reminder history.
 - The scheduler command is now `abandoned-cart/recoveries/run`, and sends due emails itself rather than queueing a job for each email. When cron isn't available, web requests queue a run while a sequence is on.
 - Recovery links now restore carts that belong to an account only for that customer, after signing in, and show a page explaining expired or invalid links.
+- Recovery links now apply the email’s discount code to the restored cart, and the bundled email says so.
+- When a customer abandons a newer cart, it now takes over the recovery of their older one, keeping its sequence and the times of its remaining emails.
 - An order completed within the attribution window after an email now counts as recovered, even without a click.
 - Failed emails are now retried automatically, up to three tries.
+- Abandoned Cart now requires Craft CMS 5.6 or later.
 
 ### Deprecated
 - Deprecated the `checkoutLink`, `discount` and `currentSite` email template variables. Use `recoverUrl`, `discountCode` and `site` instead.
@@ -37,6 +40,7 @@
 ### Removed
 - Removed or replaced the `firstReminderDelay`, `secondReminderDelay`, `firstReminderSubject`, `secondReminderSubject`, `firstReminderTemplate`, `secondReminderTemplate`, `discountCode`, `disableSecondReminder`, `restoreExpiryHours`, `recipientCooldownHours`, `staleRecordRetentionDays`, `recoveryUrl`, `previousOrderRequired`, `blacklist` and `includeBlacklisted` settings. The upgrade guide maps each one to its replacement.
 - Removed the `Carts::EVENT_BEFORE_SAVE_CART` and `Carts::EVENT_AFTER_SAVE_CART` events, the `CartEvent` class and the 4.x cart model and record.
+- Removed the 4.x `getCarts()` and `getService()` plugin services and their methods.
 - Removed the bundled `abandoned-cart/emails/first` and `abandoned-cart/emails/second` email templates.
 
 ## 4.0.20 - 2026-11-01

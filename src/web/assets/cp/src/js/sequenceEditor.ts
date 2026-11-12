@@ -274,7 +274,7 @@ class EmailPanel {
 
         const note = el('span', { class: 'light ac-panel__note' }, isNew
             ? t('Carts already in this sequence keep their emails. New carts get this one.')
-            : t('Saved changes also apply to carts already waiting for this email.'));
+            : t('Saved wording changes also apply to carts already waiting for this email. Timing changes apply to carts that enter from now on.'));
         const close = el('button', { type: 'button', class: 'btn' }, t('Close'));
         close.addEventListener('click', () => this.slideout?.close());
         const save = el('button', { type: 'button', class: 'btn submit' }, isNew ? t('Add Email') : t('Save'));

@@ -189,10 +189,43 @@ it('resolves recovery links to the recovery and the email clicked', function() {
         ->and(engine()->resolveRecoverToken(substr($token, 0, -4) . 'abcd'))->toBeNull();
 });
 
-it('skips a second cart while the contact limit holds', function() {
+it('moves a recovery under way to the customer’s newer cart, keeping its schedule', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $older = $this->createCart('frequent@example.test', idleMinutes: 300);
+    engine()->run();
+    $customer = AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('frequent@example.test');
+    $original = engine()->getRecoveriesByCustomerId($customer->id)[0];
+    $due = array_map(fn(Attempt $attempt) => $attempt->dueAt, $original->getAttempts());
+    $before = $this->sentMailCount();
+
+    $newer = $this->createCart('frequent@example.test', idleMinutes: 90);
+    $summary = engine()->run();
+    engine()->run();
+
+    $recoveries = engine()->getRecoveriesByCustomerId($customer->id);
+    $active = array_values(array_filter($recoveries, fn(Recovery $recovery) => $recovery->getIsActive()));
+    $ended = array_values(array_filter($recoveries, fn(Recovery $recovery) => $recovery->orderId === $older->id));
+
+    expect($summary['skipped'])->toBe(0)
+        ->and($this->sentMailCount())->toBe($before)
+        ->and($active)->toHaveCount(1)
+        ->and($active[0]->id)->toBe($original->id)
+        ->and($active[0]->orderId)->toBe($newer->id)
+        ->and(attemptStatuses($active[0]))->toBe([Attempt::STATUS_SENT, Attempt::STATUS_SCHEDULED, Attempt::STATUS_SCHEDULED])
+        ->and(array_map(fn(Attempt $attempt) => $attempt->dueAt, $active[0]->getAttempts()))->toEqual($due)
+        ->and($ended)->toHaveCount(1)
+        ->and($ended[0]->status)->toBe(Recovery::STATUS_ENDED)
+        ->and($ended[0]->endReason)->toBe(Recovery::END_NEWER_CART)
+        ->and((int)(new craft\db\Query())->from('{{%abandonedcart_skippedcarts}}')->count())->toBe(0);
+});
+
+it('applies the contact limit to a new cart after the last recovery has ended', function() {
     $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
     $this->createCart('frequent@example.test', idleMinutes: 300);
     engine()->run();
+    $customer = AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('frequent@example.test');
+    engine()->endRecovery(engine()->getRecoveriesByCustomerId($customer->id)[0], Recovery::END_STOPPED);
+
     $this->createCart('frequent@example.test', idleMinutes: 90);
     engine()->run();
 
@@ -273,4 +306,40 @@ it('skips a cart whose new customer a module refuses, and carries on with the re
         ->and($skipped)->toHaveCount(1)
         ->and($skipped[0]['reason'])->toBe(SkippedCart::REASON_CANCELLED)
         ->and($skipped[0]['customerId'])->toBeNull();
+});
+
+it('only undoes an unsubscribe when the customer opts in on the order itself', function() {
+    $handle = 'cartConsent' . craft\helpers\StringHelper::randomString(6);
+    $field = new craft\fields\Lightswitch(['name' => 'Cart Consent', 'handle' => $handle]);
+    expect(Craft::$app->getFields()->saveField($field))->toBeTrue();
+
+    $addToLayout = function(string $type) use ($field) {
+        $layout = Craft::$app->getFields()->getLayoutByType($type);
+        $tab = new craft\models\FieldLayoutTab(['name' => 'Consent', 'layout' => $layout, 'elements' => [new craft\fieldlayoutelements\CustomField($field, ['uid' => craft\helpers\StringHelper::UUID()])]]);
+        $layout->setTabs(array_merge($layout->getTabs(), [$tab]));
+        expect(Craft::$app->getFields()->saveLayout($layout, false))->toBeTrue();
+    };
+
+    $addToLayout(craft\elements\User::class);
+    AbandonedCart::$plugin->getSettings()->consentFieldHandle = $handle;
+
+    $customers = AbandonedCart::$plugin->getCustomers();
+    $user = Craft::$app->getUsers()->ensureUserByEmail('opted.in@example.test');
+    $user->setFieldValue($handle, true);
+    expect(Craft::$app->getElements()->saveElement($user, false))->toBeTrue();
+    $customer = $customers->getOrCreateCustomer('opted.in@example.test', $user->id);
+    $customers->changeStatus($customer, Customer::STATUS_UNSUBSCRIBED, Customer::SOURCE_UNSUBSCRIBE);
+
+    // Consent saved on the account is older than the unsubscribe, so it doesn't count.
+    $this->completeOrder($this->createCart('opted.in@example.test'));
+
+    expect($customers->getCustomerById($customer->id)->status)->toBe(Customer::STATUS_UNSUBSCRIBED);
+
+    $addToLayout(craft\commerce\elements\Order::class);
+    $order = $this->createCart('opted.in@example.test');
+    $order->setFieldValue($handle, true);
+    expect(Craft::$app->getElements()->saveElement($order, false))->toBeTrue();
+    $this->completeOrder($order);
+
+    expect($customers->getCustomerById($customer->id)->status)->toBe(Customer::STATUS_ACTIVE);
 });

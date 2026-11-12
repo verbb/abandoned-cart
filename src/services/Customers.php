@@ -81,6 +81,59 @@ class Customers extends Component
 
     public function saveCustomer(Customer $customer, bool $runValidation = true): bool
     {
+        return $this->_saveCustomer($customer, $runValidation, true);
+    }
+
+    public function changeStatus(Customer $customer, string $status, ?string $source = null, ?string $note = null): bool
+    {
+        // A customer's own unsubscribe always takes effect, as unsubscribe laws and one-click unsubscribe require.
+        // Plugins are still told about it, but can't cancel it.
+        $isOptOut = $status === Customer::STATUS_UNSUBSCRIBED && in_array($source, [Customer::SOURCE_UNSUBSCRIBE, Customer::SOURCE_ACCOUNT], true);
+
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_CHANGE_STATUS)) {
+            $event = new CustomerStatusEvent(['customer' => $customer, 'status' => $status, 'source' => $source, 'note' => $note]);
+            $this->trigger(self::EVENT_BEFORE_CHANGE_STATUS, $event);
+
+            if (!$event->isValid && !$isOptOut) {
+                return false;
+            }
+        }
+
+        // Only the customer can undo an unsubscribe, by opting in again at checkout or from their account.
+        if ($customer->status === Customer::STATUS_UNSUBSCRIBED && $status === Customer::STATUS_ACTIVE && !in_array($source, [Customer::SOURCE_CHECKOUT, Customer::SOURCE_ACCOUNT], true)) {
+            $customer->addError('status', Craft::t('abandoned-cart', 'Only the customer can undo an unsubscribe.'));
+
+            return false;
+        }
+
+        $customer->status = $status;
+        $customer->statusSource = $source;
+        $customer->statusNote = $note;
+        $customer->statusChangedById = Craft::$app->getUser()->getId();
+        $customer->statusChangedAt = new DateTime();
+
+        if (!$this->_saveCustomer($customer, !$isOptOut, !$isOptOut)) {
+            return false;
+        }
+
+        // Nobody who has asked not to be emailed should get the rest of a sequence already under way.
+        if ($status !== Customer::STATUS_ACTIVE) {
+            AbandonedCart::$plugin->getRecoveries()->endRecoveriesForCustomer($customer, $status === Customer::STATUS_UNSUBSCRIBED ? Recovery::END_UNSUBSCRIBED : Recovery::END_DO_NOT_EMAIL);
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_CHANGE_STATUS)) {
+            $this->trigger(self::EVENT_AFTER_CHANGE_STATUS, new CustomerStatusEvent(['customer' => $customer, 'status' => $status, 'source' => $source, 'note' => $note]));
+        }
+
+        return true;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _saveCustomer(Customer $customer, bool $runValidation, bool $cancelable): bool
+    {
         $isNew = !$customer->id;
         $customer->email = Customer::normalizeEmail((string)$customer->email);
 
@@ -88,7 +141,7 @@ class Customers extends Component
             $event = new CustomerEvent(['customer' => $customer, 'isNew' => $isNew]);
             $this->trigger(self::EVENT_BEFORE_SAVE_CUSTOMER, $event);
 
-            if (!$event->isValid) {
+            if (!$event->isValid && $cancelable) {
                 return false;
             }
         }
@@ -116,50 +169,6 @@ class Customers extends Component
 
         return true;
     }
-
-    public function changeStatus(Customer $customer, string $status, ?string $source = null, ?string $note = null): bool
-    {
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_CHANGE_STATUS)) {
-            $event = new CustomerStatusEvent(['customer' => $customer, 'status' => $status, 'source' => $source, 'note' => $note]);
-            $this->trigger(self::EVENT_BEFORE_CHANGE_STATUS, $event);
-
-            if (!$event->isValid) {
-                return false;
-            }
-        }
-
-        // Only the customer can undo an unsubscribe, by opting in again at checkout or from their account.
-        if ($customer->status === Customer::STATUS_UNSUBSCRIBED && $status === Customer::STATUS_ACTIVE && !in_array($source, [Customer::SOURCE_CHECKOUT, Customer::SOURCE_ACCOUNT], true)) {
-            $customer->addError('status', Craft::t('abandoned-cart', 'Only the customer can undo an unsubscribe.'));
-
-            return false;
-        }
-
-        $customer->status = $status;
-        $customer->statusSource = $source;
-        $customer->statusNote = $note;
-        $customer->statusChangedById = Craft::$app->getUser()->getId();
-        $customer->statusChangedAt = new DateTime();
-
-        if (!$this->saveCustomer($customer)) {
-            return false;
-        }
-
-        // Nobody who has asked not to be emailed should get the rest of a sequence already under way.
-        if ($status !== Customer::STATUS_ACTIVE) {
-            AbandonedCart::$plugin->getRecoveries()->endRecoveriesForCustomer($customer, $status === Customer::STATUS_UNSUBSCRIBED ? Recovery::END_UNSUBSCRIBED : Recovery::END_DO_NOT_EMAIL);
-        }
-
-        if ($this->hasEventHandlers(self::EVENT_AFTER_CHANGE_STATUS)) {
-            $this->trigger(self::EVENT_AFTER_CHANGE_STATUS, new CustomerStatusEvent(['customer' => $customer, 'status' => $status, 'source' => $source, 'note' => $note]));
-        }
-
-        return true;
-    }
-
-
-    // Private Methods
-    // =========================================================================
 
     private function _createCustomerQuery(): Query
     {

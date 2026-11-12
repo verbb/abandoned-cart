@@ -51,7 +51,11 @@
                     <p>{{ '“{subject}” is due {date}. Emails stop by themselves if the customer orders or unsubscribes.' | t('abandoned-cart', { subject: nextAttempt.email.subject ?? '', date: nextAttempt.dueAt | datetime('short') }) }}</p>
                 {% else %}
                     <h2>{{ 'All emails sent' | t('abandoned-cart') }}</h2>
-                    <p>{{ 'An order before {date} still counts as recovered.' | t('abandoned-cart', { date: recovery.expiresAt | datetime('short') }) }}</p>
+                    {% set lastSent = recovery.attempts | filter(attempt => attempt.status == 'sent') | last %}
+
+                    {% if lastSent and lastSent.sentAt %}
+                        <p>{{ 'An order before {date} still counts as recovered.' | t('abandoned-cart', { date: lastSent.sentAt | date_modify('+' ~ recovery.attributionWindowMinutes ~ ' minutes') | datetime('short') }) }}</p>
+                    {% endif %}
                 {% endif %}
             </div>
             {% if canManage and nextAttempt %}

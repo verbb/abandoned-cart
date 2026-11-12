@@ -29,6 +29,7 @@ class Activities extends Component
     public const TYPE_SEND_NOW = 'sendNow';
     public const TYPE_IMPORTED = 'imported';
     public const TYPE_RETRIED = 'retried';
+    public const TYPE_TAKEN_OVER = 'takenOver';
 
 
     // Public Methods
@@ -77,6 +78,7 @@ class Activities extends Component
             self::TYPE_ENDED => Craft::t('abandoned-cart', 'Recovery ended: {reason}', ['reason' => $data['reason'] ?? '']),
             self::TYPE_SEND_NOW => Craft::t('abandoned-cart', 'Next email sent manually'),
             self::TYPE_RETRIED => Craft::t('abandoned-cart', 'Email {position} retried by staff', ['position' => $data['position'] ?? '']),
+            self::TYPE_TAKEN_OVER => Craft::t('abandoned-cart', 'Moved to the customer’s newer cart, order {number}', ['number' => $data['number'] ?? '']),
             self::TYPE_IMPORTED => Craft::t('abandoned-cart', 'Imported from 4.x reminder history'),
             default => $activity['type'],
         };

@@ -60,3 +60,11 @@ it('shows the product thumbnail for a cart item, and none when the product has n
 
     FileHelper::removeDirectory($path);
 });
+
+it('gives sample cart items the same keys as real ones', function() {
+    $real = CartSummary::fromOrder($this->createCart('keys@example.test'))->items[0];
+    $sample = CartSummary::sample()->items[0];
+
+    expect(array_keys($sample))->toEqualCanonicalizing(array_keys($real))
+        ->and($sample['purchasableId'])->toBeNull();
+});

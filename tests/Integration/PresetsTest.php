@@ -1,10 +1,12 @@
 <?php
 
 use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\events\RegisterAudiencesEvent;
 use verbb\abandonedcart\events\RegisterPresetsEvent;
 use verbb\abandonedcart\models\Email;
 use verbb\abandonedcart\models\Preset;
 use verbb\abandonedcart\models\Sequence;
+use verbb\abandonedcart\services\Audiences;
 use verbb\abandonedcart\services\Presets;
 
 uses(verbb\abandonedcart\tests\Integration\TestCase::class);
@@ -26,6 +28,28 @@ it('lets a module add presets, remove built-in ones, and ignores invalid ones', 
     $handles = array_map(fn(Preset $preset) => $preset->handle, $presets->getAllPresets());
 
     expect($handles)->toBe(['threeReminders', 'remindersThenDiscount', 'highValueCarts', 'vipWinBack']);
+});
+
+it('accepts presets for audiences a module registers', function() {
+    $audiences = new Audiences();
+    $audiences->on(Audiences::EVENT_REGISTER_AUDIENCES, function(RegisterAudiencesEvent $event) {
+        $event->audiences['wholesale'] = ['label' => 'Wholesale Customers', 'description' => 'Trade accounts'];
+    });
+    $original = AbandonedCart::$plugin->getAudiences();
+    AbandonedCart::$plugin->set('audiences', $audiences);
+
+    try {
+        $presets = new Presets();
+        $presets->on(Presets::EVENT_REGISTER_PRESETS, function(RegisterPresetsEvent $event) {
+            $event->presets[] = ['handle' => 'tradeFollowUp', 'name' => 'Trade Follow-Up', 'audienceType' => 'wholesale', 'emails' => [['subject' => 'Your order is waiting']]];
+        });
+
+        $handles = array_map(fn(Preset $preset) => $preset->handle, $presets->getAllPresets());
+    } finally {
+        AbandonedCart::$plugin->set('audiences', $original);
+    }
+
+    expect($handles)->toContain('tradeFollowUp');
 });
 
 it('creates a switched-off copy and notes anything the site doesn’t have', function() {

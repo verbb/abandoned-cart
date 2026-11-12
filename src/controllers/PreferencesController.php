@@ -7,6 +7,7 @@ use verbb\abandonedcart\models\Customer;
 use Craft;
 use craft\web\Controller;
 
+use yii\base\InvalidArgumentException;
 use yii\web\Response;
 
 /**
@@ -24,7 +25,16 @@ class PreferencesController extends Controller
 
         $user = Craft::$app->getUser()->getIdentity();
         $customers = AbandonedCart::$plugin->getCustomers();
-        $customer = $customers->getCustomerByUser($user) ?? $customers->getOrCreateCustomer($user->email, $user->id);
+        $failure = Craft::t('abandoned-cart', 'Your cart reminder preference couldn’t be saved.');
+
+        try {
+            $customer = $customers->getCustomerByUser($user) ?? $customers->getOrCreateCustomer($user->email, $user->id);
+        } catch (InvalidArgumentException) {
+            // A plugin or module refused the new customer record. Abandoned Cart won't email someone it has no record
+            // for, so there's nothing to change.
+            return $this->asFailure($failure);
+        }
+
         $wantsEmails = (bool)$this->request->getRequiredBodyParam('emails');
 
         // Do Not Email is the store's decision, so the customer can't override it here.
@@ -35,7 +45,7 @@ class PreferencesController extends Controller
         $status = $wantsEmails ? Customer::STATUS_ACTIVE : Customer::STATUS_UNSUBSCRIBED;
 
         if ($customer->status !== $status && !$customers->changeStatus($customer, $status, Customer::SOURCE_ACCOUNT)) {
-            return $this->asModelFailure($customer, Craft::t('abandoned-cart', 'Your cart reminder preference couldn’t be saved.'), 'customer');
+            return $this->asModelFailure($customer, $failure, 'customer');
         }
 
         return $this->asModelSuccess($customer, $wantsEmails

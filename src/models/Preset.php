@@ -1,6 +1,8 @@
 <?php
 namespace verbb\abandonedcart\models;
 
+use verbb\abandonedcart\AbandonedCart;
+
 use Craft;
 use craft\base\Model;
 use craft\helpers\UrlHelper;
@@ -101,7 +103,7 @@ class Preset extends Model
         $rules = parent::defineRules();
 
         $rules[] = [['handle', 'name'], 'required'];
-        $rules[] = [['audienceType'], 'in', 'range' => Sequence::audienceTypes()];
+        $rules[] = [['audienceType'], 'in', 'range' => fn(): array => array_keys(AbandonedCart::$plugin->getAudiences()->getAllAudiences())];
         $rules[] = [['handle'], HandleValidator::class, 'on' => self::SCENARIO_SETTINGS];
         $rules[] = [['name', 'handle'], 'string', 'max' => 255, 'on' => self::SCENARIO_SETTINGS];
         $rules[] = [['emails'], 'validateEmails', 'on' => self::SCENARIO_SETTINGS];
