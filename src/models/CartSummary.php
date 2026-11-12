@@ -7,6 +7,7 @@ use craft\base\Model;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
+use craft\commerce\Plugin as Commerce;
 
 /**
  * The cart as email templates see it: plain values, so a custom template works the same for a real cart, a preview
@@ -67,13 +68,17 @@ class CartSummary extends Model
 
     public static function sample(?int $siteId = null): self
     {
+        // Prices show in the store's own currency: the site's store, or else the primary store.
+        $stores = Commerce::getInstance()?->getStores();
+        $store = ($siteId ? $stores?->getStoreBySiteId($siteId) : null) ?? $stores?->getPrimaryStore();
+
         return new self([
             'email' => 'amelia.hart@example.test',
             'firstName' => 'Amelia',
             'lastName' => 'Hart',
             'number' => 'sample',
             'siteId' => $siteId,
-            'currency' => 'USD',
+            'currency' => $store?->getCurrency()?->getCode() ?? 'USD',
             'total' => 238,
             'subtotal' => 238,
             'itemCount' => 3,

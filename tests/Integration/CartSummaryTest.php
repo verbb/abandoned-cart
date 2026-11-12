@@ -68,3 +68,21 @@ it('gives sample cart items the same keys as real ones', function() {
     expect(array_keys($sample))->toEqualCanonicalizing(array_keys($real))
         ->and($sample['purchasableId'])->toBeNull();
 });
+
+it('prices the sample cart in the store’s currency', function() {
+    $site = Craft::$app->getSites()->getPrimarySite();
+    $store = Commerce::getInstance()->getStores()->getPrimaryStore();
+    $original = $store->getCurrency()->getCode();
+
+    // The stores service keeps one instance of each store, so this stands in for an Australian store.
+    $store->setCurrency('AUD');
+
+    try {
+        expect(CartSummary::sample($site->id)->currency)->toBe('AUD')
+            ->and(CartSummary::sample()->currency)->toBe('AUD')
+            ->and(CartSummary::sample($site->id)->formatMoney(238))->toBe(Craft::$app->getFormatter()->asCurrency(238, 'AUD'))
+            ->and(CartSummary::sample($site->id)->formatMoney(238))->not->toBe(Craft::$app->getFormatter()->asCurrency(238, 'USD'));
+    } finally {
+        $store->setCurrency($original);
+    }
+});
