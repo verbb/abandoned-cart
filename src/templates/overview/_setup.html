@@ -6,6 +6,8 @@
 {% set selectedSubnavItem = 'overview' %}
 {% set formatter = craft.app.formatter %}
 {% set done = 1 + (emailsEdited ? 1 : 0) + (testSentAt ? 1 : 0) %}
+{# Sending tests and turning a sequence on need this permission, so others see the steps without their buttons. #}
+{% set canManage = currentUser.can('abandonedCart-manageSequences') %}
 
 {% block main %}
     <div class="content-grid__main">
@@ -48,11 +50,13 @@
                         <div>
                             <div class="ac-step__title">{{ 'Send Yourself a Test' | t('abandoned-cart') }}</div>
                             <p>{{ 'See every email in your own inbox, filled in with a sample cart.' | t('abandoned-cart') }}</p>
-                            <form method="post" class="ac-step__action">
-                                {{ csrfInput() }}{{ actionInput('abandoned-cart/overview/send-tests') }}{{ redirectInput('abandoned-cart') }}
-                                {{ forms.text({ name: 'to', type: 'email', value: currentUser.email, size: 30 }) }}
-                                <button type="submit" class="btn{{ testSentAt ? '' : ' submit' }}">{{ 'Send {count} Test Emails' | t('abandoned-cart', { count: schedule | length - 1 }) }}</button>
-                            </form>
+                            {% if canManage %}
+                                <form method="post" class="ac-step__action">
+                                    {{ csrfInput() }}{{ actionInput('abandoned-cart/overview/send-tests') }}{{ redirectInput('abandoned-cart') }}
+                                    {{ forms.text({ name: 'to', type: 'email', value: currentUser.email, size: 30 }) }}
+                                    <button type="submit" class="btn{{ testSentAt ? '' : ' submit' }}">{{ 'Send {count} Test Emails' | t('abandoned-cart', { count: schedule | length - 1 }) }}</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </li>
                     <li class="ac-step">
@@ -60,11 +64,13 @@
                         <div>
                             <div class="ac-step__title">{{ 'Turn On Recovery' | t('abandoned-cart') }}</div>
                             <p>{{ 'Only carts abandoned from now on are emailed. Carts already sitting in your store won’t suddenly get a reminder.' | t('abandoned-cart') }}</p>
-                            <form method="post" class="ac-step__action">
-                                {{ csrfInput() }}{{ actionInput('abandoned-cart/sequences/save') }}{{ redirectInput('abandoned-cart') }}
-                                {{ hiddenInput('sequenceId', fallback.id) }}{{ hiddenInput('enabled', 1) }}
-                                <button type="submit" class="btn{{ testSentAt ? ' submit' : '' }}">{{ 'Turn On' | t('abandoned-cart') }}</button>
-                            </form>
+                            {% if canManage %}
+                                <form method="post" class="ac-step__action">
+                                    {{ csrfInput() }}{{ actionInput('abandoned-cart/sequences/save') }}{{ redirectInput('abandoned-cart') }}
+                                    {{ hiddenInput('sequenceId', fallback.id) }}{{ hiddenInput('enabled', 1) }}
+                                    <button type="submit" class="btn{{ testSentAt ? ' submit' : '' }}">{{ 'Turn On' | t('abandoned-cart') }}</button>
+                                </form>
+                            {% endif %}
                         </div>
                     </li>
                 </ol>

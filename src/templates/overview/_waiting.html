@@ -18,7 +18,7 @@
         <p>{{ 'Carts abandoned from now get your reminder emails. Results appear here once customers start coming back, usually within a day or two.' | t('abandoned-cart') }}</p>
         <div class="ac-inline ac-inline--center">
             <a class="btn" href="{{ url('abandoned-cart/carts') }}">{{ 'View Carts' | t('abandoned-cart') }}</a>
-            <a class="btn" href="{{ url('abandoned-cart/sequences') }}">{{ 'Edit Sequences' | t('abandoned-cart') }}</a>
+            <a class="btn" href="{{ url('abandoned-cart/sequences') }}">{{ currentUser.can('abandonedCart-manageSequences') ? 'Edit Sequences' | t('abandoned-cart') : 'View Sequences' | t('abandoned-cart') }}</a>
         </div>
     </div>
 
