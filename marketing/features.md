@@ -23,7 +23,7 @@ Sequence Performance compares your sequences and the emails inside them, showing
 <!-- feature-section-end -->
 
 <!-- feature-media -->
-## Different carts, different emails
+## Send a different sequence to the carts that need it
 
 Most stores do well with one sequence. When some carts deserve something else, add another, such as a more personal series for carts of $200 or more, a gentler reminder for returning customers, or a discount only for first-time buyers. Target a sequence by cart value, returning or first-time customers, the products in the cart or any Commerce order condition, and limit it to particular sites.
 
@@ -75,7 +75,7 @@ Customer service staff can add anyone to Do Not Email with a note, such as "Aske
 <!-- feature-grid-end -->
 
 <!-- feature-media -->
-## Sending you can rely on
+## Scheduled sending, retries and System Status
 
 Schedule a short background run every five minutes with cron to start sequences and send what's due, or let sites without cron fall back to Craft's queue. When the mailer reports a failure, the email is retried automatically, and anything that still fails shows up on the Overview and in System Status.
 
