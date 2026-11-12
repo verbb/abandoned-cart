@@ -9,9 +9,11 @@ The upgrade's migration converts your settings, reminders and history automatica
 Review each of these that applies to your site:
 
 - Every site needs Craft 5.6 or later. See [Craft Version](#craft-version).
-- Every site's two reminders become the default sequence, All Other Carts, and their timing is converted. Check the [reminder timing](#reminder-timing) and the email wording after upgrading.
+- Every site's two reminders become the default sequence, **All Other Carts**, and their timing is converted. Check the [reminder timing](#reminder-timing) and the email wording after upgrading.
+- Sites where 4.x was sending keep sending straight after the upgrade, with the default sequence's standard wording, in each environment. See [Sending After the Upgrade](#sending-after-the-upgrade).
 - Sites with an `abandoned-cart.php` configuration file need to update it, because the 4.x settings are converted but not read afterwards. Use the [settings mapping](#settings).
 - Sites with custom reminder templates get new template variables, and the 4.x bundled templates are removed. See [Email Templates](#email-templates).
+- Sites whose 4.x template paths contain Twig, such as a site handle, can't send any email that uses them until the path is fixed. See [Template Paths Containing Twig](#template-paths-containing-twig).
 - Sites where staff who aren't admins use the plugin need to grant them new permissions. See [Permissions](#permissions).
 - Modules and plugins that call Abandoned Cart's 4.x services, or listen to its cart save events, need updating. See [Removed Services and Events](#removed-services-and-events).
 
@@ -22,6 +24,24 @@ The console command, the HTTP trigger and the `beforeMailSend` event keep workin
 ### Craft Version
 
 Abandoned Cart 5 requires Craft CMS 5.6 or later, while Abandoned Cart 4 ran on any Craft 5 release. If your site is on an earlier Craft 5 release, update Craft first, or update both in the same `composer update`. [Requirements](requirements.md) lists the other minimum versions.
+
+### Sending After the Upgrade
+
+If 4.x sent a reminder in the 30 days before the upgrade, the default sequence, **All Other Carts**, starts switched on, so sending carries on without a gap. It picks up carts that become abandoned from the moment of the upgrade, and a cart that was waiting for its second 4.x reminder is sent email 2 on the first background run if it's already due, as [Carts Part-Way Through 4.x](#carts-part-way-through-4-x) describes.
+
+The emails use Abandoned Cart's standard preview text, heading, message and button label, because 4.x kept that text in its templates. Read them on the **All Other Carts** page straight after upgrading. The migration runs separately in each environment, and sequences are stored in the database, so wording you change after upgrading a staging site has to be changed again on production. [What Moves Between Environments](configuration.md#what-moves-between-environments) explains the split.
+
+To hold production's emails until you've read them, set `deliveryPaused` in its configuration file before you deploy the upgrade. Abandoned Cart 4 ignores the setting, so it's safe to add early. Pointing it at an environment variable lets you switch sending back on without another deployment:
+
+```php
+<?php
+
+return [
+    'deliveryPaused' => '$ABANDONED_CART_PAUSED',
+];
+```
+
+Carts keep entering the sequence while sending is paused, and their emails go out on the first run after you unpause, unless their recovery period has ended in the meantime.
 
 ### Settings
 
@@ -45,7 +65,7 @@ The 4.x settings are replaced. The migration converts the values saved in the co
 | `passKey` | `passKey`, used only by the [HTTP trigger](#http-trigger) while compatibility mode is on |
 | `includeBlacklisted` | Removed |
 
-Settings ending in `Minutes` take minutes, where the 4.x settings they replace took hours. `historyRetentionDays` is still in days. The recovery window is also measured differently. In 4.x it ran from the last reminder sent, and in Abandoned Cart 5 it starts when the cart is abandoned, so it needs to cover the whole sequence.
+Settings ending in `Minutes` take minutes, where the 4.x settings they replace took hours. `historyRetentionDays` is still in days. The recovery period is also measured differently. In 4.x it ran from the last reminder sent, and in Abandoned Cart 5 it starts when the cart is abandoned, so it needs to cover the whole sequence.
 
 `maxEnrollmentsPerRun` was a control panel field in 4.x. Its converted value carries over, but you can only change it from the configuration file.
 
@@ -145,13 +165,17 @@ Every recovery email is sent with one-click unsubscribe headers, but the unsubsc
 
 The 4.x bundled templates, `abandoned-cart/emails/first` and `abandoned-cart/emails/second`, are removed. Emails that used them now use the Default email template and its bundled design, and a custom template that extended or included them needs rewriting. [Custom Email Templates](../template-guides/custom-email-templates.md) lists every variable.
 
-A 4.x template path could contain Twig, such as a site handle, to choose a template per site. Email template paths are plain paths, and the migration copies a 4.x path into its **4.x Reminder 1** or **4.x Reminder 2** template without changing it. A path containing Twig can't be found, so every email using that template fails to send, and System Status reports the missing file. If 4.x was sending before the upgrade, All Other Carts is already on, so fix this straight away. In **Abandoned Carts → Settings → Email Templates**, point the template at a plain path, then create an email template for each other file and a sequence for each site that needs one.
-
 Subjects carried over from 4.x can still contain Twig, which renders with `order`. The other 4.x variables aren't available in subjects. Use tokens such as `{firstName}` and `{discountCode}` instead.
+
+#### Template Paths Containing Twig
+
+A 4.x template path could contain Twig, such as `_emails/{{ currentSite.handle }}/first`, to choose a template per site. Email template paths are plain paths, and the migration copies a 4.x path into its **4.x Reminder 1** or **4.x Reminder 2** template without changing it. A path containing Twig can't be found, so every email using that template fails to send, and System Status reports the missing file. If 4.x was sending before the upgrade, **All Other Carts** is already on, so fix this straight away, or pause sending as described in [Sending After the Upgrade](#sending-after-the-upgrade) until it's fixed.
+
+In **Abandoned Carts → Settings → Email Templates**, point the template at a plain path, such as `_emails/default/first`. Then create an email template for each other site's file, and a sequence for each site that needs one, limited to that site with **Sites**. Email templates are saved in project config, so make these changes on your development site and deploy them.
 
 ### Permissions
 
-In 4.x, the only Abandoned Cart permission was access to the plugin. Abandoned Cart 5 adds permissions for the actions on its new screens, and staff with only **Access Abandoned Cart** can view the Overview, Carts, Customers and Sequences screens but can't change sequences or send emails. Give them **Manage sequences and send emails**, **Manage Do Not Email** or **View System Status** as their role needs. The plugin's **Settings** section stays admin-only, apart from System Status. [Permissions](../feature-tour/permissions.md) describes each one.
+In 4.x, the only Abandoned Cart permission was access to the plugin. Abandoned Cart 5 adds permissions for the actions on its new screens, and staff with only **Access Abandoned Cart** can view the Overview, Carts, Customers and Sequences screens but can't change sequences or send emails. Give them **Manage sequences and send emails**, **Manage Do Not Email**, **Delete customers** or **View System Status** as their role needs. The plugin's **Settings** section stays admin-only, apart from System Status. [Permissions](../feature-tour/permissions.md) describes each one.
 
 ### Removed Services and Events
 
@@ -193,7 +217,7 @@ These still work while [compatibility mode](#compatibility-mode) is on, which it
 
 ### Console Command
 
-The scheduler command is now `abandoned-cart/recoveries/run`. It finds abandoned carts and sends the emails that are due in one run, without queueing a job per email. Update your cron job:
+The background run's command is now `abandoned-cart/recoveries/run`. It finds abandoned carts and sends the emails that are due in one run, without queueing a job per email. Update your cron job:
 
 ::: code-group
 ```shell [v4]
@@ -260,7 +284,7 @@ Compatibility mode keeps the developer-facing parts of Abandoned Cart 4 working 
 
 `checkoutLink` is the recovery link relative to the site's URL, so a 4.x link written as `{{ siteUrl ~ checkoutLink }}`, as in the 4.x bundled templates, keeps working. Its replacement, `recoverUrl`, is the complete link. Emails render as the cart's own site, so `siteUrl` and `checkoutLink` match on multi-site installs too.
 
-The event, console command and scheduler URL log a deprecation warning each time they're used. Open **Utilities → Deprecation Warnings** after the site has sent some emails and run the scheduler. The template variables don't log warnings, so search your email templates for `checkoutLink`, `discount` and `currentSite` and replace them as shown in [Email Templates](#email-templates). Once nothing uses them, switch compatibility mode off in your configuration file:
+The event, console command and scheduler URL log a deprecation warning each time they're used. Open **Utilities → Deprecation Warnings** after the site has sent some emails and the background run has happened a few times. The template variables don't log warnings, so search your email templates for `checkoutLink`, `discount` and `currentSite` and replace them as shown in [Email Templates](#email-templates). Once nothing uses them, switch compatibility mode off in your configuration file:
 
 ```php
 <?php
@@ -298,7 +322,7 @@ If 4.x sent a reminder in the 30 days before the upgrade, All Other Carts starts
 
 ### Carts Part-Way Through 4.x
 
-A cart that received the first 4.x reminder but not the second, and is still incomplete and within its recovery window, moves into All Other Carts at email 2. Email 2 is timed from when the 4.x reminder was sent. If that time has already passed, it goes out on the first run.
+A cart that received the first 4.x reminder but not the second, and is still incomplete and within its recovery period, moves into All Other Carts at email 2. Email 2 is timed from when the 4.x reminder was sent. If that time has already passed, it goes out on the first run.
 
 ### History
 
@@ -314,9 +338,9 @@ These changes need no action, but they affect what customers and staff see.
 
 Discount codes are applied for the customer. In 4.x, the code was only shown in the email, and customers had to enter it at checkout. In Abandoned Cart 5, a customer who follows an email's link has that email's **Discount Code** applied to their cart. If your templates or messages tell customers to enter the code, consider rewording them.
 
-An order counts as recovered when it's completed within the attribution window after the cart's last email, five days by default, even if the customer didn't click. Expect more recoveries in the Overview than 4.x reported.
+An order counts as recovered when the customer completes it within the attribution window after the cart's last email, five days by default, even if they didn't click, and even if they bought from a different cart. Any completed order by the same customer, matched by email address or account, also stops their remaining emails. Expect more recoveries in the Overview than 4.x reported.
 
-A customer follows one cart at a time. When they abandon a second cart while an earlier one is in recovery, the newer cart takes over the earlier cart's recovery, keeping its sequence and the times of its remaining emails, and the earlier cart ends with the reason **Started a newer cart**. Once a recovery has ended, the **Contact Limit** decides when another cart can start a new sequence, and only emails that were actually sent count towards it.
+A customer follows one cart at a time. When they abandon a second cart while an earlier one is in recovery, the newer cart takes over the earlier cart's recovery, keeping its sequence and the times of its remaining emails, and the earlier cart ends with the reason **Started a newer cart**. [Sequences](../feature-tour/sequences.md#when-a-customer-leaves-a-newer-cart) explains the takeover. Once a recovery has ended, the **Contact Limit** decides when another cart can start a new sequence, and only emails that were actually sent count towards it.
 
 A cart that belongs to a customer who can sign in to their account only restores for that customer, after signing in. Expired and invalid links show a page explaining what happened, instead of redirecting with an error message. The restored notice reads "Welcome back. Your cart is just as you left it."
 
@@ -329,9 +353,9 @@ The 4.x dashboard is replaced by the Overview and Carts screens, at `abandoned-c
 After upgrading, work through these checks:
 
 1. Update your cron job to `abandoned-cart/recoveries/run`, and update your configuration file if you have one.
-2. Open **Abandoned Carts → Sequences → All Other Carts**. Read each email, check its delay and discount code, and send yourself a test.
+2. Open **Abandoned Carts → Sequences → All Other Carts** on each environment. Read each email, check its delay and discount code, and send yourself a test.
 3. If you had custom templates, preview an email that uses one with a real cart, add the unsubscribe link, and replace `checkoutLink`, `discount` and `currentSite` with the new variables.
-4. Open **Abandoned Carts → Settings → System Status** and check that the scheduler has run and every email template can be found.
+4. Open **Abandoned Carts → Settings → System Status** and check that the background run has happened and every email template can be found.
 5. Check **Abandoned Carts → Customers → Do not email** for the addresses from your 4.x blocklist.
 6. Give staff who aren't admins the permissions their roles need.
 7. Once Craft's deprecation warnings no longer list Abandoned Cart and your templates no longer use the 4.x variables, switch off compatibility mode.

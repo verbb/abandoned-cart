@@ -36,7 +36,11 @@ return [
 ];
 ```
 
-`deliveryPaused`, `returnUrl` and `passKey` also accept an environment variable reference such as `'$ABANDONED_CART_PAUSED'`, if you'd rather control them from your `.env` file.
+The keys match each environment's `CRAFT_ENVIRONMENT` value, so `'dev'` applies where `CRAFT_ENVIRONMENT=dev`, and `'*'` applies everywhere.
+
+Pausing matters on a development site even without cron. Abandoned Cart also starts its background run from ordinary site and control panel requests, so browsing a development site that holds a copy of production's database, with its sequences switched on, sends real emails to real customers unless sending is paused there.
+
+`deliveryPaused`, `returnUrl` and `passKey` also accept an environment variable reference such as `'$ABANDONED_CART_PAUSED'`, if you'd rather control them from your `.env` file. `deliveryPaused` reads `true`, `1`, `on` or `yes` as paused.
 
 ## Configuration Options
 
@@ -77,7 +81,7 @@ Where a recovery link takes the customer once their cart has been restored, usua
 
 **Type:** `int` · **Default:** `10080` (7 days)
 
-How long a cart stays in recovery after it's abandoned. When this time is up, any emails that haven't been sent are cancelled and the cart's recovery links stop restoring it. Make sure the window is long enough for every email in your longest sequence to be sent.
+The recovery period, meaning how long a cart stays in recovery after it's abandoned. It's labelled **Recovery Ends After** in the control panel. When this time is up, any emails that haven't been sent are cancelled and the cart's recovery links stop restoring it. Make sure it's long enough for every email in your longest sequence to be sent.
 :::
 
 ::: reference
@@ -85,7 +89,7 @@ How long a cart stays in recovery after it's abandoned. When this time is up, an
 
 **Type:** `int` · **Default:** `7200` (5 days)
 
-How long after the cart's last email a completed order counts as recovered, whether or not the customer clicked the email's link. An order completed after the window has closed doesn't count, even if the customer followed a link. [Overview](../feature-tour/overview.md#how-recoveries-are-credited) explains how recoveries are credited.
+How long after the cart's last email a completed order by the same customer counts as recovered, whether or not the customer clicked the email's link, and whether they completed this cart or another one. An order completed after the window has closed doesn't count, even if the customer followed a link. [Overview](../feature-tour/overview.md#how-recoveries-are-credited) explains how recoveries are credited.
 :::
 
 ::: reference
@@ -104,6 +108,8 @@ How long a customer must go without a recovery email before another of their car
 **Type:** `string|null` · **Default:** `null`
 
 The handle of a Lightswitch field that records whether a customer agreed to be emailed. When it's set, only customers who switched the field on are emailed, and everyone else is recorded as skipped with the reason **Didn't opt in**. The field is read from the order first, then from the customer's user account. If neither has the field, the customer counts as not having agreed.
+
+If the field is later deleted, or its handle changes, no order or account has a field with this handle, so nobody is emailed and every cart is skipped as **Didn't opt in**. System Status warns when the field can't be found.
 
 Leave this empty if every eligible cart can be contacted where you trade. [Customers](../feature-tour/customers.md#consent) explains how consent interacts with unsubscribing.
 :::
@@ -151,7 +157,7 @@ A site template that Abandoned Cart's customer pages render inside, so they look
 
 **Type:** `bool|string` · **Default:** `false`
 
-Holds every recovery email across all sequences. Carts still enter sequences while sending is paused, and their emails wait. Once sending resumes, any that are due go out on the next run, unless the cart's recovery period has ended in the meantime. Use it for emergencies, such as a problem with an email's wording, or to stop a development environment from emailing customers.
+Holds every recovery email across all sequences. Carts still enter sequences while sending is paused, and their emails wait. Once sending resumes, any that are due go out on the next run, unless the cart's recovery period has ended in the meantime. Use it for emergencies, such as a problem with an email's wording, or to stop a development environment from emailing customers. The control panel switch is read-only where admin changes are off, so on a live site this setting, or an environment variable it points to, is how you pause. [Pausing All Sending](../feature-tour/sending-and-scheduling.md#pausing-all-sending) explains more.
 :::
 
 ::: reference
@@ -159,7 +165,7 @@ Holds every recovery email across all sequences. Carts still enter sequences whi
 
 **Type:** `int` · **Default:** `365`
 
-How many days to keep finished and skipped carts in Abandoned Cart's history. Older records are removed during Craft's garbage collection, which also removes them from the Overview's totals. Carts still in recovery are never removed, and neither are customers or their Do Not Email status. The minimum is `30`.
+How many days to keep finished and skipped carts in Abandoned Cart's history. Older records are removed during Craft's garbage collection, which also removes them from the Overview's totals. Carts still in recovery are never removed. Customers and their unsubscribe or Do Not Email status are kept until someone [deletes the customer](../feature-tour/customers.md#deleting-a-customer). The minimum is `30`.
 :::
 
 ### Configuration File Only
@@ -171,7 +177,7 @@ These settings don't appear in the control panel.
 
 **Type:** `int` · **Default:** `100`
 
-The most carts that one background run starts sequences for, or records as skipped. Any carts beyond the limit are picked up by the following runs. Lower it if runs take too long on a busy store with a slow mail server, or raise it, up to `1000`, if carts are abandoned faster than runs can keep up.
+The most carts that one background run starts sequences for, or records as skipped. Any carts beyond the limit are picked up by the following runs. Lower it if runs take too long on a busy store with a slow mail server, or raise it, up to `1000`, if carts are abandoned faster than runs can keep up. It doesn't limit emails. Each run sends at most 100 due emails, which can't be changed.
 :::
 
 ::: reference
@@ -192,8 +198,32 @@ The key a scheduled request sends in an `Authorization: Bearer` header to the 4.
 
 ## Control Panel
 
-Administrators can manage most settings by visiting **Abandoned Carts → Settings → General Settings**, or Craft's **Settings → Plugins → Abandoned Cart**. These settings are stored in Craft's project config, so they follow the same rules as other project config. Change them where admin changes are allowed, such as your development environment, and deploy them to other environments.
+Administrators can manage most settings by visiting **Abandoned Carts → Settings → General Settings**, or Craft's **Settings → Plugins → Abandoned Cart**. These settings are stored in Craft's project config, so change them where admin changes are allowed, such as your development environment, and deploy them to other environments. [What Moves Between Environments](#what-moves-between-environments) explains which parts of Abandoned Cart are deployed this way.
 
 ![The General Settings page, with the Recovery Defaults, Who Can Be Emailed, Customer Pages and Sending groups, and tabs for Email Templates, Sequence Presets and System Status](../../screenshots/settings.png)
 
 The plugin's **Settings** section has three more tabs. **Email Templates** is described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#email-templates). **Sequence Presets** holds the starting points offered when you create a sequence, as described in [Sequences](../feature-tour/sequences.md#managing-presets). **System Status** is described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#system-status).
+
+## What Moves Between Environments
+
+Most stores have more than one copy of their site, such as a development site where changes are made and a live site that customers use. Craft keeps some things in project config, which is a set of files saved with your site's code and deployed from one environment to the next. Everything else lives in each environment's own database, so it's changed on each site separately and doesn't travel when you deploy.
+
+These are saved in project config and deployed with your site's code:
+
+- General Settings, including **Pause All Sending**
+- email templates, along with the template files they point to, which live in your templates folder
+- sequence presets
+
+`config/abandoned-cart.php` is part of your site's code too, so its values are deployed with it.
+
+These are stored in each environment's database:
+
+- sequences, including their audiences, their order in the list and whether each one is on
+- each email's wording, timing, discount code and chosen email template
+- customers, their unsubscribes and Do Not Email
+- every cart's history, and the results on the Overview
+- the background run's history on System Status
+
+In practice, that means you make changes to settings, email templates and presets on your development site and deploy them. Where admin changes are turned off, which is usual on a live site (Craft's `allowAdminChanges` setting), those three screens are read-only. Sequences and emails are the opposite. Editors change them directly on the live site, and wording or timing changed on a staging site has to be changed again on the live site. An address added to Do Not Email on staging isn't on Do Not Email in production.
+
+A copy of production's database brings its sequences, switched on, and its customers' real addresses with it. Pause sending on any environment that holds one, as shown in [Environment-Specific Settings](#environment-specific-settings).

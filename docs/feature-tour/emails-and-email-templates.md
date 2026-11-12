@@ -25,7 +25,9 @@ Each email has these fields:
 - **Discount Code** is a Commerce coupon code to apply when the customer returns through this email.
 - **Email Template** chooses the design. **Default template** uses whichever template is currently the default.
 
-The preview beside the fields updates as you type. It starts with a sample cart, and you can choose one of your store's real carts in **Previewing with** to see how the email looks for that customer.
+The preview beside the fields updates as you type. It starts with a sample cart, priced in your store's currency, and you can choose one of your store's real carts in **Previewing with** to see how the email looks for that customer.
+
+Every email is sent from the name and address in Craft's **Settings → Email**. Developers can change the sender for recovery emails with the [`beforeSend` event](../developers/events.md#the-beforesend-event).
 
 Changing an email's wording or discount code affects every copy of it that hasn't been sent yet, including emails already scheduled for carts in the sequence. Changing its delay only affects carts that enter the sequence afterwards. [Sequences](sequences.md#editing-a-sequence-in-use) explains why.
 
@@ -47,21 +49,9 @@ Tokens are placeholders that Abandoned Cart replaces with details from each cust
 
 Names come from the cart's billing address, or its shipping address when there's no billing address, and then from the customer's user account.
 
-### Twig in Subjects and Preview Text
-
-A subject or preview text that contains `{{` or `{%` is also rendered as Twig, in a restricted sandbox, with the Commerce order available as `order`. Tokens are replaced first. This is mainly useful for translating a subject on a store that sells in several languages:
-
-```twig
-{{ 'Your cart is waiting' | t('site') }}
-```
-
-Emails render in the language of the customer's order, or the language of the cart's site when the order doesn't have one, so the subject above uses your site translations for that language. Developers can choose a different language with the [`resolveLanguage` event](../developers/events.md#the-resolvelanguage-event).
-
-The heading, message and button label only support tokens, not Twig. The sandbox limits which filters, functions and object properties are available, and in previews and tests that use the sample cart, `order` is `null`. Tokens cover most needs and work everywhere, so prefer them for personal details and keep Twig for translation.
-
 ## Including a Discount
 
-To offer a discount, first create one in Commerce with a coupon code, then choose the code in the email's **Discount Code** field, which lists your Commerce coupon codes with the name of their discount. You can also type a code that isn't listed, such as one from another plugin. When a customer returns through that email's link, the code is applied to their cart. The bundled design shows the code in a highlighted box, and `{discountCode}` lets you mention it in the wording.
+To offer a discount, first create one in Commerce with a coupon code, then choose the code in the email's **Discount Code** field, which lists your Commerce coupon codes with the name of their discount. A store with many generated codes sees the first 500, with codes from enabled discounts first. You can also type a code that isn't listed, such as one from another plugin. When a customer returns through that email's link, the code is applied to their cart. The bundled design shows the code in a highlighted box, and `{discountCode}` lets you mention it in the wording.
 
 Abandoned Cart applies the code but doesn't check whether it's valid for the cart. Commerce checks its own conditions, such as a minimum order value or an expiry date, whenever it recalculates the cart, so a code that doesn't apply gives no discount. Test a discount with a real cart before relying on it. Discounts usually work best in the last email, so customers who were going to come back anyway don't receive one.
 
@@ -101,4 +91,16 @@ Deleting any other template is safe. The emails that used it fall back to the de
 
 Email templates are stored in Craft's project config, alongside your sections and fields, so you create and change them where admin changes are allowed and deploy them to other environments. The template files they point to belong in your site's templates folder, which you deploy with the rest of your templates. **System Status** warns you if a template's file can't be found.
 
-Sequences and emails are stored in the database instead. Editors can adjust wording and timing on the live site without a deployment.
+Sequences and emails are stored in the database instead. Editors can adjust wording and timing on the live site without a deployment, and changes made on a staging site don't reach the live site. [What Moves Between Environments](../get-started/configuration.md#what-moves-between-environments) has the full list.
+
+## Twig in Subjects and Preview Text
+
+This section is for developers. A subject or preview text that contains `{{` or `{%` is also rendered as Twig, in a restricted sandbox, with the Commerce order available as `order`. Tokens are replaced first. This is mainly useful for translating a subject on a store that sells in several languages:
+
+```twig
+{{ 'Your cart is waiting' | t('site') }}
+```
+
+Emails render in the language of the customer's order, or the language of the cart's site when the order doesn't have one, so the subject above uses your site translations for that language. Developers can choose a different language with the [`resolveLanguage` event](../developers/events.md#the-resolvelanguage-event).
+
+The heading, message and button label only support tokens, not Twig. The sandbox limits which filters, functions and object properties are available, and in previews and tests that use the sample cart, `order` is `null`. Tokens cover most needs and work everywhere, so prefer them for personal details and keep Twig for translation.

@@ -6,16 +6,33 @@ The Carts screen lists every abandoned cart Abandoned Cart has dealt with, so yo
 
 ![The Carts screen with a sidebar of statuses and sequences, each with its number of carts, a Search by email box, and a table of carts showing the customer, cart value, sequence, email progress, status, a detail such as Email 2 in 15 hours or All emails sent, and when each cart was abandoned](../../screenshots/carts.png)
 
-Each row is one abandoned cart, showing the customer, the cart's value, the sequence it entered, its progress through that sequence's emails, its status and when it was abandoned. Search by email address to find a particular customer's carts. The sidebar lists each status with its number of carts:
+Each row is one abandoned cart, showing the customer, the cart's value, the sequence it entered, its progress through that sequence's emails, its status and when it was abandoned. The abandoned date is when the customer last changed the cart, which is where the **Abandoned After** wait began.
+
+Search by email address to find a particular customer's carts. The search only matches email addresses, so when a customer gives you their name, search for them on the [Customers](customers.md) screen instead, where each customer's page lists all their carts.
+
+The sidebar lists each status with its number of carts:
 
 - **In recovery** carts are in a sequence whose recovery period hasn't ended. The **Detail** column says when the next email is due, or **All emails sent** once the last one has gone out, because a cart stays in recovery until its recovery period ends.
-- **Recovered** carts were followed by a completed order within the attribution window after an email.
+- **Recovered** carts were followed by a completed order from the same customer, within the attribution window after an email.
 - **Not recovered** carts left recovery without a recovered order, and the **Detail** column gives the reason.
 - **Skipped** carts were never emailed, and the **Detail** column gives the reason.
 
 Below the statuses, the sidebar lists your sequences, so you can show only the carts that entered one of them.
 
-Carts without an email address aren't listed, because there's no way to email the customer.
+## Why a Cart Might Not Be Listed
+
+When a customer asks why they didn't get a reminder and you can't find their cart, one of these is usually the reason:
+
+- The cart has no email address, or no items. Abandoned Cart only picks up carts it could email.
+- It hasn't gone the **Abandoned After** time without changes yet, an hour by default, or the next background run hasn't happened since.
+- Every sequence was switched off when it was left. Nothing is picked up, or recorded as skipped, while all sequences are off.
+- It was left before recovery was switched on. Sequences only take carts that become abandoned after they're switched on.
+- The background run isn't happening. An admin can check under **Abandoned Carts → Settings → System Status**.
+- The customer completed the order, so it was never an abandoned cart.
+- It's older than **Keep History For**, 365 days by default, and its record has been removed.
+- The customer was deleted from the Customers screen, which removes their carts' history.
+
+If the cart is listed under **Skipped**, its page gives the reason it wasn't emailed.
 
 ## The Cart Page
 
@@ -27,11 +44,58 @@ For a recovered cart, the page shows which email the order was credited to, whet
 
 ![The page for a recovered cart, headed Recovered $337.00 with the order number, labels reading Credited to "Still thinking it over?", Clicked before ordering, First order and No discount used, and a Journey showing Email 1 sent, Clicked email 2, Email 3 not sent because the order was completed, and Ordered](../../screenshots/cart-recovered.png)
 
-**Journey** shows each step: when the cart was abandoned, each email with its status, any clicks, and the order. **Full History** lists everything Abandoned Cart did with the cart, including emails that couldn't be sent and why, and changes to the cart that moved its emails later.
+When the customer completed a different cart, such as one on another device, the recovered panel says so, and **View Order** opens the order that was completed. The cart on this page stays incomplete in Commerce.
 
-**Cart Contents** lists the items with their thumbnails. Each uses the variant's thumbnail, or else its product's. That's the Assets field set to **Use for element thumbnails** in the variant or product field layout, which is the same image Commerce shows in its product index. Items without one show their first letter instead.
+### Journey
 
-The sidebar starts with **Can be emailed**. Staff with the **Manage Do Not Email** permission can switch it off to add the customer to [Do Not Email](customers.md#do-not-email), which stops their emails, or back on to remove them. It can't be switched on for a customer who unsubscribed. Below it are the cart's status, the customer with a link to their [customer page](customers.md), whether they have an account and how many orders they've completed before, the sequence and its audience, the cart's value, when it was abandoned and last changed, and a link to the order in Commerce.
+**Journey** shows each step: when the cart was abandoned, each email with its status, any clicks, and the order. Each email shows one of these:
+
+| Status | What It Means |
+| --- | --- |
+| Scheduled | The email is waiting, and the date it's due is shown. It goes out on the first background run after that time. |
+| Sending | The email is being sent right now. |
+| Sent | The email went out, at the time shown. |
+| Clicked email N | The email went out, and the customer followed its link and had their cart restored. |
+| Failed | The email couldn't be sent after three tries, or sending was interrupted, and the reason is shown. Staff can choose **Retry**. |
+| Not sent | The email was cancelled before it went out, and the reason is shown. |
+
+An email is **Not sent** for one of these reasons:
+
+| Reason | What Happened |
+| --- | --- |
+| the cart had already left recovery | The recovery had already ended when this email came to be sent. |
+| the recovery period ended | The email fell after the end of the recovery period. |
+| the cart was deleted | The Commerce order was deleted. |
+| the cart is empty | The customer removed every item. |
+| the customer can't be emailed | The customer unsubscribed or was added to Do Not Email. |
+| the email was deleted from its sequence | Someone deleted this email from the sequence after the cart entered it. |
+| a plugin or module cancelled it | Custom code on your site stopped this email. |
+| the order was completed | The cart was recovered, so the emails still to come were cancelled. |
+
+When a recovery ends for one of the reasons in [Why Recovery Ends](#why-recovery-ends), its remaining emails show that reason in lower case, such as "stopped by staff" or "started a newer cart".
+
+### Full History
+
+**Full History** lists everything Abandoned Cart did with the cart, newest first. Most lines explain themselves, such as "Entered All Other Carts", "Email 1 sent" with its subject, or "Cart restored from email 2's link". A few need a word of explanation:
+
+- "Cart changed, so the next email moved later" means the customer changed the cart while it was in recovery, so the remaining emails waited.
+- "Next email sent manually" and "Email 2 retried by staff" record someone choosing **Send Now** or **Retry**.
+- "Moved to the customer's newer cart, order …" means the customer left a newer cart, which took over this recovery. You'll see it on the newer cart's page, which also shows the emails sent while the recovery was on the older cart.
+- "Imported from 4.x reminder history" marks a cart brought across from Abandoned Cart 4.
+
+### When a Newer Cart Takes Over
+
+When a customer leaves a newer cart while this one is in recovery, the newer cart takes over the recovery, as [Sequences](sequences.md#when-a-customer-leaves-a-newer-cart) explains. The emails, including any already sent, move with it. This cart's page then shows **Not recovered: started a newer cart**, explains that its emails carry on with the newer cart, and has a **View Newer Cart** button. Its Journey shows "Emails moved to a newer cart".
+
+### Cart Contents
+
+**Cart Contents** shows the cart as it is now, labelled **As it is now**, or as it was ordered once it's complete. It isn't a copy from when the cart was abandoned, so if the customer has since changed it, the items can differ from what the emails showed. If Commerce has since deleted the cart, the card says so and shows what the cart was worth when it was abandoned.
+
+Each item shows its product image, the same one Commerce shows in its product index, or its first letter when there's no image.
+
+### The Sidebar
+
+The sidebar starts with **Can be emailed**. Staff with the **Manage Do Not Email** permission can switch it off to add the customer to [Do Not Email](customers.md#do-not-email), which stops their emails, or back on to remove them. It can't be switched on for a customer who unsubscribed, and removing Do Not Email from a customer who had unsubscribed first leaves them unsubscribed. Below it are the cart's status, the customer with a link to their [customer page](customers.md), whether they have an account and how many orders they've completed before, the sequence and its audience, the cart's value, when it was abandoned and last changed, and a link to the order in Commerce.
 
 ## Sending, Stopping and Retrying Emails
 
@@ -54,8 +118,8 @@ When a cart leaves recovery without being recovered, its page and the **Not reco
 | Started a newer cart | The customer abandoned another cart, which took over this cart's recovery and its remaining emails. |
 | Unsubscribed | The customer unsubscribed from cart reminders. |
 | Added to Do Not Email | Staff added the customer to Do Not Email. |
-| Ordered before any email | The customer completed the order before the first email was sent. |
-| Ordered after the attribution window | The customer completed the order, but too long after the last email to count. |
+| Ordered before any email | The customer completed an order, from this cart or another, before the first email was sent. |
+| Ordered after the attribution window | The customer completed an order, from this cart or another, but too long after the last email to count. |
 | Cart emptied | All the items were removed from the cart, which is noticed when its next email falls due. |
 | Cart deleted | The Commerce order was deleted. |
 | Stopped by staff | Someone chose **Stop Emails**. |

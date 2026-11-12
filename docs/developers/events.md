@@ -384,7 +384,7 @@ Event::on(Recoveries::class, Recoveries::EVENT_RESOLVE_CONSENT, function(Consent
 
 ### The `afterRecover` Event
 
-The event that is triggered after a completed order is credited to a cart's recovery. `$event->recovery->creditedAttemptId` identifies the email it was credited to.
+The event that is triggered after a completed order is credited to a cart's recovery. `$event->recovery->creditedAttemptId` identifies the email it was credited to, and `$event->recovery->recoveredOrderId` is the order that recovered it. That's usually the recovery's own cart, `orderId`, but it can be a different order when the customer bought from another cart. `getRecoveredOrder()` returns the order itself, and `orderTotal` is its total.
 
 ```php
 use verbb\abandonedcart\events\RecoveryEvent;
@@ -393,6 +393,7 @@ use yii\base\Event;
 
 Event::on(Recoveries::class, Recoveries::EVENT_AFTER_RECOVER, function(RecoveryEvent $event) {
     $recovery = $event->recovery;
+    $order = $recovery->getRecoveredOrder();
     $orderTotal = $recovery->orderTotal;
     // ...
 });
@@ -555,7 +556,7 @@ Event::on(Customers::class, Customers::EVENT_AFTER_SAVE_CUSTOMER, function(Custo
 
 The event that is triggered before a customer's email status changes, such as when they unsubscribe, change their preference from their account, or staff add them to Do Not Email. `$event->status` is the new status (`active`, `unsubscribed` or `doNotEmail`), and `$event->source` says what caused it (`unsubscribe`, `account`, `staff`, `checkout` or `upgrade`). Set `$event->isValid` to `false` to keep the current status. Recoveries that are under way carry on, and the `afterChangeStatus` event isn't triggered.
 
-A customer's own unsubscribe can't be cancelled, whether it comes from an email's unsubscribe link, a one-click unsubscribe in their mail app or turning reminders off from their account. Unsubscribe laws and the one-click unsubscribe standard require it to take effect, so `isValid` is ignored for those changes. Your listener is still called and can record or react to the change. The event is also triggered for a change that Abandoned Cart then refuses, such as staff trying to undo an unsubscribe, which only the customer can do.
+A customer's own unsubscribe can't be cancelled, whether it comes from an email's unsubscribe link, a one-click unsubscribe in their mail app or turning reminders off from their account. Unsubscribe laws and the one-click unsubscribe standard require it to take effect, so `isValid` is ignored for those changes. Your listener is still called and can record or react to the change. The event is also triggered for a change that Abandoned Cart then refuses, such as staff trying to undo an unsubscribe, which only the customer can do. When staff remove Do Not Email from a customer who had unsubscribed first, the event is triggered with `unsubscribed` as the status and the original unsubscribe's source, because that's the status they return to. Cancelling it keeps them on Do Not Email.
 
 ```php
 use verbb\abandonedcart\events\CustomerStatusEvent;
@@ -586,6 +587,38 @@ Event::on(Customers::class, Customers::EVENT_AFTER_CHANGE_STATUS, function(Custo
         // `MyModule` and its `newsletter` service stand in for your own module's code.
         MyModule::getInstance()->newsletter->unsubscribe($event->customer->email);
     }
+});
+```
+
+### The `beforeDeleteCustomer` Event
+
+The event that is triggered before a customer is deleted from their customer page. Set `$event->isValid` to `false` to keep the customer, such as while another system still needs the record. Staff then see "Couldn't delete customer."
+
+Deleting a customer also deletes their recoveries, emails, clicks, history and skipped carts. Commerce orders and the customer's user account aren't changed.
+
+```php
+use verbb\abandonedcart\events\CustomerEvent;
+use verbb\abandonedcart\services\Customers;
+use yii\base\Event;
+
+Event::on(Customers::class, Customers::EVENT_BEFORE_DELETE_CUSTOMER, function(CustomerEvent $event) {
+    $customer = $event->customer;
+    // ...
+});
+```
+
+### The `afterDeleteCustomer` Event
+
+The event that is triggered after a customer and their history have been deleted. Use it to pass an erasure request on to another system, such as a newsletter service. `$event->customer` still holds the deleted customer's email address and user ID.
+
+```php
+use verbb\abandonedcart\events\CustomerEvent;
+use verbb\abandonedcart\services\Customers;
+use yii\base\Event;
+
+Event::on(Customers::class, Customers::EVENT_AFTER_DELETE_CUSTOMER, function(CustomerEvent $event) {
+    // `MyModule` and its `newsletter` service stand in for your own module's code.
+    MyModule::getInstance()->newsletter->forget($event->customer->email);
 });
 ```
 

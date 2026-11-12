@@ -1,6 +1,6 @@
 # Customers
 
-Abandoned Cart keeps a record for each email address that has abandoned a cart, linked to the customer's Craft user account when they have one. The record holds whether the customer can be emailed, and brings together their carts, the emails they've received and what they've spent. Open the list from **Abandoned Carts → Customers**.
+When a customer gets in touch about cart reminders, or you want to see how one person shops, start here. Abandoned Cart keeps a record for each email address that has abandoned a cart, linked to the customer's Craft user account when they have one. The record holds whether the customer can be emailed, and brings together their carts, the emails they've received and what they've spent. Open the list from **Abandoned Carts → Customers**.
 
 ## The Customers List
 
@@ -23,7 +23,7 @@ When the customer was emailed recently, the sidebar's **Next Sequence** says whe
 Every customer has one of three statuses:
 
 - **Can be emailed** means the customer's carts can enter sequences, subject to your other settings.
-- **Unsubscribed** means the customer used an unsubscribe link, or turned cart reminders off from their account on your site. Only the customer can reverse this, by opting in again at checkout or from their account, as [Unsubscribing](recovery-links.md#unsubscribing) explains.
+- **Unsubscribed** means the customer used an unsubscribe link, or turned cart reminders off from their account on your site. Only the customer can reverse this, by opting in again at checkout or from their account, as [Unsubscribing](recovery-links.md#unsubscribing) explains. If your store offers neither, there's no way back, and you can tell the customer that their order confirmations aren't affected.
 - **Do not email** means staff have asked Abandoned Cart never to email this address about carts.
 
 Unsubscribed and Do not email both stop any recovery that's under way straight away, and the customer's later carts are recorded as skipped.
@@ -36,9 +36,9 @@ On a customer's page, enter an optional note in the sidebar's **Do Not Email Not
 
 You can also switch off **Can be emailed** in a cart's sidebar.
 
-Customers can't change a Do Not Email status themselves, even from their account. Switching **Can be emailed** back on, on the customer's page or in a cart's sidebar, lets them be emailed again. Carts that were skipped while they were on the list aren't revisited unless the customer changes one and leaves it again.
+Customers can't change a Do Not Email status themselves, even from their account. Switching **Can be emailed** back on, on the customer's page or in a cart's sidebar, removes them from Do Not Email and gives them back the status they had before. A customer who had unsubscribed before being added stays **Unsubscribed**, with the date of their original unsubscribe, and their page says so while they're on Do Not Email. Everyone else can be emailed again. Carts that were skipped while they were on the list aren't revisited unless the customer changes one and leaves it again.
 
-Do Not Email records are kept permanently, whatever the **Keep History For** setting.
+Do Not Email records are kept whatever the **Keep History For** setting, until the customer is deleted.
 
 To stop emailing everyone at a domain, such as your own company's, add it to **Blocked Domains** under **Abandoned Carts → Settings → General Settings** instead.
 
@@ -50,9 +50,23 @@ The field is read from the order first, and then from the customer's user accoun
 
 Consent is read when the cart is abandoned, which is often before the customer reaches checkout. A checkbox that only appears at checkout therefore leaves many abandoned carts skipped. A preference in the customer's account settings, or a field they can switch on earlier, such as on the cart page, reaches more carts.
 
-A consent field also gives unsubscribed customers a way back. When an unsubscribed customer completes an order with the consent field switched on for that order, their status returns to **Can be emailed**. A value already saved on their user account doesn't count, because their unsubscribe is the more recent choice. The field needs to be in the order's field layout for checkout to offer this.
+A consent field also gives unsubscribed customers a way back. When an unsubscribed customer completes an order with the consent field switched on for that order, their status returns to **Can be emailed**. A value already saved on their user account doesn't count, because their unsubscribe is the more recent choice. This only works when the field is on the order itself, which your developer sets up in Commerce's order fields, so checkout can offer it.
 
 Developers who store consent elsewhere, such as in a newsletter service, can decide it with the [`resolveConsent` event](../developers/events.md#the-resolveconsent-event).
+
+## Deleting a Customer
+
+When a customer asks you to erase their personal details, delete their record from their customer page. Open the page's action menu, the button with three dots, and choose **Delete Customer**, then confirm. You'll need the **Delete customers** permission.
+
+Deleting removes everything Abandoned Cart holds about the customer, including their email address, their status and Do Not Email note, every cart's recovery history, the emails they were sent, their clicks and their skipped carts. It can't be undone, and their carts leave the Overview's results.
+
+It doesn't touch Commerce. Their orders, incomplete carts, addresses and user account stay where they are, so remove the customer's data from Commerce and Craft as well, following your usual process for erasure requests. Until their incomplete carts are gone, Abandoned Cart can pick a recent one up again as a new abandoned cart. A new record starts as **Can be emailed**, because their unsubscribe or Do Not Email status was deleted along with everything else.
+
+## When Customers Complain About Reminders
+
+A customer who asks you to stop emailing them can be added to [Do Not Email](#do-not-email), or pointed to the unsubscribe link at the bottom of any reminder. A customer who says they've already bought may have ordered under a different email address, because Abandoned Cart matches orders to customers by email address or user account. Their cart's page shows what happened, and **Stop Emails** ends that cart's reminders.
+
+When several customers say the emails come too often, look at the store-wide settings rather than individual customers. The **Contact Limit** in General Settings sets how long a customer waits between sequences, and each sequence's emails and delays decide how many reminders one cart gets.
 
 ## The Customer Tab on User Accounts
 

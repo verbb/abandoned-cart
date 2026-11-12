@@ -4,6 +4,7 @@
         "collapsable": false,
         "children": [
             "get-started/installation-setup",
+            "get-started/how-abandoned-cart-works",
             "get-started/create-your-first-sequence",
             "get-started/requirements",
             "get-started/configuration",
@@ -40,6 +41,14 @@
         "children": [
             "developers/custom-audiences",
             "developers/events"
+        ]
+    },
+    {
+        "title": "User Guides",
+        "collapsable": false,
+        "children": [
+            "user-guides/high-value-carts-with-a-discount",
+            "user-guides/is-it-working"
         ]
     }
 ]

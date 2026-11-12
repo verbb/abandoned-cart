@@ -30,6 +30,10 @@ For more information, see [Craft's Commercial Plugin Licensing](https://craftcms
 
 ## After Installing
 
-Installing Abandoned Cart creates a **Default** email template and a default sequence, **All Other Carts**, with three reminder emails. The sequence starts switched off, so no customer is emailed until you've reviewed it and turned it on. It also adds four starting points for new sequences under **Abandoned Carts → Settings → Sequence Presets**.
+The plugin appears in the control panel's navigation as **Abandoned Carts**, a name you can change with **Plugin Name** in its General Settings.
 
-Follow [Create Your First Sequence](create-your-first-sequence.md) to check your sending details, schedule the plugin's background run, send yourself a test and start recovering carts.
+Installing Abandoned Cart creates a **Default** email template and the default sequence, **All Other Carts**, with three reminder emails. The sequence starts switched off, so no customer is emailed until you've reviewed it and turned it on. It also adds four starting points for new sequences under **Abandoned Carts → Settings → Sequence Presets**.
+
+Abandoned Cart needs its background run scheduled every five minutes, usually as a cron job. [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run) has the command.
+
+[How Abandoned Cart Works](how-abandoned-cart-works.md) explains what happens to a cart from start to finish. Then follow [Create Your First Sequence](create-your-first-sequence.md) to check your sending details, schedule the background run, send yourself a test and start recovering carts.

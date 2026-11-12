@@ -66,7 +66,7 @@ Sign in to your site as a customer, open the page, clear the checkbox and save. 
 
 Tick the checkbox and save again. The page shows "We'll remind you about carts you leave behind.", and the customer's status returns to **Can be emailed**. Carts they abandon from now on can enter a sequence again.
 
-If staff have added the customer to Do Not Email, the form isn't shown. Should the action receive a request for such a customer anyway, it refuses with "Your cart reminder preference can't be changed here. Please contact us."
+If staff have added the customer to Do Not Email, the form isn't shown. Should the action receive a request for such a customer anyway, it refuses with "Your cart reminder preference can't be changed here. Please contact us." If custom code on your site refuses the change, such as a module listening to the [`beforeChangeStatus` event](../developers/events.md#the-beforechangestatus-event), the page shows "Your cart reminder preference couldn't be saved." instead.
 
 ## Saving with JavaScript
 
