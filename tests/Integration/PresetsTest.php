@@ -132,3 +132,12 @@ it('lists presets a plugin adds as read-only', function() {
         ->and($presets->getPresetByHandle('fromPlugin')->getCpEditUrl())->toBeNull()
         ->and($presets->deletePreset($presets->getPresetByHandle('fromPlugin')))->toBeFalse();
 });
+
+it('says the discount preset’s code is applied when the customer returns', function() {
+    $preset = (new Presets())->getPresetByHandle(Presets::PRESET_REMINDERS_THEN_DISCOUNT);
+    $last = end($preset->emails);
+
+    expect($last['message'])->not->toContain('at checkout')
+        ->and($last['previewText'])->not->toContain('at checkout')
+        ->and($last['message'])->toContain('applied');
+});

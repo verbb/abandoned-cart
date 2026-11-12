@@ -324,9 +324,9 @@ class Presets extends Component
         ];
         $lastChance = [
             'subject' => Craft::t('abandoned-cart', 'Last chance for a discount on your cart'),
-            'previewText' => Craft::t('abandoned-cart', 'Use your code at checkout.'),
+            'previewText' => Craft::t('abandoned-cart', 'Your discount is applied when you return.'),
             'heading' => Craft::t('abandoned-cart', 'A little something to help you decide'),
-            'message' => Craft::t('abandoned-cart', 'This is our last reminder. Use the code below at checkout to save on your order.'),
+            'message' => Craft::t('abandoned-cart', 'This is our last reminder. Return to your cart and the code below is applied to your order.'),
             'buttonLabel' => Craft::t('abandoned-cart', 'Finish your order'),
             'offersDiscount' => true,
         ];
