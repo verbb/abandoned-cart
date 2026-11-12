@@ -6,7 +6,7 @@ Abandoned Cart provides events for extending how carts are matched, emailed and 
 
 ### The `beforeSaveSequence` Event
 
-The event that is triggered before a sequence is saved, including when one is created from a preset or switched on or off. It runs before the sequence is validated. Set `$event->isValid` to `false` to stop the save; nothing is written, and the `afterSaveSequence` event isn't triggered.
+The event that is triggered before a sequence is saved, including when one is created from a preset or switched on or off. It runs before the sequence is validated. Set `$event->isValid` to `false` to stop the save. Nothing is written, and the `afterSaveSequence` event isn't triggered. Abandoned Cart also saves the default sequence this way when it's installed or upgraded from v4, and cancelling that save stops the install or upgrade with an error.
 
 ```php
 use verbb\abandonedcart\events\SequenceEvent;
@@ -70,7 +70,11 @@ Event::on(Sequences::class, Sequences::EVENT_AFTER_DELETE_SEQUENCE, function(Seq
 
 ### The `registerPresets` Event
 
-The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the presets from **Settings → Sequence Presets**, in their order, as `Preset` models; add your own, reorder them, change them or remove some. Presets you add are listed under Settings as **Added by Plugins** and can't be edited there. Changes you make to presets from Settings apply only while the listener runs; they don't change project config. Each preset's `emails` are arrays of email attributes, with an optional `emailTemplate` handle and an optional `offersDiscount` flag, which marks the email meant to carry a discount code with a green dot in the preset picker. A sequence created from a preset is a one-time copy, so later changes to a preset don't affect existing sequences.
+The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the presets from **Settings → Sequence Presets**, in their order, as `Preset` models. You can add your own, reorder them, change them or remove some.
+
+Presets you add are listed under Settings as **Added by Plugins** and can't be edited there. Changes your listener makes to presets from Settings aren't saved to project config, so they last only as long as the listener is registered. A sequence created from a preset is a one-time copy, so later changes to a preset don't affect existing sequences.
+
+Each preset's `emails` are arrays of email attributes. An email can also have an `emailTemplate` handle, and an `offersDiscount` flag that marks it as the email meant to carry a discount code in the preset picker. An email with a `discountCode` is marked the same way.
 
 ```php
 use verbb\abandonedcart\events\RegisterPresetsEvent;
@@ -96,7 +100,7 @@ Event::on(Presets::class, Presets::EVENT_REGISTER_PRESETS, function(RegisterPres
                 'delayMinutes' => 1440,
                 'subject' => '10% off your first order',
                 'heading' => 'A welcome gift',
-                'message' => 'Use the code below at checkout.',
+                'message' => 'Your code is added when you return to your cart.',
                 'discountCode' => 'WELCOME10',
                 'emailTemplate' => 'branded',
             ],
@@ -109,15 +113,15 @@ Event::on(Presets::class, Presets::EVENT_REGISTER_PRESETS, function(RegisterPres
 });
 ```
 
-A preset needs a unique `handle` and a `name`; invalid presets are left out and logged. When a sequence is created, an `emailTemplate` handle that doesn't exist falls back to the default template, with a notice for the editor.
+A preset needs a `handle` and a `name`, and its `audienceType` must be a built-in audience, such as `Sequence::AUDIENCE_FIRST_TIME`, or one added with the [`registerAudiences`](#the-registeraudiences-event) event. Presets that fail these checks are left out and logged. Give each preset its own handle, because when two presets share one, the later preset replaces the earlier one without a log entry. When a sequence is created, an `emailTemplate` handle that doesn't exist falls back to the default template, with a notice for the editor.
 
-Abandoned Cart creates the default sequence from the `threeReminders` preset when the plugin is installed. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.
+Abandoned Cart creates the default sequence from the `threeReminders` preset when the plugin is installed or upgraded from v4. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.
 
 ## Email Events
 
 ### The `beforeSaveEmail` Event
 
-The event that is triggered before an email in a sequence is saved. It runs before the email is validated. Set `$event->isValid` to `false` to stop the save; when the email is part of a sequence being created from a preset, the whole sequence is rolled back.
+The event that is triggered before an email in a sequence is saved. It runs before the email is validated. Set `$event->isValid` to `false` to stop the save. When the email is part of a sequence being created from a preset, the whole sequence is rolled back.
 
 ```php
 use verbb\abandonedcart\events\EmailEvent;
@@ -179,11 +183,11 @@ Event::on(Emails::class, Emails::EVENT_AFTER_DELETE_EMAIL, function(EmailEvent $
 
 ## Email Template Events
 
-Email templates are stored in project config. The before events are triggered where the change is made; the after events are triggered when the change is applied, which includes applying project config on another environment.
+Email templates are stored in project config. The before events are triggered where the change is made. The after events are triggered when the change is applied, which includes applying project config on another environment.
 
 ### The `beforeSaveEmailTemplate` Event
 
-The event that is triggered before an email template is saved. Set `$event->isValid` to `false` to stop the save; nothing is written to project config.
+The event that is triggered before an email template is saved. Set `$event->isValid` to `false` to stop the save, so nothing is written to project config.
 
 ```php
 use verbb\abandonedcart\events\EmailTemplateEvent;
@@ -265,11 +269,11 @@ Event::on(Audiences::class, Audiences::EVENT_REGISTER_AUDIENCES, function(Regist
 });
 ```
 
-Abandoned Cart doesn't know how to match an audience type you add, so a registered audience matches no carts until a [`matchAudience`](#the-matchaudience-event) listener decides. The sequence editor has no settings fields for a registered audience, so it suits rules that need no settings in the control panel, such as the wholesale check below. When the sequence form posts values under `audienceSettings[...]` for a registered audience, they're saved as the sequence's `audienceSettings` and available to your listener as `$event->sequence->audienceSettings`.
+Abandoned Cart doesn't know how to match an audience type you add, so a registered audience matches no carts until a [`matchAudience`](#the-matchaudience-event) listener decides. [Custom Audiences](custom-audiences.md) walks through building one, from registering it to using it in a sequence and a preset. The sequence editor has no settings fields for a registered audience, so it suits rules that need no settings in the control panel, such as the wholesale check below. When the sequence form posts values under `audienceSettings[...]` for a registered audience, they're saved as the sequence's `audienceSettings` and available to your listener as `$event->sequence->audienceSettings`.
 
 ### The `matchAudience` Event
 
-The event that is triggered after Abandoned Cart decides whether a cart matches a sequence's audience. `$event->matches` holds the result, or `null` for an audience type Abandoned Cart doesn't recognise; set it to `true` or `false` to decide. A `null` result counts as no match. Carts from a site the sequence doesn't include never reach this event.
+The event that is triggered after Abandoned Cart decides whether a cart matches a sequence's audience. `$event->matches` holds the result, or `null` for an audience type Abandoned Cart doesn't recognise. Set it to `true` or `false` to decide. A `null` result counts as no match. Carts from a site the sequence doesn't include never reach this event. The event is also triggered when someone tests a cart against a sequence in the sequence editor, so keep listeners free of side effects such as writing data or sending messages.
 
 Use it to match a registered audience, or to refine a built-in one with information Abandoned Cart can't see. This listener matches the `wholesale` audience registered above to customers in the `wholesale` user group:
 
@@ -288,13 +292,28 @@ Event::on(Audiences::class, Audiences::EVENT_MATCH_AUDIENCE, function(MatchAudie
 });
 ```
 
-To narrow a built-in audience instead, check the sequence's handle and combine your rule with `$event->matches`, such as `$event->matches = $event->matches && $customer?->isInGroup('vip');` for a **Custom Rules** sequence.
+To narrow a built-in audience instead, check the sequence's handle and combine your rule with `$event->matches`. This listener limits a sequence with the handle `vipCarts`, such as a **Custom Rules** sequence, to customers in the `vip` user group:
+
+```php
+use verbb\abandonedcart\events\MatchAudienceEvent;
+use verbb\abandonedcart\services\Audiences;
+use yii\base\Event;
+
+Event::on(Audiences::class, Audiences::EVENT_MATCH_AUDIENCE, function(MatchAudienceEvent $event) {
+    if ($event->sequence->handle !== 'vipCarts') {
+        return;
+    }
+
+    $customer = $event->order->getCustomer();
+    $event->matches = $event->matches && $customer && $customer->isInGroup('vip');
+});
+```
 
 ## Cart Recovery Events
 
 ### The `beforeEnroll` Event
 
-The event that is triggered when an abandoned cart has passed every check and matched a sequence, before it enters that sequence. Set `$event->isValid` to `false` to keep the cart out of recovery. The cart is recorded as skipped with the reason **Excluded by a plugin**; set `$event->skipReason` to explain why on the cart's page.
+The event that is triggered when an abandoned cart has passed every check and matched a sequence, before it enters that sequence. It's also triggered before a customer's newer cart takes over the recovery of their older cart, with `$event->sequence` set to the older cart's sequence. Set `$event->isValid` to `false` to keep the cart out of recovery. The cart is recorded as skipped with the reason **Excluded by a plugin**, and in a takeover the older cart carries on. Set `$event->skipReason` to explain why on the cart's page.
 
 ```php
 use verbb\abandonedcart\events\EnrollmentEvent;
@@ -315,7 +334,7 @@ Event::on(Recoveries::class, Recoveries::EVENT_BEFORE_ENROLL, function(Enrollmen
 
 ### The `afterEnroll` Event
 
-The event that is triggered after a cart enters a sequence and its emails are scheduled.
+The event that is triggered after a cart enters a sequence and its emails are scheduled. It isn't triggered when a newer cart takes over a recovery already under way. The `afterEnd` event is triggered for the older cart instead, and the recovery keeps its ID with the newer cart's `orderId`.
 
 ```php
 use verbb\abandonedcart\events\RecoveryEvent;
@@ -347,7 +366,7 @@ Event::on(Recoveries::class, Recoveries::EVENT_AFTER_SKIP, function(SkippedCartE
 
 ### The `resolveConsent` Event
 
-The event that is triggered when Abandoned Cart checks whether a customer agreed to be emailed. `$event->hasConsent` holds the result from the consent field, or `true` when no consent field is set; change it to decide consent yourself. A customer without consent is skipped with the reason **Didn't opt in**. When a consent field is set, the event is also triggered as an unsubscribed customer completes an order, to decide whether they've opted in again.
+The event that is triggered when Abandoned Cart checks whether a customer agreed to be emailed. `$event->hasConsent` holds the result from the consent field, or `true` when no consent field is set. Change it to decide consent yourself. A customer without consent is skipped with the reason **Didn't opt in**. When a consent field is set, the event is also triggered as an unsubscribed customer completes an order, to decide whether they've opted in again.
 
 ```php
 use verbb\abandonedcart\events\ConsentEvent;
@@ -472,11 +491,11 @@ Event::on(EmailRenderer::class, EmailRenderer::EVENT_DEFINE_VARIABLES, function(
 });
 ```
 
-Tokens such as `{firstName}` in the email's wording aren't affected; this event only adds Twig variables for templates.
+Tokens such as `{firstName}` in the email's wording aren't affected, because this event only changes the Twig variables passed to templates.
 
 ### The `resolveLanguage` Event
 
-The event that is triggered when Abandoned Cart chooses the language to render an email in, for real emails, previews and tests. `$event->language` holds the order's language, or the language of the cart's site when the order doesn't have one; change it to render the email in another language. The language applies to the bundled design's text, to anything your template passes through the `t` filter, and to Twig in the email's subject and preview text.
+The event that is triggered when Abandoned Cart chooses the language to render an email in, for real emails, previews and tests. `$event->language` holds the order's language, or the language of the cart's site when the order doesn't have one. Change it to render the email in another language. The language applies to the bundled design's text, to anything your template passes through the `t` filter, and to Twig in the email's subject and preview text.
 
 `$event->cart` is the cart summary the email is rendered with, and `$event->order` is the Commerce order, or `null` for the sample cart. This example uses a language chosen by the customer, stored in a Dropdown field with the handle `preferredLanguage` on their user account:
 
@@ -501,6 +520,8 @@ The email's wording is still the wording written on the sequence. To send differ
 ### The `beforeSaveCustomer` Event
 
 The event that is triggered before a customer record is saved. Set `$event->isValid` to `false` to stop the save. Abandoned Cart creates customers while it processes carts. If you cancel a new customer (`$event->isNew`), that cart is skipped with the reason **Excluded by a plugin** and the run carries on with the others.
+
+Customer records are also saved when their email status changes, so cancelling the save of an existing customer stops that change too, except for a customer's own unsubscribe, which is always saved, as described for the [`beforeChangeStatus`](#the-beforechangestatus-event) event. A signed-in customer who saves their [reminder preference](../template-guides/reminder-preferences.md) without an existing record gets a new one. Cancelling that save shows them the preference form's failure message.
 
 ```php
 use verbb\abandonedcart\events\CustomerEvent;
@@ -532,7 +553,9 @@ Event::on(Customers::class, Customers::EVENT_AFTER_SAVE_CUSTOMER, function(Custo
 
 ### The `beforeChangeStatus` Event
 
-The event that is triggered before a customer's email status changes, such as when they unsubscribe, change their preference from their account, or staff add them to Do Not Email. `$event->status` is the new status (`active`, `unsubscribed` or `doNotEmail`), and `$event->source` says what caused it (`unsubscribe`, `account`, `staff`, `checkout` or `upgrade`). Set `$event->isValid` to `false` to keep the current status; recoveries that are under way carry on.
+The event that is triggered before a customer's email status changes, such as when they unsubscribe, change their preference from their account, or staff add them to Do Not Email. `$event->status` is the new status (`active`, `unsubscribed` or `doNotEmail`), and `$event->source` says what caused it (`unsubscribe`, `account`, `staff`, `checkout` or `upgrade`). Set `$event->isValid` to `false` to keep the current status. Recoveries that are under way carry on, and the `afterChangeStatus` event isn't triggered.
+
+A customer's own unsubscribe can't be cancelled, whether it comes from an email's unsubscribe link, a one-click unsubscribe in their mail app or turning reminders off from their account. Unsubscribe laws and the one-click unsubscribe standard require it to take effect, so `isValid` is ignored for those changes. Your listener is still called and can record or react to the change. The event is also triggered for a change that Abandoned Cart then refuses, such as staff trying to undo an unsubscribe, which only the customer can do.
 
 ```php
 use verbb\abandonedcart\events\CustomerStatusEvent;
@@ -570,7 +593,7 @@ Event::on(Customers::class, Customers::EVENT_AFTER_CHANGE_STATUS, function(Custo
 
 ### The `beforeMailSend` Event
 
-The event that is triggered before each recovery email is sent, after the `beforeSend` event, while the [`compatibilityMode`](../get-started/configuration.md#compatibilitymode) setting is on. It's deprecated, so use the [`beforeSend` event](#the-beforesend-event) instead. [Upgrading from v4](../get-started/upgrading-from-v4.md#events) shows how to move a listener across.
+The event that is triggered before each recovery email is sent, after the `beforeSend` event, while the [`compatibilityMode`](../get-started/configuration.md#compatibilitymode) setting is on. Set `$event->isValid` to `false` to skip the email, as with `beforeSend`. It's deprecated, so use the [`beforeSend` event](#the-beforesend-event) instead. [Upgrading from v4](../get-started/upgrading-from-v4.md#events) shows how to move a listener across.
 
 ```php
 use verbb\abandonedcart\events\BeforeMailSend;

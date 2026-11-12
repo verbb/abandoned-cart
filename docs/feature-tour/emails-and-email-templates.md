@@ -6,11 +6,13 @@ You don't need a template of your own to start. Abandoned Cart includes a respon
 
 ## Adding and Editing Emails
 
-Open a sequence from **Abandoned Carts → Sequences**. Its emails appear in a timeline after **Cart abandoned**. Select an email to edit it in a panel beside the timeline, or choose **+ Add email** to add one at the end. **+ Add email here** between two emails inserts one at that point, and the emails after it keep their gaps.
+Open a sequence from **Abandoned Carts → Sequences**. Its emails appear in a timeline after **Cart abandoned**. Select an email to edit it in a panel that slides out over the page, or choose **+ Add email** to add one at the end. **+ Add email here** between two emails inserts one at that point, and the emails after it keep their gaps. A new email after the first starts with a delay of one day.
+
+![The email panel for Email 1 of the High-Value Carts sequence, with the Send, Subject, Preview Text, Heading, Message, Button Label and Discount Code fields on the left, a row of Insert buttons for tokens below the message, and a live preview on the right using A sample cart, showing the store name, heading, message, two cart items with their prices and a Return to your cart button](../../screenshots/email-editor.png)
 
 A new email starts blank. **Start From** offers the emails from your [sequence presets](sequences.md#managing-presets), grouped by preset, if you'd like some starting wording. Choosing one fills in the fields, which you can then change.
 
-A sequence can have up to five emails. Two or three suit most stores; more than that tends to annoy customers rather than bring them back.
+A sequence can have up to five emails. Two or three suit most stores, and more than that tends to annoy customers rather than bring them back.
 
 Each email has these fields:
 
@@ -23,11 +25,11 @@ Each email has these fields:
 - **Discount Code** is a Commerce coupon code to apply when the customer returns through this email.
 - **Email Template** chooses the design. **Default template** uses whichever template is currently the default.
 
-The preview beside the fields updates as you type. Use **Preview cart** to fill the preview with one of your store's real carts instead of the sample cart.
+The preview beside the fields updates as you type. It starts with a sample cart, and you can choose one of your store's real carts in **Previewing with** to see how the email looks for that customer.
 
 Changing an email's wording or discount code affects every copy of it that hasn't been sent yet, including emails already scheduled for carts in the sequence. Changing its delay only affects carts that enter the sequence afterwards. [Sequences](sequences.md#editing-a-sequence-in-use) explains why.
 
-## Personalising With Tokens
+## Personalising with Tokens
 
 Tokens are placeholders that Abandoned Cart replaces with details from each customer's cart. Write them in curly braces in the subject, preview text, heading, message or button label, or use the **Insert** buttons below the message to add one where your cursor is. For example, a subject of `{firstName}, your cart is saved` becomes "Amelia, your cart is saved".
 
@@ -43,7 +45,7 @@ Tokens are placeholders that Abandoned Cart replaces with details from each cust
 | `{itemCount}` | The number of items in the cart, counting quantities |
 | `{discountCode}` | This email's discount code |
 
-Names come from the cart's billing address, then its shipping address, then the customer's user account.
+Names come from the cart's billing address, or its shipping address when there's no billing address, and then from the customer's user account.
 
 ### Twig in Subjects and Preview Text
 
@@ -61,29 +63,31 @@ The heading, message and button label only support tokens, not Twig. The sandbox
 
 To offer a discount, first create one in Commerce with a coupon code, then choose the code in the email's **Discount Code** field, which lists your Commerce coupon codes with the name of their discount. You can also type a code that isn't listed, such as one from another plugin. When a customer returns through that email's link, the code is applied to their cart. The bundled design shows the code in a highlighted box, and `{discountCode}` lets you mention it in the wording.
 
-Abandoned Cart applies the code but doesn't check whether it's valid for the cart. Commerce applies its own conditions, such as a minimum order value or an expiry date, when the customer reaches checkout. Test a discount with a real cart before relying on it. Discounts usually work best in the last email, so customers who were going to come back anyway don't receive one.
+Abandoned Cart applies the code but doesn't check whether it's valid for the cart. Commerce checks its own conditions, such as a minimum order value or an expiry date, whenever it recalculates the cart, so a code that doesn't apply gives no discount. Test a discount with a real cart before relying on it. Discounts usually work best in the last email, so customers who were going to come back anyway don't receive one.
 
 ## Testing an Email
 
-Choose **Send Test** in the email panel and enter an address. The test uses the cart chosen in **Preview cart**, or the sample cart if you haven't chosen one. Its subject starts with `[Test]`, and its recovery and unsubscribe links are placeholders that don't do anything.
+Choose **Send Test** in the email panel and enter an address in **Send To**. The test is sent as the email stands in the panel, including changes you haven't saved, using the cart chosen in **Previewing with**. Its subject starts with `[Test]`, and its recovery and unsubscribe links are placeholders that don't do anything.
 
-To test every email in the default sequence at once before you turn recovery on, use **Send Yourself a Test** on the Overview.
+Before any sequence is on, the Overview's setup checklist includes a **Send Yourself a Test** step that sends every email in the default sequence to you at once, filled in with a sample cart.
 
 ## Email Templates
 
-Email templates are managed under **Abandoned Carts → Settings → Email Templates**, which only administrators can see. The list shows each template's name, whether it uses the bundled design or your own files, and how many emails use it.
+Email templates are managed under **Abandoned Carts → Settings → Email Templates**, which only administrators can see. The list shows each template's name and handle, whether it uses the bundled design or your own files, and how many emails use it.
+
+![The Email Templates settings page listing one template, Default, marked as the default, with the handle default, the template Bundled design and Used By showing 9 emails](../../screenshots/email-templates.png)
 
 A fresh install has one template, **Default**, that uses the bundled design. The bundled design shows the store name, the email's heading and message, the items in the cart with their quantities and prices, the discount code when there is one, the button back to the cart, and a footer with the store's address and an unsubscribe link. It also sends a plain text version.
 
 ### Creating a Template
 
-Choose **New Email Template** and fill in:
+Choose **New Email Template** and fill in these fields:
 
-- **Name** and **Handle**: what the template is called in the control panel, and how code refers to it.
-- **HTML Template**: the path to a template in your site's templates folder, such as `_emails/abandoned-cart/html`. Leave it empty to use the bundled design.
-- **Plain Text Template**: an optional path to a plain text version. When it's empty, the plain text version is made from the HTML.
-- **Copy Templates**: copies the bundled design to the paths you entered, so you start from a working template. Existing files are never overwritten. This is only offered when you create a template.
-- **Default Template**: makes this template the one used by emails that don't choose a template.
+- **Name** is what the template is called in the control panel, and **Handle** is how code refers to it.
+- **HTML Template** is the path to a template in your site's templates folder, such as `_emails/abandoned-cart/html`. Leave it empty to use the bundled design.
+- **Plain Text Template** is an optional path to a plain text version. When it's empty, the plain text version is made from the HTML.
+- **Copy Templates** copies the bundled design to the paths you entered, so you start from a working template. It's on by default, it never overwrites existing files, and it's only offered when you create a template.
+- **Default Template** makes this template the one used by emails that don't choose a template.
 
 [Custom Email Templates](../template-guides/custom-email-templates.md) explains what your template files receive and walks through building one.
 

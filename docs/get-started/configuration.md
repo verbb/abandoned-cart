@@ -12,9 +12,9 @@ return [
 ];
 ```
 
-All other settings keep their defaults. Add any further settings you want to change to the same array. Durations are always given in minutes, so a day is `1440` and a week is `10080`.
+All other settings keep their defaults. Add any further settings you want to change to the same array. Settings whose names end in `Minutes` take a number of minutes, so a day is `1440` and a week is `10080`. `historyRetentionDays` is the one setting given in days.
 
-Values in this file take precedence over those saved in the control panel. The matching field under **Settings → General Settings** shows a warning to explain that the file is in control.
+Values in this file take precedence over those saved in the control panel. The matching field under **Abandoned Carts → Settings → General Settings** shows a warning to explain that the file is in control.
 
 ## Environment-Specific Settings
 
@@ -36,7 +36,7 @@ return [
 ];
 ```
 
-`deliveryPaused` and `returnUrl` also accept an environment variable reference such as `'$ABANDONED_CART_PAUSED'`, if you'd rather control them from your `.env` file.
+`deliveryPaused`, `returnUrl` and `passKey` also accept an environment variable reference such as `'$ABANDONED_CART_PAUSED'`, if you'd rather control them from your `.env` file.
 
 ## Configuration Options
 
@@ -59,7 +59,7 @@ Every sequence uses these settings unless it overrides them. [Sequences](../feat
 
 **Type:** `int` · **Default:** `60`
 
-How long a cart goes without changes before it counts as abandoned. The time is measured from the last change to the Commerce order, such as adding an item or entering an address. The first email in a sequence is timed from this point, so the default of 60 sends an email set to go out "straight away" about an hour after the customer last touched their cart.
+How long a cart goes without changes before it counts as abandoned. The time is measured from the last change to the Commerce order, such as adding an item or entering an address. The first email in a sequence is timed from this point, so with the default of 60, an email set to send **Straight away** goes out about an hour after the customer last touched their cart.
 
 A shorter value catches customers while they're still thinking about their purchase but risks emailing people who are only browsing between pages. The minimum is `1`.
 :::
@@ -69,7 +69,7 @@ A shorter value catches customers while they're still thinking about their purch
 
 **Type:** `string|null` · **Default:** `'shop/cart'`
 
-Where a recovery link takes the customer once their cart has been restored, usually your cart or checkout page. A relative path is resolved against the site the cart belongs to; you can also use a full URL or an environment variable reference.
+Where a recovery link takes the customer once their cart has been restored, usually your cart or checkout page. A relative path is resolved against the site the cart belongs to. You can also use a full URL or an environment variable reference.
 :::
 
 ::: reference
@@ -85,7 +85,7 @@ How long a cart stays in recovery after it's abandoned. When this time is up, an
 
 **Type:** `int` · **Default:** `7200` (5 days)
 
-How long after an email a completed order still counts as recovered, even if the customer didn't click the email's link. The window is measured from the last email the cart was sent. [Overview](../feature-tour/overview.md#how-recoveries-are-credited) explains how recoveries are credited.
+How long after the cart's last email a completed order counts as recovered, whether or not the customer clicked the email's link. An order completed after the window has closed doesn't count, even if the customer followed a link. [Overview](../feature-tour/overview.md#how-recoveries-are-credited) explains how recoveries are credited.
 :::
 
 ::: reference
@@ -93,7 +93,7 @@ How long after an email a completed order still counts as recovered, even if the
 
 **Type:** `int` · **Default:** `10080` (7 days)
 
-How long a customer must go without a recovery email before another of their carts can start a sequence. Customers who abandon often would otherwise receive a stream of reminders. A cart held back by this limit is recorded as skipped, with the reason **Contacted recently**. Only emails that were actually sent count. Set it to `0` to turn the limit off.
+How long a customer must go without a recovery email before another of their carts can start a new sequence, once their last recovery has ended. Customers who abandon often would otherwise receive a stream of reminders. A cart held back by this limit is recorded as skipped, with the reason **Contacted recently**. A newer cart that takes over a recovery still under way isn't held back, because it carries on the same schedule. Only emails that were actually sent count. Set it to `0` to turn the limit off.
 :::
 
 ### Who Can Be Emailed
@@ -103,7 +103,7 @@ How long a customer must go without a recovery email before another of their car
 
 **Type:** `string|null` · **Default:** `null`
 
-The handle of a Lightswitch field that records whether a customer agreed to be emailed. When it's set, only customers who switched the field on are emailed; everyone else is recorded as skipped with the reason **Didn't opt in**. The field is read from the order first, then from the customer's user account. If neither has the field, the customer counts as not having agreed.
+The handle of a Lightswitch field that records whether a customer agreed to be emailed. When it's set, only customers who switched the field on are emailed, and everyone else is recorded as skipped with the reason **Didn't opt in**. The field is read from the order first, then from the customer's user account. If neither has the field, the customer counts as not having agreed.
 
 Leave this empty if every eligible cart can be contacted where you trade. [Customers](../feature-tour/customers.md#consent) explains how consent interacts with unsubscribing.
 :::
@@ -115,7 +115,7 @@ Leave this empty if every eligible cart can be contacted where you trade. [Custo
 
 Whether to email only customers who have completed an order before, matched by email address. Carts from first-time customers are recorded as skipped, with the reason **Not a returning customer**.
 
-To treat returning customers differently without excluding everyone else, use the Returning Customers audience on a sequence instead.
+To treat returning customers differently without excluding everyone else, use the **Returning Customers** audience on a sequence instead.
 :::
 
 ::: reference
@@ -124,6 +124,8 @@ To treat returning customers differently without excluding everyone else, use th
 **Type:** `string[]` · **Default:** `[]`
 
 Email domains that are never emailed, such as your own company's domain or a domain used for test orders. A leading `@` is ignored, and domains are compared without regard to case. Each domain must match the part of the address after `@` exactly, so `example.com` doesn't block `shop.example.com`.
+
+In `config/abandoned-cart.php`, add the domains to the returned array:
 
 ```php
 'blockedDomains' => ['example.com', 'test.example.com'],
@@ -139,7 +141,7 @@ In the control panel, enter one domain per line. To stop emailing one person, ad
 
 **Type:** `string|null` · **Default:** `null`
 
-A site template that the expired-link, invalid-link and unsubscribe pages render inside, so they look like the rest of your store. The template must define a `content` block. Leave it empty to use Abandoned Cart's standalone pages. [Styling Customer Pages](../template-guides/styling-customer-pages.md) walks through an example.
+A site template that Abandoned Cart's customer pages render inside, so they look like the rest of your store. These are the pages a customer sees when a recovery link has expired, is invalid, or leads to an order that's already complete or a cart that's now empty, along with the unsubscribe pages. The template must define a `content` block. Leave it empty to use the standalone pages. If the template can't be found, the standalone pages are used instead. [Styling Customer Pages](../template-guides/styling-customer-pages.md) walks through an example.
 :::
 
 ### Sending
@@ -149,7 +151,7 @@ A site template that the expired-link, invalid-link and unsubscribe pages render
 
 **Type:** `bool|string` · **Default:** `false`
 
-Holds every recovery email across all sequences. Carts still enter sequences while sending is paused, and their emails wait; once sending resumes, any that are due go out on the next run, unless the cart's recovery period has ended in the meantime. Use it for emergencies, such as a problem with an email's wording, or to stop a development environment from emailing customers.
+Holds every recovery email across all sequences. Carts still enter sequences while sending is paused, and their emails wait. Once sending resumes, any that are due go out on the next run, unless the cart's recovery period has ended in the meantime. Use it for emergencies, such as a problem with an email's wording, or to stop a development environment from emailing customers.
 :::
 
 ::: reference
@@ -169,7 +171,7 @@ These settings don't appear in the control panel.
 
 **Type:** `int` · **Default:** `100`
 
-The most carts that one background run starts sequences for, or records as skipped. Any carts beyond the limit are picked up by the following runs. Lower it if runs take too long on a busy store with a slow mail server; raise it, up to `1000`, if carts are abandoned faster than runs can keep up.
+The most carts that one background run starts sequences for, or records as skipped. Any carts beyond the limit are picked up by the following runs. Lower it if runs take too long on a busy store with a slow mail server, or raise it, up to `1000`, if carts are abandoned faster than runs can keep up.
 :::
 
 ::: reference
@@ -177,7 +179,7 @@ The most carts that one background run starts sequences for, or records as skipp
 
 **Type:** `bool` · **Default:** `true`
 
-Keeps developer-facing features from Abandoned Cart 4 working while you update your templates and code: the 4.x email template variables, the `beforeMailSend` event, the old console command and the old scheduler URL. Switch it off once your templates and code no longer use them. [Upgrading from v4](upgrading-from-v4.md#compatibility-mode) lists what it covers.
+Keeps the 4.x email template variables, the `beforeMailSend` event, the `abandoned-cart/reminders/schedule-emails` console command and the 4.x scheduler URL working for sites upgraded from Abandoned Cart 4. Switch it off once your templates and code don't use any of them. [Upgrading from v4](upgrading-from-v4.md#compatibility-mode) explains each one and how to check your remaining usage.
 :::
 
 ::: reference
@@ -185,11 +187,13 @@ Keeps developer-facing features from Abandoned Cart 4 working while you update y
 
 **Type:** `string|null` · **Default:** `null`
 
-The key a scheduled request sends to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, in an `Authorization: Bearer` header. It's carried over from Abandoned Cart 4 and only used while `compatibilityMode` is on. It accepts an environment variable. New sites don't need it. Run the console command from cron instead, as described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run).
+The key a scheduled request sends in an `Authorization: Bearer` header to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, which only works while `compatibilityMode` is on. It accepts an environment variable reference. Sites that run the console command from cron, as described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run), can leave it empty.
 :::
 
 ## Control Panel
 
-Administrators can manage most settings by visiting **Abandoned Carts → Settings → General Settings**, or **Settings → Plugins → Abandoned Cart**. These settings are stored in Craft's project config, so they follow the same rules as other project config. Change them where admin changes are allowed, such as your development environment, and deploy them to other environments.
+Administrators can manage most settings by visiting **Abandoned Carts → Settings → General Settings**, or Craft's **Settings → Plugins → Abandoned Cart**. These settings are stored in Craft's project config, so they follow the same rules as other project config. Change them where admin changes are allowed, such as your development environment, and deploy them to other environments.
 
-The **Settings** section also holds **Email Templates**, described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#email-templates), and **System Status**, described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#system-status).
+![The General Settings page, with the Recovery Defaults, Who Can Be Emailed, Customer Pages and Sending groups, and tabs for Email Templates, Sequence Presets and System Status](../../screenshots/settings.png)
+
+The plugin's **Settings** section has three more tabs. **Email Templates** is described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#email-templates). **Sequence Presets** holds the starting points offered when you create a sequence, as described in [Sequences](../feature-tour/sequences.md#managing-presets). **System Status** is described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#system-status).

@@ -96,6 +96,27 @@ export default defineConfig({
             md.renderer.rules.code_inline = (tokens, index, options, env, self) => {
                 return renderInlineCode(tokens, index, options, env, self).replace('<code', '<code v-pre');
             };
+
+            // Match the reference containers used by the public documentation renderer.
+            md.block.ruler.before('fence', 'reference', (state, startLine, endLine, silent) => {
+                const line = (index: number) => state.src.slice(state.bMarks[index] + state.tShift[index], state.eMarks[index]).trim();
+
+                if (state.sCount[startLine] - state.blkIndent >= 4 || line(startLine) !== '::: reference') return false;
+                if (silent) return true;
+
+                let close = startLine + 1;
+                while (close < endLine && line(close) !== ':::') close++;
+                if (close === endLine) return false;
+
+                const open = state.push('reference_open', 'div', 1);
+                open.block = true;
+                open.attrSet('class', 'reference');
+                state.md.block.tokenize(state, startLine + 1, close);
+                const end = state.push('reference_close', 'div', -1);
+                end.block = true;
+                state.line = close + 1;
+                return true;
+            });
         },
     },
     vite: {
@@ -105,6 +126,19 @@ export default defineConfig({
         },
         plugins: [
             tailwindcss(),
+            {
+                name: 'abandoned-cart-screenshots',
+                configureServer(server) {
+                    // Serve the repository's screenshots, which the Markdown links outside the docs folder.
+                    server.middlewares.use((request, response, next) => {
+                        const match = request.url?.match(/^\/screenshots\/([a-zA-Z0-9_-]+\.png)(?:\?.*)?$/);
+                        const file = match && path.resolve(docsRoot, '../screenshots', match[1]);
+                        if (!file || !fs.existsSync(file)) return next();
+                        response.setHeader('Content-Type', 'image/png');
+                        fs.createReadStream(file).pipe(response);
+                    });
+                },
+            },
         ],
         server: {
             port: 5417,

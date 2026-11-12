@@ -16,13 +16,13 @@ Start from a copy of the bundled design, so you begin with something that alread
 
 Abandoned Cart copies the bundled design to `templates/_emails/abandoned-cart/html.twig` and `templates/_emails/abandoned-cart/text.twig` in your Craft project. It never overwrites a file that already exists, so if you've created these files yourself, they're left alone.
 
-To use the template, open an email on the sequence page and choose **Branded** for **Email Template**, or make **Branded** the default on the Email Templates screen so every email that doesn't choose a template uses it. The preview beside the email shows your template straight away, so you can edit the file and watch the result.
+To use the template, open an email on the sequence page and choose **Branded** for **Email Template**, or make **Branded** the default on the Email Templates screen so every email that doesn't choose a template uses it. The preview beside the email shows your template straight away. It doesn't watch the file, so after you edit `html.twig`, choose a different cart from **Previewing with** or reopen the email to see your change.
 
 The plain text template is optional. If you leave **Plain Text Template** empty, Abandoned Cart makes the plain text version from your HTML, turning links into the link text followed by the address.
 
 ## A Minimal Template
 
-The copied files are a complete, tested design. If you'd rather start from scratch, this is the smallest useful HTML template. It shows the editor's heading and message, the items in the cart, the discount code, the button back to the cart and the unsubscribe link:
+The copied files are a complete, tested design. If you'd rather start from scratch, replace the contents of `templates/_emails/abandoned-cart/html.twig` with this, the smallest useful HTML template. It shows the editor's heading and message, the items in the cart, the discount code, the link back to the cart and the unsubscribe link:
 
 ```twig
 <!DOCTYPE html>
@@ -58,7 +58,7 @@ The copied files are a complete, tested design. If you'd rather start from scrat
     </table>
 
     {% if discountCode %}
-        <p>{{ 'Use this code at checkout' | t }}: <strong>{{ discountCode }}</strong></p>
+        <p>{{ 'This code is added to your cart when you return' | t }}: <strong>{{ discountCode }}</strong></p>
     {% endif %}
 
     <p><a href="{{ recoverUrl }}">{{ buttonLabel }}</a></p>
@@ -96,7 +96,7 @@ Your template receives these variables, whether it's rendering a real email, a p
 | `site` | The Craft site the cart belongs to. |
 | `storeName` | The name of the Commerce store the cart belongs to. |
 | `storeAddress` | The store's location address from Commerce's store settings on one line, or `null`. |
-| `email` | The email from the sequence, for its other settings. |
+| `email` | The email from the sequence, for settings the other variables don't cover, such as `email.position` (its place in the sequence, starting at 1). |
 | `isTest` | Whether this is a preview or a test send, rather than a real email. |
 
 The `cart` variable holds plain values, so your template works the same for real carts, previews and tests:
@@ -119,13 +119,14 @@ Emails render in the language of the customer's order, or the language of the ca
 
 ## Show Product Images
 
-The `cart` summary doesn't include images, because each store keeps them in a different field. For anything beyond the summary, use `order`, the Commerce order itself. This example assumes your products have an Assets field with the handle `productImage`:
+The `cart` summary doesn't include images, because each store keeps them in a different field. For anything beyond the summary, use `order`, the Commerce order itself. This example assumes your products have an Assets field with the handle `productImage`. In `html.twig`, use it in place of the `{% for item in cart.items %}` loop in the items table, or wherever you want the items to appear:
 
 ```twig
 {% if order %}
     {% for lineItem in order.lineItems %}
         {% set product = lineItem.purchasable.owner ?? null %}
         {% set image = product ? product.productImage.one() : null %}
+
         <p>
             {% if image %}
                 <img src="{{ image.url }}" width="80" alt="{{ image.alt ?? product.title }}">
@@ -144,13 +145,13 @@ Previews and tests with the sample cart have no `order`, so the `else` branch sh
 
 ## The Plain Text Template
 
-A plain text template receives the same variables. Turn off Twig's HTML escaping, and convert `message` from HTML to text:
+A plain text template receives the same variables. If you copied the bundled design, it's in `templates/_emails/abandoned-cart/text.twig`. To write your own, replace that file's contents with something like this. It turns off Twig's HTML escaping, because plain text has no markup to protect, and converts `message` from HTML to text by turning each paragraph end into a blank line before removing the tags:
 
 ```twig
 {% autoescape false %}
 {{ heading }}
 
-{{ message | replace({'</p>': "\n\n", '<br>': "\n"}) | striptags | trim }}
+{{ message | replace({'</p>': "\n\n"}) | striptags | trim }}
 
 {% for item in cart.items %}
 - {{ item.title }} × {{ item.qty }}: {{ cart.formatMoney(item.subtotal) }}
@@ -164,7 +165,7 @@ A plain text template receives the same variables. Turn off Twig's HTML escaping
 
 ## Test the Template
 
-Open an email that uses your template, choose one of your store's carts under **Preview cart**, then choose **Send Test** and enter your address. The test uses that cart's real items and `order`, while its links are placeholders. Check the result in the mail apps your customers use, on both desktop and mobile.
+Open an email that uses your template, choose one of your store's carts from **Previewing with**, then choose **Send Test** and enter your address. The test uses that cart's real items and `order`, while its links are placeholders. Check the result in the mail apps your customers use, on both desktop and mobile.
 
 If an email can't be rendered, the preview shows the Twig error. **Settings → System Status** warns you when a template's file can't be found, such as when the template exists in project config but the file hasn't been deployed.
 

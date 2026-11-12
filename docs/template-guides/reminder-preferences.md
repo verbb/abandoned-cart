@@ -56,7 +56,7 @@ Put this in your account template. It shows the current preference, saves change
 {% endif %}
 ```
 
-The form posts an `emails` value of `1` to turn reminders on or `0` to turn them off. The hidden input sends `0` when the checkbox is cleared, because a cleared checkbox isn't sent at all; when it's ticked, the checkbox's `1` replaces it.
+The form posts an `emails` value of `1` to turn reminders on or `0` to turn them off. A cleared checkbox isn't sent at all, so the hidden input sends `0` in its place. When the checkbox is ticked, its `1` comes after the hidden input and replaces it.
 
 The `requireLogin` tag sends signed-out visitors to your login page first. The action itself also requires a signed-in customer, so it can only change the preference of the person using the form.
 
@@ -70,10 +70,15 @@ If staff have added the customer to Do Not Email, the form isn't shown. Should t
 
 ## Saving with JavaScript
 
-The action also answers JSON requests, which suits an account page that saves each preference as soon as it changes. Send the same values with an `Accept: application/json` header, and the response includes the outcome message:
+The action also answers JSON requests, which suits an account page that saves each preference as soon as it changes. Send the same values with an `Accept: application/json` header, and the response includes the outcome message.
+
+In the template above, replace the `<form>` inside the `{% else %}` branch with this. It keeps the `requireLogin` tag and reuses the `status` variable set at the top:
 
 ```twig
-<input type="checkbox" id="cart-reminders" {{ status == 'active' ? 'checked' }}>
+<label>
+    <input type="checkbox" id="cart-reminders" {{ status == 'active' ? 'checked' }}>
+    Email me about items I leave in my cart
+</label>
 
 <script>
 document.getElementById('cart-reminders').addEventListener('change', async (event) => {

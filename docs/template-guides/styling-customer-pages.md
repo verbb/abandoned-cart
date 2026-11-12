@@ -1,6 +1,6 @@
 # Styling Customer Pages
 
-Customers sometimes reach a page from Abandoned Cart instead of their cart: when a recovery link has expired, when the order is already complete, when the cart is empty or the link isn't valid, and when they unsubscribe. By default, these are simple standalone pages, with your site's name and a link back to the shop above a card that holds the message. This guide shows you how to display them inside your site's own layout, so they have your header, navigation and footer like the rest of the store.
+Customers sometimes reach a page from Abandoned Cart instead of their cart: when a recovery link has expired, when the order is already complete, when the cart is empty or the link isn't valid, and when they unsubscribe. By default, these are standalone pages, with your site's name and a link back to the shop above a card that holds the message. You can display them inside your site's own layout instead, so they have your header, navigation and footer like the rest of the store.
 
 ## Prepare Your Layout
 
@@ -43,7 +43,7 @@ Your layout is rendered without the variables a normal page has, such as `entry`
 
 ## Choose the Template
 
-Go to **Abandoned Carts → Settings → General Settings**, and under **Customer Pages**, enter `_layouts/site` (or `_layouts/abandoned-cart`) for **Page Template**. Save the settings.
+Go to **Abandoned Carts → Settings → General Settings**, and under **Customer Pages**, enter `_layouts/site` (or `_layouts/abandoned-cart`) for **Page Template**. Save the settings. You can set the same path with the [`customerPageTemplate`](../get-started/configuration.md#customerpagetemplate) setting in `config/abandoned-cart.php` instead, which takes precedence over the field.
 
 Abandoned Cart only uses the template if it exists. If the path is wrong, or the template hasn't been deployed to an environment, the standalone pages are shown instead.
 
@@ -64,10 +64,10 @@ Each page's content is wrapped in an element you can target from your stylesheet
 </div>
 ```
 
-The `data-page` attribute identifies the page: `notFound`, `expired`, `alreadyCompleted`, `cartEmpty`, `unsubscribe` or `unsubscribed`. The content is a white card with an icon and some inline spacing and button styles, so it looks reasonable in any layout. To restyle the button to match your own, target it from your stylesheet:
+The `data-page` attribute identifies the page: `notFound`, `expired`, `alreadyCompleted`, `cartEmpty`, `unsubscribe` or `unsubscribed`. The content is a white card with an icon and some inline spacing and button styles, so it looks reasonable in any layout. The button is either a link directly inside the card or, on the unsubscribe page, a `<button>` in a form. That page also has a plain "Keep getting reminders" text link inside a paragraph, which the child selector below leaves alone. To restyle the button to match your own, target it from your stylesheet:
 
 ```css
-.abandoned-cart-page a,
+.abandoned-cart-page > a,
 .abandoned-cart-page button {
     background: var(--brand-colour) !important;
     border-radius: 999px !important;

@@ -2,7 +2,7 @@
 
 ## Craft CMS
 
-Abandoned Cart requires Craft CMS 5.0 or greater.
+Abandoned Cart requires Craft CMS 5.6 or greater.
 
 ## Craft Commerce
 

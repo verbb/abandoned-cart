@@ -38,6 +38,7 @@
         "title": "Developers",
         "collapsable": false,
         "children": [
+            "developers/custom-audiences",
             "developers/events"
         ]
     }

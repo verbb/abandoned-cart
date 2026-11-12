@@ -1,6 +1,6 @@
 # Sending and Scheduling
 
-Abandoned Cart does its work in a short background run. Each run ends recoveries whose time is up, finds carts that have gone quiet and starts their sequences, then sends the emails that are due. This page explains how to schedule that run, which carts it picks up, and how to check that sending is healthy.
+Abandoned Cart does its work in a short background run. Each run ends recoveries whose time is up, finds carts that have gone quiet and starts their sequences, then sends the emails that are due. The run needs to happen every few minutes, and System Status shows whether it does.
 
 ## Scheduling the Run
 
@@ -18,19 +18,19 @@ Only one run happens at a time. If a run starts while another is still working, 
 
 ## Which Carts Are Picked Up
 
-A cart is picked up when it's an incomplete Commerce order with at least one item and an email address, and it has gone without changes for the **Abandoned After** time. Carts without an email address can't be emailed, so Abandoned Cart ignores them. Each run picks up at most 100 carts, and the next run continues where it left off; the [`maxEnrollmentsPerRun`](../get-started/configuration.md#maxenrollmentsperrun) setting changes that limit.
+A cart is picked up when it's an incomplete Commerce order with at least one item and an email address, and it has gone without changes for the **Abandoned After** time. Carts without an email address can't be emailed, so Abandoned Cart ignores them. Each run picks up at most 100 carts, and the next run continues where it left off. The [`maxEnrollmentsPerRun`](../get-started/configuration.md#maxenrollmentsperrun) setting changes that limit.
 
-Before a cart starts a sequence, Abandoned Cart checks, in order, whether its customer is on Do Not Email or has unsubscribed, whether the address is at a blocked domain, whether the customer has given consent, and whether the store only emails returning customers. Then it finds the first sequence the cart matches and checks the contact limit. Finally, plugins and modules can exclude a cart with the [`beforeEnroll` event](../developers/events.md#the-beforeenroll-event). A cart that fails a check is recorded as skipped, with the reason, so you can see on the Carts screen why it wasn't emailed. [Carts](carts.md#skipped-carts) lists the reasons.
+Before a cart starts a sequence, Abandoned Cart checks, in order, whether its customer is on Do Not Email or has unsubscribed, whether the address is at a blocked domain, whether the customer has given consent, and whether the store only emails returning customers. Then it finds the first sequence the cart matches and checks the Contact Limit. Finally, plugins and modules can exclude a cart with the [`beforeEnroll` event](../developers/events.md#the-beforeenroll-event). A cart that fails a check is recorded as skipped, with the reason, so you can see on the Carts screen why it wasn't emailed. [Carts](carts.md#skipped-carts) lists the reasons.
 
-Each customer follows one cart at a time. If a customer abandons a newer cart while an older one is still in recovery, the older one stops, with the reason **Started a newer cart**, and the newer one takes its place.
+A customer has at most one cart in recovery at a time. When they abandon a newer cart while an older one is still in recovery, the newer cart takes over the older cart's recovery. It keeps the same sequence and the same times for the emails still to come, so the customer isn't emailed any more often, and those emails show what's in the newer cart. Links in emails already sent restore the newer cart too. The older cart stops with the reason **Started a newer cart**. The Contact Limit doesn't apply to a takeover, because no extra email is sent.
 
-## Recovery Windows
+## Recovery Period, Attribution and Contact Limit
 
-Three settings decide how long Abandoned Cart keeps working on a cart and how it counts the outcome. Each has a default under **Settings → General Settings**, and each sequence can override them.
+Three settings control how long a cart stays in recovery, which orders count as recovered, and how often a customer can start a sequence. Each has a default under **Abandoned Carts → Settings → General Settings**, and each sequence can override them.
 
 **Recovery Ends After** (seven days by default) is how long a cart stays in recovery after it's abandoned. Once it's up, any emails that haven't been sent are cancelled, and the cart's recovery links show an expired page instead of restoring the cart.
 
-**Attribution Window** (five days by default) is how long after an email a completed order still counts as recovered, even if the customer didn't click. A customer who reads your email, then types your store's address into their browser and buys, counts. An order more than five days after the last email doesn't.
+**Attribution Window** (five days by default) is how long after the last email a completed order still counts as recovered, even if the customer didn't click. A customer who reads your email, then types your store's address into their browser and buys, counts. An order more than five days after the last email doesn't.
 
 **Contact Limit** (seven days by default) stops customers who abandon often from receiving a stream of reminders. A new cart doesn't start a sequence if the same customer was sent a recovery email for another cart within this time. Only emails that were actually sent count.
 
@@ -38,38 +38,44 @@ Three settings decide how long Abandoned Cart keeps working on a cart and how it
 
 **Abandoned Carts → Settings → System Status** shows whether recovery is working. It opens with a verdict: everything's working, recovery is off, or what needs attention.
 
-The **Scheduler** card shows when the background run last happened and how it's being started:
+![System Status with the verdict Everything's working, a Scheduler card labelled Started by the cron job with a Run Now button, figures from the last run for carts picked up, skipped, emails sent, failed and recoveries ended, a strip of runs over the last 24 hours, the Cron Job line ready to copy, and Health Checks for Sequences, Sending, Recent Failures, Email Templates and Consent](../../screenshots/system-status.png)
 
-- **Started by the cron job** when recent runs came from the console command at a regular interval.
-- **Started by Craft's queue** when they came from the queue fallback. Add the cron job so emails go out on time on quiet sites.
-- **Started from the command line** when the command ran but not at a regular interval, such as when someone ran it by hand.
-- **Started by the 4.x URL** when the deprecated 4.x scheduler URL is still in use.
+The **Scheduler** card shows when the background run last happened and, while it's running on time, a label saying how it's being started:
 
-The scheduler needs attention when it hasn't run for more than 30 minutes while a sequence is on. The card also shows what the last run did, a strip of the last 24 hours in half-hour slots (how many emails went out, any failures, and gaps where nothing ran), and the **Cron Job** line to copy into your crontab. Once the command has run from the command line, that line uses the path to PHP it ran with; until then it says `php`. Run history is kept for seven days.
+| Label | When It Appears |
+| --- | --- |
+| Started by the cron job | Recent runs came from the console command at a regular interval. |
+| Started by Craft's queue | The latest run came from the queue fallback. Add the cron job so emails go out on time on quiet sites. |
+| Started from the command line | The command ran, but not at a regular interval, such as when someone ran it by hand. |
+| Started by the 4.x URL | Runs come from the deprecated scheduler URL. [Upgrading from v4](../get-started/upgrading-from-v4.md#http-trigger) explains how to replace it with the cron job. |
+
+The scheduler needs attention when it hasn't run yet, or hasn't run for more than 30 minutes, while a sequence is on. The card then shows **Overdue** instead of the label. It also shows what the last run did, a strip of the last 24 hours in half-hour slots (how many emails went out, any failures, and gaps where nothing ran), and the **Cron Job** line to copy into your crontab. Once the command has run from the command line, that line uses the path to PHP it ran with, and until then it says `php`. Run history is kept for seven days.
 
 **Run Now** does what the cron job does, straight away. It picks up carts that have gone quiet, sends emails that are due and ends finished recoveries. It's handy after changing a setting or while testing, and it isn't counted as a scheduled run. It needs the **Manage sequences and send emails** permission.
 
-**Health Checks** cover the other things that most often stop emails from going out, with anything that needs attention first and a link to where you'd fix it:
+**Health Checks** cover the other things that most often stop emails from going out. Anything that needs attention is listed first, with a link to where you'd fix it.
 
-- **Sequences**: which sequences are switched on.
-- **Sending**: whether sending is paused, and the name and address emails come from.
-- **Recent Failures**: how many emails couldn't be sent in the last seven days, and the latest reason.
-- **Email Templates**: whether every email template's files can be found.
-- **Consent**: whether a consent field is in use, and whether it exists.
+| Check | What It Tells You |
+| --- | --- |
+| Sequences | Which sequences are switched on. |
+| Sending | Whether sending is paused, and the name and address emails come from. |
+| Recent Failures | How many emails couldn't be sent in the last seven days, and the latest reason. |
+| Email Templates | Whether every email template's files can be found. |
+| Consent | Whether a consent field is in use, and whether it still exists. |
 
-System Status only reads, so it works on production environments where `allowAdminChanges` is off. It's available to admins and to users with the **View System Status** permission. Where admin changes are off, **General Settings**, **Email Templates** and **Sequence Presets** are read-only, as in Craft's own settings.
+Apart from **Run Now**, System Status only displays information, so it works on production environments where `allowAdminChanges` is off. It's available to admins and to users with the **View System Status** permission. Where admin changes are off, **General Settings**, **Email Templates** and **Sequence Presets** are read-only, as in Craft's own settings.
 
 ## Pausing All Sending
 
-**Pause All Sending** in **Settings → General Settings** holds every recovery email from every sequence. It's meant for emergencies, such as discovering a mistake in an email that's already going out. Carts keep entering sequences while sending is paused, and their emails wait. When you switch it off, emails that are due go out on the next run, except those whose cart has reached the end of its recovery period in the meantime.
+**Pause All Sending** in **Abandoned Carts → Settings → General Settings** holds every recovery email from every sequence. It's meant for emergencies, such as discovering a mistake in an email that's already going out. Carts keep entering sequences while sending is paused, and their emails wait. When you switch it off, emails that are due go out on the next run, except those whose cart has reached the end of its recovery period in the meantime.
+
+General Settings are stored in project config, so on a production environment where `allowAdminChanges` is off, the switch is read-only. To pause sending there, set `deliveryPaused` in your configuration file, or point it at an environment variable you can change without a deployment. [Configuration](../get-started/configuration.md#environment-specific-settings) shows how. The same setting suits development and staging environments that hold a copy of your customers' addresses.
 
 Turning off a single sequence is different. It also stops new carts from entering that sequence, while other sequences carry on as normal.
 
-You can also pause sending from your configuration file, for example on development and staging environments that hold a copy of your customers' addresses. [Configuration](../get-started/configuration.md#environment-specific-settings) shows how.
-
 ## Failures and Retries
 
-Emails go out through Craft's mailer, using the sender in **Settings → Email**. If the mailer reports a failure, Abandoned Cart tries again 15 minutes later, then 30 minutes after that. After three tries, the email is marked **Failed**, and the cart's history shows the mailer's reason. Staff with the **Manage sequences and send emails** permission can choose **Retry** beside a failed email on the cart's page to send it again straight away.
+Emails go out through Craft's mailer, using the sender in Craft's **Settings → Email**. If the mailer reports a failure, Abandoned Cart tries again 15 minutes later, then 30 minutes after that. After three tries, the email is marked **Failed**, and the cart's history shows the mailer's reason. Staff with the **Manage sequences and send emails** permission can choose **Retry** beside a failed email on the cart's page to send it again straight away.
 
 If a run is interrupted while sending, such as by a server restart, nobody can tell whether the email left the mail server. Abandoned Cart marks it failed rather than risk sending it twice, and the history says so.
 

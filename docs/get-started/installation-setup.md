@@ -26,8 +26,10 @@ composer require verbb/abandoned-cart && php craft plugin/install abandoned-cart
 
 You can try Abandoned Cart in a development environment for as long as you like. Once your site goes live, you are required to purchase a licence for the plugin through the Craft Plugin Store.
 
+For more information, see [Craft's Commercial Plugin Licensing](https://craftcms.com/docs/5.x/system/plugins.html#plugin-licensing).
+
 ## After Installing
 
-Installing Abandoned Cart creates a **Default** email template and a default sequence, **All Other Carts**, with three reminder emails. The sequence starts switched off, so no customer is emailed until you've reviewed it and turned it on.
+Installing Abandoned Cart creates a **Default** email template and a default sequence, **All Other Carts**, with three reminder emails. The sequence starts switched off, so no customer is emailed until you've reviewed it and turned it on. It also adds four starting points for new sequences under **Abandoned Carts → Settings → Sequence Presets**.
 
 Follow [Create Your First Sequence](create-your-first-sequence.md) to check your sending details, schedule the plugin's background run, send yourself a test and start recovering carts.
