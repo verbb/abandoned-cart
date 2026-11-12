@@ -28,7 +28,10 @@
             <span class="ac-outcome__icon" aria-hidden="true">{{ svg('@appicons/check.svg') }}</span>
             <div>
                 <h2>{{ 'Recovered {amount}' | t('abandoned-cart', { amount: formatter.asCurrency(recovery.orderTotal, currency) }) }}</h2>
-                <p>{{ 'Order {number} on {date}.' | t('abandoned-cart', { number: order ? (order.reference ?: order.shortNumber) : '', date: recovery.recoveredAt | datetime('short') }) }}</p>
+                <p>{{ 'Order {number} on {date}.' | t('abandoned-cart', { number: recoveredOrder ? (recoveredOrder.reference ?: recoveredOrder.shortNumber) : '', date: recovery.recoveredAt | datetime('short') }) }}</p>
+                {% if recoveredOrder and recoveredOrder.id != recovery.orderId %}
+                    <p class="light">{{ 'The customer completed a different cart from this one.' | t('abandoned-cart') }}</p>
+                {% endif %}
                 <div class="ac-chips">
                     {% if creditedAttempt %}<span class="ac-chip ac-chip--good">{{ 'Credited to “{subject}”' | t('abandoned-cart', { subject: creditedAttempt.subject ?? ('Email ' ~ creditedAttempt.position) }) }}</span>{% endif %}
                     <span class="ac-chip">{{ recovery.clickedBeforeOrder ? 'Clicked before ordering' | t('abandoned-cart') : 'Bought without clicking' | t('abandoned-cart') }}</span>
@@ -36,7 +39,7 @@
                     <span class="ac-chip">{{ recovery.couponCode ? 'Used {code}' | t('abandoned-cart', { code: recovery.couponCode }) : 'No discount used' | t('abandoned-cart') }}</span>
                 </div>
             </div>
-            {% if order %}<a class="btn" href="{{ order.cpEditUrl }}">{{ 'View Order' | t('abandoned-cart') }}</a>{% endif %}
+            {% if recoveredOrder %}<a class="btn" href="{{ recoveredOrder.cpEditUrl }}">{{ 'View Order' | t('abandoned-cart') }}</a>{% endif %}
         </div>
     {% elseif recovery.isActive %}
         <div class="ac-outcome ac-outcome--live">

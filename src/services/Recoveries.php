@@ -400,8 +400,10 @@ class Recoveries extends Component
     }
 
     /**
-     * Credits a completed order to the email that earned it: the last one clicked, or the last one sent, as long as
-     * the order came within the attribution window of that email.
+     * Ends recoveries when a customer completes an order. A recovery is credited to the email that earned it: the
+     * last one whose link restored the cart, or else the last one sent, as long as the order came within the
+     * attribution window of that email. The customer may buy from another cart, such as on another device or after
+     * signing in, so any order by the same customer ends their recovery too, and earns the same credit.
      */
     public function handleCompletedOrder(Order $order): void
     {
@@ -422,61 +424,19 @@ class Recoveries extends Component
             ->orderBy(['abandonedAt' => SORT_DESC])
             ->one();
 
-        if (!$row) {
-            return;
+        if ($row) {
+            $this->_settleRecovery(new Recovery($row), $order);
         }
 
-        $recovery = new Recovery($row);
-        $attempts = AbandonedCart::$plugin->getAttempts()->getAttemptsByRecoveryId($recovery->id);
-        $sent = array_values(array_filter($attempts, static fn(Attempt $attempt): bool => $attempt->status === Attempt::STATUS_SENT));
-        $orderedAt = DateTimeHelper::toDateTime($order->dateOrdered) ?: new DateTime();
+        // The customer's account may have its own customer record, under the email it had when the cart was left.
+        $customerIds = array_filter([$customer?->id, $order->getCustomerId() ? $this->_getCustomerIdByUserId($order->getCustomerId()) : null]);
 
-        if (!$sent) {
-            if ($recovery->getIsActive()) {
-                $this->endRecovery($recovery, Recovery::END_COMPLETED_BEFORE_EMAIL);
+        foreach (array_unique($customerIds) as $customerId) {
+            foreach ($this->_getActiveRecoveriesForCustomer($customerId) as $recovery) {
+                if ($recovery->orderId !== $order->id) {
+                    $this->_settleRecovery($recovery, $order);
+                }
             }
-
-            return;
-        }
-
-        $lastSent = end($sent);
-        $windowEnds = (clone $lastSent->sentAt)->add(new DateInterval('PT' . $recovery->attributionWindowMinutes . 'M'));
-
-        if ($orderedAt > $windowEnds) {
-            if ($recovery->getIsActive()) {
-                $this->endRecovery($recovery, Recovery::END_COMPLETED_OUTSIDE_WINDOW);
-            }
-
-            return;
-        }
-
-        $clickedAttemptId = (new Query())
-            ->select(['attemptId'])
-            ->from([Table::VISITS])
-            ->where(['recoveryId' => $recovery->id])
-            ->andWhere(['not', ['attemptId' => null]])
-            ->orderBy(['dateCreated' => SORT_DESC, 'id' => SORT_DESC])
-            ->scalar();
-        $creditedId = $clickedAttemptId ? (int)$clickedAttemptId : $lastSent->id;
-        $credited = AbandonedCart::$plugin->getAttempts()->getAttemptById($creditedId);
-
-        Db::update(Table::RECOVERIES, [
-            'status' => Recovery::STATUS_RECOVERED,
-            'recoveredAt' => Db::prepareDateForDb($orderedAt),
-            'creditedAttemptId' => $creditedId,
-            'clickedBeforeOrder' => (bool)$clickedAttemptId,
-            'orderTotal' => (float)$order->getTotal(),
-            'isFirstOrder' => AbandonedCart::$plugin->getAudiences()->countPreviousOrders($order) === 0,
-            'couponCode' => $order->couponCode,
-            'endReason' => null,
-            'endedAt' => null,
-        ], ['id' => $recovery->id]);
-
-        AbandonedCart::$plugin->getAttempts()->cancelScheduled($recovery, Craft::t('abandoned-cart', 'the order was completed'));
-        AbandonedCart::$plugin->getActivities()->log($recovery->id, Activities::TYPE_RECOVERED, $creditedId, ['number' => $order->reference ?: $order->getShortNumber(), 'position' => $credited?->position]);
-
-        if ($this->hasEventHandlers(self::EVENT_AFTER_RECOVER)) {
-            $this->trigger(self::EVENT_AFTER_RECOVER, new RecoveryEvent(['recovery' => $this->getRecoveryById($recovery->id)]));
         }
     }
 
@@ -733,6 +693,75 @@ class Recoveries extends Component
         return $this->getRecoveryById($current->id);
     }
 
+    /**
+     * Credits or ends a recovery once the customer has completed `$order`, which may be the recovery's own cart or
+     * another one.
+     */
+    private function _settleRecovery(Recovery $recovery, Order $order): void
+    {
+        $attempts = AbandonedCart::$plugin->getAttempts()->getAttemptsByRecoveryId($recovery->id);
+        $sent = array_values(array_filter($attempts, static fn(Attempt $attempt): bool => $attempt->status === Attempt::STATUS_SENT));
+        $orderedAt = DateTimeHelper::toDateTime($order->dateOrdered) ?: new DateTime();
+
+        if (!$sent) {
+            if ($recovery->getIsActive()) {
+                $this->endRecovery($recovery, Recovery::END_COMPLETED_BEFORE_EMAIL);
+            }
+
+            return;
+        }
+
+        $lastSent = end($sent);
+        $windowEnds = (clone $lastSent->sentAt)->add(new DateInterval('PT' . $recovery->attributionWindowMinutes . 'M'));
+
+        if ($orderedAt > $windowEnds) {
+            if ($recovery->getIsActive()) {
+                $this->endRecovery($recovery, Recovery::END_COMPLETED_OUTSIDE_WINDOW);
+            }
+
+            return;
+        }
+
+        // Only a visit that restored the cart counts as a click, as in the reports. Following an expired link, or one
+        // that asked the customer to sign in, didn't bring them back to this cart.
+        $clickedAttemptId = (new Query())
+            ->select(['attemptId'])
+            ->from([Table::VISITS])
+            ->where(['recoveryId' => $recovery->id, 'result' => 'restored'])
+            ->andWhere(['not', ['attemptId' => null]])
+            ->orderBy(['dateCreated' => SORT_DESC, 'id' => SORT_DESC])
+            ->scalar();
+        $creditedId = $clickedAttemptId ? (int)$clickedAttemptId : $lastSent->id;
+        $credited = AbandonedCart::$plugin->getAttempts()->getAttemptById($creditedId);
+
+        Db::update(Table::RECOVERIES, [
+            'status' => Recovery::STATUS_RECOVERED,
+            'recoveredAt' => Db::prepareDateForDb($orderedAt),
+            'recoveredOrderId' => $order->id,
+            'creditedAttemptId' => $creditedId,
+            'clickedBeforeOrder' => (bool)$clickedAttemptId,
+            'orderTotal' => (float)$order->getTotal(),
+            'isFirstOrder' => AbandonedCart::$plugin->getAudiences()->countPreviousOrders($order) === 0,
+            'couponCode' => $order->couponCode,
+            'endReason' => null,
+            'endedAt' => null,
+        ], ['id' => $recovery->id]);
+
+        AbandonedCart::$plugin->getAttempts()->cancelScheduled($recovery, Craft::t('abandoned-cart', 'the order was completed'));
+        AbandonedCart::$plugin->getActivities()->log($recovery->id, Activities::TYPE_RECOVERED, $creditedId, ['number' => $order->reference ?: $order->getShortNumber(), 'position' => $credited?->position]);
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_RECOVER)) {
+            $this->trigger(self::EVENT_AFTER_RECOVER, new RecoveryEvent(['recovery' => $this->getRecoveryById($recovery->id)]));
+        }
+    }
+
+    private function _getCustomerIdByUserId(int $userId): ?int
+    {
+        $id = (new Query())->select(['id'])->from([Table::CUSTOMERS])->where(['userId' => $userId])->scalar();
+
+        return $id ? (int)$id : null;
+    }
+
     private function _wasContactedRecently(Customer $customer, Sequence $sequence, DateTime $now, Order $order): bool
     {
         $minutes = $sequence->getContactLimitMinutes();
@@ -779,6 +808,7 @@ class Recoveries extends Component
                 'expiresAt',
                 'endedAt',
                 'recoveredAt',
+                'recoveredOrderId',
                 'creditedAttemptId',
                 'clickedBeforeOrder',
                 'orderTotal',

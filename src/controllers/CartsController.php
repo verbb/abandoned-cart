@@ -167,6 +167,7 @@ class CartsController extends BaseCpController
         return $this->renderTemplate('abandoned-cart/carts/_view', [
             'recovery' => $recovery,
             'order' => $order,
+            'recoveredOrder' => $recovery->recoveredOrderId === $recovery->orderId ? $order : $recovery->getRecoveredOrder(),
             'cart' => $order ? CartSummary::fromOrder($order) : null,
             'attempts' => $attempts,
             'nextAttempt' => $plugin->getAttempts()->getNextScheduledAttempt($recovery),

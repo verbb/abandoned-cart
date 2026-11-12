@@ -343,3 +343,75 @@ it('only undoes an unsubscribe when the customer opts in on the order itself', f
 
     expect($customers->getCustomerById($customer->id)->status)->toBe(Customer::STATUS_ACTIVE);
 });
+
+it('ends the recovery and credits the email when the customer orders from another cart', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $left = $this->createCart('two.devices@example.test', $this->createVariant(60), idleMinutes: 90);
+    engine()->run();
+
+    $bought = $this->completeOrder($this->createCart('two.devices@example.test', $this->createVariant(40), idleMinutes: 0));
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('two.devices@example.test')->id)[0];
+
+    expect($recovery->status)->toBe(Recovery::STATUS_RECOVERED)
+        ->and($recovery->orderId)->toBe($left->id)
+        ->and($recovery->recoveredOrderId)->toBe($bought->id)
+        ->and($recovery->getRecoveredOrder()?->id)->toBe($bought->id)
+        ->and($recovery->orderTotal)->toEqual(40.0)
+        ->and($recovery->creditedAttemptId)->toBe($recovery->getAttempts()[0]->id)
+        ->and(attemptStatuses($recovery))->toBe([Attempt::STATUS_SENT, Attempt::STATUS_CANCELLED, Attempt::STATUS_CANCELLED]);
+});
+
+it('ends the recovery without credit when the customer orders another cart before any email', function() {
+    $sequence = $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $first = $sequence->getEmails()[0];
+    $first->delayMinutes = 600;
+    AbandonedCart::$plugin->getEmails()->saveEmail($first);
+
+    $this->createCart('early.buyer@example.test', idleMinutes: 90);
+    engine()->run();
+    $this->completeOrder($this->createCart('early.buyer@example.test', idleMinutes: 0));
+
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('early.buyer@example.test')->id)[0];
+
+    expect($recovery->status)->toBe(Recovery::STATUS_ENDED)
+        ->and($recovery->endReason)->toBe(Recovery::END_COMPLETED_BEFORE_EMAIL)
+        ->and($recovery->recoveredOrderId)->toBeNull()
+        ->and(attemptStatuses($recovery))->toBe([Attempt::STATUS_CANCELLED, Attempt::STATUS_CANCELLED, Attempt::STATUS_CANCELLED]);
+});
+
+it('credits only a click that restored the cart', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $order = $this->createCart('signed.out@example.test', idleMinutes: 90);
+    engine()->run();
+
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('signed.out@example.test')->id)[0];
+    craft\helpers\Db::update(verbb\abandonedcart\db\Table::ATTEMPTS, ['dueAt' => craft\helpers\Db::prepareDateForDb(new DateTime('-1 minute'))], ['recoveryId' => $recovery->id, 'position' => 2]);
+    AbandonedCart::$plugin->getAttempts()->sendDue(new DateTime());
+    [$first, $second] = $recovery->getAttempts();
+
+    // Email 1's link restored the cart. Email 2's link only asked the customer to sign in.
+    engine()->recordVisit($recovery, $first, 'restored');
+    engine()->recordVisit($recovery, $second, 'signInRequired');
+    $this->completeOrder($order);
+    $recovery = engine()->getRecoveryById($recovery->id);
+
+    expect($second->status)->toBe(Attempt::STATUS_SENT)
+        ->and($recovery->creditedAttemptId)->toBe($first->id)
+        ->and($recovery->clickedBeforeOrder)->toBeTrue()
+        ->and($recovery->recoveredOrderId)->toBe($order->id);
+});
+
+it('gives no click credit for a link that didn’t restore the cart', function() {
+    $this->turnOn(AbandonedCart::$plugin->getSequences()->getFallbackSequence());
+    $order = $this->createCart('expired.link@example.test', idleMinutes: 90);
+    engine()->run();
+
+    $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('expired.link@example.test')->id)[0];
+    engine()->recordVisit($recovery, $recovery->getAttempts()[0], 'signInRequired');
+    $this->completeOrder($order);
+    $recovery = engine()->getRecoveryById($recovery->id);
+
+    expect($recovery->status)->toBe(Recovery::STATUS_RECOVERED)
+        ->and($recovery->creditedAttemptId)->toBe($recovery->getAttempts()[0]->id)
+        ->and($recovery->clickedBeforeOrder)->toBeFalse();
+});

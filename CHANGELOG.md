@@ -27,7 +27,7 @@
 - Recovery links now restore carts that belong to an account only for that customer, after signing in, and show a page explaining expired or invalid links.
 - Recovery links now apply the email’s discount code to the restored cart, and the bundled email says so.
 - When a customer abandons a newer cart, it now takes over the recovery of their older one, keeping its sequence and the times of its remaining emails.
-- An order completed within the attribution window after an email now counts as recovered, even without a click.
+- Any order a customer completes now ends their recovery, even when it’s from a different cart, and counts as recovered when it comes within the attribution window after an email, with or without a click.
 - Failed emails are now retried automatically, up to three tries.
 - Abandoned Cart now requires Craft CMS 5.6 or later.
 

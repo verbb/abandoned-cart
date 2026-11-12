@@ -137,6 +137,7 @@ class Install extends Migration
             'expiresAt' => $this->dateTime()->notNull(),
             'endedAt' => $this->dateTime(),
             'recoveredAt' => $this->dateTime(),
+            'recoveredOrderId' => $this->integer(),
             'creditedAttemptId' => $this->integer(),
             'clickedBeforeOrder' => $this->boolean()->notNull()->defaultValue(false),
             'orderTotal' => $this->decimal(14, 4),
@@ -280,6 +281,7 @@ class Install extends Migration
 
         // Commerce purges old carts, and recovery history has to outlive them.
         $this->addForeignKey(null, Table::RECOVERIES, ['orderId'], CommerceTable::ORDERS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::RECOVERIES, ['recoveredOrderId'], CommerceTable::ORDERS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::RECOVERIES, ['customerId'], Table::CUSTOMERS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::RECOVERIES, ['siteId'], CraftTable::SITES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::RECOVERIES, ['sequenceId'], Table::SEQUENCES, ['id'], 'SET NULL', null);

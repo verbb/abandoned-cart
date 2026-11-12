@@ -51,6 +51,7 @@ class Recovery extends Model
     public ?DateTime $expiresAt = null;
     public ?DateTime $endedAt = null;
     public ?DateTime $recoveredAt = null;
+    public ?int $recoveredOrderId = null;
     public ?int $creditedAttemptId = null;
     public bool $clickedBeforeOrder = false;
     public ?float $orderTotal = null;
@@ -94,6 +95,15 @@ class Recovery extends Model
     public function getOrder(): ?Order
     {
         return $this->orderId ? Order::find()->id($this->orderId)->status(null)->one() : null;
+    }
+
+    /**
+     * The completed order that recovered this cart. It's usually the cart itself, but can be another of the
+     * customer's carts.
+     */
+    public function getRecoveredOrder(): ?Order
+    {
+        return $this->recoveredOrderId ? Order::find()->id($this->recoveredOrderId)->status(null)->one() : null;
     }
 
     public function getCustomer(): ?Customer
