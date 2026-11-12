@@ -29,7 +29,7 @@ it('creates every 5.0 table and no 4.x table', function() {
     }
 
     expect($db->tableExists(Table::CARTS))->toBeFalse()
-        ->and(AbandonedCart::$plugin->schemaVersion)->toBe('5.0.3');
+        ->and(AbandonedCart::$plugin->schemaVersion)->toBe('5.0.5');
 });
 
 it('creates a default email template that uses the bundled design', function() {

@@ -29,6 +29,9 @@
                 {{- addedBy ? 'Added to Do Not Email by {name} {date}.' | t('abandoned-cart', { name: addedBy, date: addedOn }) : 'Added to Do Not Email {date}.' | t('abandoned-cart', { date: addedOn }) -}}
                 {%- if customer.statusNote %} “{{ customer.statusNote }}”{% endif -%}
             </p>
+            {% if (customer.previousStatus.status ?? null) == 'unsubscribed' %}
+                <p class="light ac-meta-note">{{ 'They had unsubscribed before this, so they stay unsubscribed if removed.' | t('abandoned-cart') }}</p>
+            {% endif %}
         {% endif %}
     </fieldset>
 

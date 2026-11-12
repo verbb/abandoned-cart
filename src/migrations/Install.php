@@ -115,6 +115,7 @@ class Install extends Migration
             'statusNote' => $this->text(),
             'statusChangedById' => $this->integer(),
             'statusChangedAt' => $this->dateTime(),
+            'previousStatus' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

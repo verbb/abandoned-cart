@@ -9,6 +9,21 @@
 {% set currency = craft.abandonedCart.getCurrency() %}
 {% set canManage = currentUser.can('abandonedCart-manageDoNotEmail') %}
 
+{# Deleting is for erasure requests, so it needs its own permission. #}
+{% if currentUser.can('abandonedCart-deleteCustomers') %}
+    {% set actionMenu = disclosureMenu([{
+        label: 'Delete Customer' | t('abandoned-cart'),
+        action: 'abandoned-cart/customers/delete',
+        params: { id: customer.id },
+        redirect: 'abandoned-cart/customers',
+        confirm: 'Are you sure you want to delete “{email}”? This also deletes their cart history and email activity, and can’t be undone.' | t('abandoned-cart', { email: customer.email }),
+        destructive: true,
+    }], {
+        hiddenLabel: 'Actions' | t('app'),
+        buttonAttributes: { class: ['action-btn'], removeClass: 'menubtn', data: { icon: 'ellipsis' } },
+    }) %}
+{% endif %}
+
 {% block actionButton %}
     {% if user %}<a class="btn" href="{{ url('users/' ~ user.id ~ '/commerce') }}">{{ 'View in Commerce' | t('abandoned-cart') }}</a>{% endif %}
 {% endblock %}

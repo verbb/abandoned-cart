@@ -30,6 +30,7 @@ class AbandonedCart extends Plugin
 
     public const PERMISSION_MANAGE_SEQUENCES = 'abandonedCart-manageSequences';
     public const PERMISSION_MANAGE_DO_NOT_EMAIL = 'abandonedCart-manageDoNotEmail';
+    public const PERMISSION_DELETE_CUSTOMERS = 'abandonedCart-deleteCustomers';
     public const PERMISSION_VIEW_SYSTEM_STATUS = 'abandonedCart-viewSystemStatus';
 
 
@@ -38,7 +39,7 @@ class AbandonedCart extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '5.0.4';
+    public string $schemaVersion = '5.0.5';
     public string $minVersionRequired = '3.0.0';
 
 
@@ -157,6 +158,7 @@ class AbandonedCart extends Plugin
                 'permissions' => [
                     self::PERMISSION_MANAGE_SEQUENCES => ['label' => Craft::t('abandoned-cart', 'Manage sequences and send emails')],
                     self::PERMISSION_MANAGE_DO_NOT_EMAIL => ['label' => Craft::t('abandoned-cart', 'Manage Do Not Email')],
+                    self::PERMISSION_DELETE_CUSTOMERS => ['label' => Craft::t('abandoned-cart', 'Delete customers')],
                     self::PERMISSION_VIEW_SYSTEM_STATUS => ['label' => Craft::t('abandoned-cart', 'View System Status')],
                 ],
             ];

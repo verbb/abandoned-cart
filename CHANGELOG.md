@@ -11,13 +11,14 @@
 - Added email templates, stored in project config, with a responsive bundled design that needs no template files and an option to copy it to your own templates.
 - Added the Overview, with recovered revenue, recovery rate, a recovery funnel, sequence and email performance, and a setup checklist for new installs. Carts from blocked domains are left out of its figures.
 - Added the Carts screen and cart pages, with each cart’s journey and history, skipped carts with their reasons, Send Now, Stop Emails and Retry actions, and a Can be emailed switch.
-- Added the Customers screen and customer pages, with Can be emailed, Unsubscribed and Do Not Email statuses, and an Abandoned Cart tab on Craft user accounts.
+- Added the Customers screen and customer pages, with Can be emailed, Unsubscribed and Do Not Email statuses, and an Abandoned Cart tab on Craft user accounts. Removing a customer from Do Not Email restores the status they had before, so an unsubscribed customer stays unsubscribed.
+- Added a Delete Customer action, which removes a customer and their cart history for erasure requests.
 - Added unsubscribe links and one-click `List-Unsubscribe` headers to every recovery email, with a confirmation page for customers.
 - Added `craft.abandonedCart.getCurrentCustomer()` and the `abandoned-cart/preferences/save` action, so signed-in customers can turn cart reminders off or on from their account.
 - Added the Consent Field, Blocked Domains, Only Returning Customers, Contact Limit, Attribution Window, Recovery Ends After and Pause All Sending settings, with per-sequence overrides for recovery timing and the return page.
 - Added a Page Template setting so expired-link and unsubscribe pages can render inside the site's layout.
 - Added System Status, which shows how the scheduler is being started, its last run and the last 24 hours of runs, the cron job to add, health checks for sending, recent failures, email templates and consent, and a Run Now action. It works where admin changes aren't allowed.
-- Added the Manage sequences and send emails, Manage Do Not Email and View System Status permissions.
+- Added the Manage sequences and send emails, Manage Do Not Email, Delete customers and View System Status permissions.
 - Added events for sequences, emails, email templates, audiences, enrolment, consent, recovery links, sending, rendering and customers.
 - Added the `compatibilityMode` setting, on by default, which keeps the 4.x email template variables, the `beforeMailSend` event, the 4.x console command and the 4.x scheduler URL working while sites update. The event, command and URL log deprecation warnings.
 

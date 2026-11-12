@@ -189,9 +189,34 @@ class CustomersController extends BaseCpController
             return $this->asFailure(Craft::t('abandoned-cart', 'This customer isn’t on Do Not Email.'));
         }
 
-        $customers->changeStatus($customer, Customer::STATUS_ACTIVE, Customer::SOURCE_STAFF);
+        if (!$customers->removeDoNotEmail($customer)) {
+            return $this->asFailure($customer->getFirstError('status') ?? Craft::t('abandoned-cart', 'Couldn’t remove {email} from Do Not Email.', ['email' => $customer->email]));
+        }
+
+        if ($customer->status === Customer::STATUS_UNSUBSCRIBED) {
+            return $this->asSuccess(Craft::t('abandoned-cart', '{email} removed from Do Not Email. They’re still unsubscribed.', ['email' => $customer->email]));
+        }
 
         return $this->asSuccess(Craft::t('abandoned-cart', '{email} can be emailed again.', ['email' => $customer->email]));
+    }
+
+    public function actionDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requirePermission(AbandonedCart::PERMISSION_DELETE_CUSTOMERS);
+
+        $customers = AbandonedCart::$plugin->getCustomers();
+        $customer = $customers->getCustomerById((int)$this->request->getRequiredBodyParam('id'));
+
+        if (!$customer) {
+            throw new NotFoundHttpException('Customer not found');
+        }
+
+        if (!$customers->deleteCustomer($customer)) {
+            return $this->asFailure(Craft::t('abandoned-cart', 'Couldn’t delete customer.'));
+        }
+
+        return $this->asSuccess(Craft::t('abandoned-cart', 'Customer deleted.'), [], 'abandoned-cart/customers');
     }
 
     public static function statusLabels(): array

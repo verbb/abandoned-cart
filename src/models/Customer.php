@@ -35,6 +35,8 @@ class Customer extends Model
     public ?string $statusNote = null;
     public ?int $statusChangedById = null;
     public ?DateTime $statusChangedAt = null;
+    // The status, source, note, who and when from before Do Not Email, so removing it restores them.
+    public ?array $previousStatus = null;
     public ?DateTime $dateCreated = null;
     public ?DateTime $dateUpdated = null;
     public ?string $uid = null;

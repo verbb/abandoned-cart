@@ -12,9 +12,12 @@ use verbb\abandonedcart\records\Customer as CustomerRecord;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
 
 use DateTime;
+use Throwable;
 use yii\base\InvalidArgumentException;
 
 class Customers extends Component
@@ -26,6 +29,8 @@ class Customers extends Component
     public const EVENT_AFTER_SAVE_CUSTOMER = 'afterSaveCustomer';
     public const EVENT_BEFORE_CHANGE_STATUS = 'beforeChangeStatus';
     public const EVENT_AFTER_CHANGE_STATUS = 'afterChangeStatus';
+    public const EVENT_BEFORE_DELETE_CUSTOMER = 'beforeDeleteCustomer';
+    public const EVENT_AFTER_DELETE_CUSTOMER = 'afterDeleteCustomer';
 
 
     // Public Methods
@@ -106,6 +111,22 @@ class Customers extends Component
             return false;
         }
 
+        // Do Not Email sits on top of the status the customer had, so removing it can put that back. An unsubscribe
+        // stays an unsubscribe.
+        if ($status === Customer::STATUS_DO_NOT_EMAIL) {
+            if ($customer->status !== Customer::STATUS_DO_NOT_EMAIL) {
+                $customer->previousStatus = [
+                    'status' => $customer->status,
+                    'source' => $customer->statusSource,
+                    'note' => $customer->statusNote,
+                    'changedById' => $customer->statusChangedById,
+                    'changedAt' => $customer->statusChangedAt ? Db::prepareDateForDb($customer->statusChangedAt) : null,
+                ];
+            }
+        } else {
+            $customer->previousStatus = null;
+        }
+
         $customer->status = $status;
         $customer->statusSource = $source;
         $customer->statusNote = $note;
@@ -123,6 +144,89 @@ class Customers extends Component
 
         if ($this->hasEventHandlers(self::EVENT_AFTER_CHANGE_STATUS)) {
             $this->trigger(self::EVENT_AFTER_CHANGE_STATUS, new CustomerStatusEvent(['customer' => $customer, 'status' => $status, 'source' => $source, 'note' => $note]));
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Takes a customer off Do Not Email and gives them back the status they had before it, so a customer who had
+     * unsubscribed stays unsubscribed.
+     */
+    public function removeDoNotEmail(Customer $customer): bool
+    {
+        if ($customer->status !== Customer::STATUS_DO_NOT_EMAIL) {
+            return false;
+        }
+
+        $previous = $customer->previousStatus ?: [];
+
+        if (($previous['status'] ?? Customer::STATUS_ACTIVE) !== Customer::STATUS_UNSUBSCRIBED) {
+            return $this->changeStatus($customer, Customer::STATUS_ACTIVE, Customer::SOURCE_STAFF);
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_CHANGE_STATUS)) {
+            $event = new CustomerStatusEvent(['customer' => $customer, 'status' => Customer::STATUS_UNSUBSCRIBED, 'source' => $previous['source'] ?? null, 'note' => $previous['note'] ?? null]);
+            $this->trigger(self::EVENT_BEFORE_CHANGE_STATUS, $event);
+
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
+        // The unsubscribe comes back as the customer made it, with its original source and date.
+        $customer->status = Customer::STATUS_UNSUBSCRIBED;
+        $customer->statusSource = $previous['source'] ?? null;
+        $customer->statusNote = $previous['note'] ?? null;
+        $customer->statusChangedById = $previous['changedById'] ?? null;
+        $customer->statusChangedAt = DateTimeHelper::toDateTime($previous['changedAt'] ?? null) ?: null;
+        $customer->previousStatus = null;
+
+        if (!$this->_saveCustomer($customer, true, true)) {
+            return false;
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_CHANGE_STATUS)) {
+            $this->trigger(self::EVENT_AFTER_CHANGE_STATUS, new CustomerStatusEvent(['customer' => $customer, 'status' => $customer->status, 'source' => $customer->statusSource, 'note' => $customer->statusNote]));
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Deletes a customer and everything Abandoned Cart holds about them: their carts' recovery history, emails, clicks
+     * and skipped carts. Commerce's own orders and the customer's user account aren't touched.
+     */
+    public function deleteCustomer(Customer $customer): bool
+    {
+        if ($this->hasEventHandlers(self::EVENT_BEFORE_DELETE_CUSTOMER)) {
+            $event = new CustomerEvent(['customer' => $customer]);
+            $this->trigger(self::EVENT_BEFORE_DELETE_CUSTOMER, $event);
+
+            if (!$event->isValid) {
+                return false;
+            }
+        }
+
+        $transaction = Craft::$app->getDb()->beginTransaction();
+
+        try {
+            // Recoveries, and their emails, visits and history, go with the customer by foreign key. Skipped carts
+            // only lose the link, so they're removed here.
+            Db::delete(Table::SKIPPED_CARTS, ['customerId' => $customer->id]);
+            Db::delete(Table::CUSTOMERS, ['id' => $customer->id]);
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+
+            throw $e;
+        }
+
+        if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_CUSTOMER)) {
+            $this->trigger(self::EVENT_AFTER_DELETE_CUSTOMER, new CustomerEvent(['customer' => $customer]));
         }
 
         return true;
@@ -158,6 +262,7 @@ class Customers extends Component
         $record->statusNote = $customer->statusNote;
         $record->statusChangedById = $customer->statusChangedById;
         $record->statusChangedAt = Db::prepareDateForDb($customer->statusChangedAt);
+        $record->previousStatus = $customer->previousStatus ? Json::encode($customer->previousStatus) : null;
         $record->save(false);
 
         $customer->id = $record->id;
@@ -182,6 +287,7 @@ class Customers extends Component
                 'statusNote',
                 'statusChangedById',
                 'statusChangedAt',
+                'previousStatus',
                 'dateCreated',
                 'dateUpdated',
                 'uid',
