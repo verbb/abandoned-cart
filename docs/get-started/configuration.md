@@ -1,8 +1,8 @@
 # Configuration
 
-You can customise Abandoned Cart's settings using a PHP configuration file. This is optional. Each setting has a default, so you only need to include the values you want to change.
+You can customise Abandoned Cart’s settings using a PHP configuration file. This is optional: each setting has a default, so you only need to include the values you want to change.
 
-To override a setting, create `abandoned-cart.php` in your Craft project's `/config` directory and return an array of setting names and values. For example, the following treats a cart as abandoned after two hours without changes, instead of one:
+To override a setting, create `abandoned-cart.php` in your Craft project’s `/config` directory and return an array of setting names and values. For example, the following will treat a cart as abandoned after two hours without changes:
 
 ```php
 <?php
@@ -12,9 +12,7 @@ return [
 ];
 ```
 
-All other settings keep their defaults. Add any further settings you want to change to the same array. Settings whose names end in `Minutes` take a number of minutes, so a day is `1440` and a week is `10080`. `historyRetentionDays` is the one setting given in days.
-
-Values in this file take precedence over those saved in the control panel. The options below explain the available settings and their defaults.
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults.
 
 ## Configuration Options
 
