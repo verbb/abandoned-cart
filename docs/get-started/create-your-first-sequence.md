@@ -4,8 +4,6 @@ This walkthrough takes your store from a fresh install to sending its first reco
 
 You'll need Abandoned Cart installed on a site running Craft Commerce, Craft's email settings configured so the site can send mail, and an admin account. Several steps use **Abandoned Carts → Settings → General Settings** and Craft's **Settings → Email**, which only admins can open. Two steps, adding a consent field and scheduling the background run, usually need your developer, and they're marked where they appear.
 
-Decide first where you'll do the work. Sequences, their emails and whether each one is on are stored in each environment's database, so changes you make on a staging site, including the wording of the emails, don't reach your live site. If you work through this on staging, you'll make the same changes again on the live site before switching the sequence on there. You can also work through it on your live site from the start, because nothing is sent to customers until you turn the sequence on. [What Moves Between Environments](configuration.md#what-moves-between-environments) has the full list.
-
 ## Check Your Sending Details
 
 Open **Abandoned Carts → Overview**. Until a sequence is switched on, the Overview shows a short setup checklist, and its first step summarises how emails will be sent.

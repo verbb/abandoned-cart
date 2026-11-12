@@ -110,7 +110,7 @@ Two presets need finishing before they're useful. **High-Value Carts** matches n
 
 Presets are listed under **Abandoned Carts → Settings → Sequence Presets**, where admins can change any of them, add their own, put them in order or delete them. A preset holds a name, handle and description, an audience, and up to five emails, each with its timing, wording, email template, and whether it's the email for a discount. A cart value audience can hold its amount. A products or custom rules audience is chosen once the sequence exists, because those depend on your catalogue.
 
-Presets are kept in project config, like email templates. Project config is saved with your site's code, so changes to presets are made on your development site and deployed with the rest of your project, and can only be made where admin changes are allowed. [What Moves Between Environments](../get-started/configuration.md#what-moves-between-environments) explains the difference from sequences, which are edited on each site. Editing a preset never changes sequences already made from it. Deleting all of them is fine, and **New Sequence** then offers a blank sequence only.
+Editing a preset never changes sequences already made from it. Deleting all of them is fine, and **New Sequence** then offers a blank sequence only.
 
 The emails in your presets also fill the **Start From** menu when you add an email to a sequence, as [Emails and Email Templates](emails-and-email-templates.md#adding-and-editing-emails) describes.
 

@@ -51,8 +51,4 @@ Two days later, Amelia reads email 2, follows its link and pays. Her cart is now
 
 An order counts as recovered when the customer completes it within the **Attribution Window** (five days by default) after the last email they were sent. It can be the same cart or a different one, such as a cart on another device, and the customer doesn't have to click. The recovery is credited to the last email whose link brought the customer back to their cart, or to the last email sent when they didn't use a link. An order completed before any email was sent, or after the attribution window, ends the recovery without counting as recovered. [Overview](../feature-tour/overview.md#how-recoveries-are-credited) explains how credit shows in your results.
 
-## Where Everything Is Kept
-
-Your settings, email templates and sequence presets are saved with your site's code and deployed from your development site, along with the rest of your project. Sequences, their emails, customers, Do Not Email and every cart's history live in each environment's database instead, so they're edited on each site separately. [What Moves Between Environments](configuration.md#what-moves-between-environments) has the full list and what it means for staging and production.
-
 Next, follow [Create Your First Sequence](create-your-first-sequence.md) to review the default sequence and switch it on.

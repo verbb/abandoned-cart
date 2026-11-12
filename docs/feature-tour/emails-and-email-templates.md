@@ -87,11 +87,7 @@ There's always exactly one default template. Making another template the default
 
 Deleting any other template is safe. The emails that used it fall back to the default.
 
-### Templates Across Environments
-
-Email templates are stored in Craft's project config, alongside your sections and fields, so you create and change them where admin changes are allowed and deploy them to other environments. The template files they point to belong in your site's templates folder, which you deploy with the rest of your templates. **System Status** warns you if a template's file can't be found.
-
-Sequences and emails are stored in the database instead. Editors can adjust wording and timing on the live site without a deployment, and changes made on a staging site don't reach the live site. [What Moves Between Environments](../get-started/configuration.md#what-moves-between-environments) has the full list.
+**System Status** warns you if a template's file can't be found.
 
 ## Twig in Subjects and Preview Text
 

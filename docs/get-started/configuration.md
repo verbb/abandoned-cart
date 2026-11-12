@@ -198,32 +198,4 @@ The key a scheduled request sends in an `Authorization: Bearer` header to the 4.
 
 ## Control Panel
 
-Administrators can manage most settings by visiting **Abandoned Carts → Settings → General Settings**, or Craft's **Settings → Plugins → Abandoned Cart**. These settings are stored in Craft's project config, so change them where admin changes are allowed, such as your development environment, and deploy them to other environments. [What Moves Between Environments](#what-moves-between-environments) explains which parts of Abandoned Cart are deployed this way.
-
-![The General Settings page, with the Recovery Defaults, Who Can Be Emailed, Customer Pages and Sending groups, and tabs for Email Templates, Sequence Presets and System Status](../../screenshots/settings.png)
-
-The plugin's **Settings** section has three more tabs. **Email Templates** is described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#email-templates). **Sequence Presets** holds the starting points offered when you create a sequence, as described in [Sequences](../feature-tour/sequences.md#managing-presets). **System Status** is described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#system-status).
-
-## What Moves Between Environments
-
-Most stores have more than one copy of their site, such as a development site where changes are made and a live site that customers use. Craft keeps some things in project config, which is a set of files saved with your site's code and deployed from one environment to the next. Everything else lives in each environment's own database, so it's changed on each site separately and doesn't travel when you deploy.
-
-These are saved in project config and deployed with your site's code:
-
-- General Settings, including **Pause All Sending**
-- email templates, along with the template files they point to, which live in your templates folder
-- sequence presets
-
-`config/abandoned-cart.php` is part of your site's code too, so its values are deployed with it.
-
-These are stored in each environment's database:
-
-- sequences, including their audiences, their order in the list and whether each one is on
-- each email's wording, timing, discount code and chosen email template
-- customers, their unsubscribes and Do Not Email
-- every cart's history, and the results on the Overview
-- the background run's history on System Status
-
-In practice, that means you make changes to settings, email templates and presets on your development site and deploy them. Where admin changes are turned off, which is usual on a live site (Craft's `allowAdminChanges` setting), those three screens are read-only. Sequences and emails are the opposite. Editors change them directly on the live site, and wording or timing changed on a staging site has to be changed again on the live site. An address added to Do Not Email on staging isn't on Do Not Email in production.
-
-A copy of production's database brings its sequences, switched on, and its customers' real addresses with it. Pause sending on any environment that holds one, as shown in [Environment-Specific Settings](#environment-specific-settings).
+You can also manage many configuration settings through the control panel by visiting **Abandoned Carts → Settings**.

@@ -29,7 +29,7 @@ Abandoned Cart 5 requires Craft CMS 5.6 or later, while Abandoned Cart 4 ran on 
 
 If 4.x sent a reminder in the 30 days before the upgrade, the default sequence, **All Other Carts**, starts switched on, so sending carries on without a gap. It picks up carts that become abandoned from the moment of the upgrade, and a cart that was waiting for its second 4.x reminder is sent email 2 on the first background run if it's already due, as [Carts Part-Way Through 4.x](#carts-part-way-through-4-x) describes.
 
-The emails use Abandoned Cart's standard preview text, heading, message and button label, because 4.x kept that text in its templates. Read them on the **All Other Carts** page straight after upgrading. The migration runs separately in each environment, and sequences are stored in the database, so wording you change after upgrading a staging site has to be changed again on production. [What Moves Between Environments](configuration.md#what-moves-between-environments) explains the split.
+The emails use Abandoned Cart's standard preview text, heading, message and button label, because 4.x kept that text in its templates. Read them on the **All Other Carts** page straight after upgrading.
 
 To hold production's emails until you've read them, set `deliveryPaused` in its configuration file before you deploy the upgrade. Abandoned Cart 4 ignores the setting, so it's safe to add early. Pointing it at an environment variable lets you switch sending back on without another deployment:
 
