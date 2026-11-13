@@ -12,7 +12,7 @@ return [
 ];
 ```
 
-All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults.
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults. You can also manage many of these settings in the control panel under **Abandoned Carts → Settings**.
 
 ## Configuration Options
 
@@ -169,7 +169,3 @@ Keeps the 4.x email template variables, the `beforeMailSend` event, the `abandon
 
 The key a scheduled request sends in an `Authorization: Bearer` header to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, which only works while `compatibilityMode` is on. It accepts an environment variable reference. Sites that run the console command from cron, as described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run), can leave it empty.
 :::
-
-## Control Panel
-
-You can also manage many configuration settings through the control panel by visiting **Abandoned Carts → Settings**.

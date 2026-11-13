@@ -2,30 +2,11 @@
 
 A sequence's audience decides which abandoned carts it takes. Abandoned Cart has six built-in audiences, and **Custom Rules** accepts any Commerce order condition, so check those first. A custom audience is for a rule that depends on something they can't see, such as a user group your store uses for trade accounts or data another plugin keeps about the customer.
 
-This page builds a **Wholesale Customers** audience that takes carts from customers in a `wholesale` user group. It assumes you have a module or plugin to put the code in. The listeners belong in its `init()` method.
+This page builds a **Wholesale Customers** audience that takes carts from customers in a `wholesale` user group. It assumes you have a module or plugin to put the code in. The listeners belong in its `init()` method. You'll write the rule that decides which carts match, then register the audience so editors can choose it.
 
-## Register the Audience
+## Create the Audience Rule
 
-Abandoned Cart collects its audiences with the [`registerAudiences`](events.md#the-registeraudiences-event) event. Each audience is keyed by a type handle you choose, and has a `label` and `description` that appear under **Who Gets This Sequence** on the sequence page.
-
-```php
-use verbb\abandonedcart\events\RegisterAudiencesEvent;
-use verbb\abandonedcart\services\Audiences;
-use yii\base\Event;
-
-Event::on(Audiences::class, Audiences::EVENT_REGISTER_AUDIENCES, function(RegisterAudiencesEvent $event) {
-    $event->audiences['wholesale'] = [
-        'label' => 'Wholesale Customers',
-        'description' => 'Customers in the Wholesale user group',
-    ];
-});
-```
-
-Once this listener runs, editors can choose **Wholesale Customers** for a sequence, and administrators can choose it for a preset under **Abandoned Carts → Settings → Sequence Presets**. Keep the type handle the same once sequences use it, because it's saved with each sequence.
-
-## Decide Which Carts Match
-
-Abandoned Cart doesn't know what your audience means, so on its own it matches no carts. The [`matchAudience`](events.md#the-matchaudience-event) event lets you decide. It's triggered for each sequence a cart is checked against, with the sequence, the cart (a Commerce order) and Abandoned Cart's own result, which is `null` for an audience it doesn't recognise.
+Abandoned Cart doesn't know what your audience means, so on its own it matches no carts. The rule that decides lives in a [`matchAudience`](events.md#the-matchaudience-event) listener. It's triggered for each sequence a cart is checked against, with the sequence, the cart (a Commerce order) and Abandoned Cart's own result, which is `null` for an audience it doesn't recognise.
 
 ```php
 use verbb\abandonedcart\events\MatchAudienceEvent;
@@ -46,6 +27,27 @@ Return early for every other audience type, so your listener leaves the built-in
 
 The same event runs when someone uses **Try It With a Real Cart** on the sequence page, so keep the listener free of side effects such as saving data or sending messages.
 
+## Register the Audience
+
+Abandoned Cart finds audiences through the `registerAudiences` event. Register your audience from your module or plugin’s `init()` method. Each audience is keyed by a type handle you choose, and has a `label` and `description` that appear under **Who Gets This Sequence** on the sequence page.
+
+```php
+use verbb\abandonedcart\events\RegisterAudiencesEvent;
+use verbb\abandonedcart\services\Audiences;
+use yii\base\Event;
+
+Event::on(Audiences::class, Audiences::EVENT_REGISTER_AUDIENCES, function(RegisterAudiencesEvent $event) {
+    $event->audiences['wholesale'] = [
+        'label' => 'Wholesale Customers',
+        'description' => 'Customers in the Wholesale user group',
+    ];
+});
+```
+
+Once this listener runs, editors can choose **Wholesale Customers** for a sequence, and administrators can choose it for a preset under **Abandoned Carts → Settings → Sequence Presets**. Keep the type handle the same once sequences use it, because it's saved with each sequence.
+
+Values the sequence form posts under `audienceSettings[...]` for a custom audience are saved as the sequence's `audienceSettings`, and your `matchAudience` listener can read them as `$event->sequence->audienceSettings`.
+
 ## Use the Audience in a Sequence
 
 Create a sequence, choose **Wholesale Customers** under **Who Gets This Sequence**, and save. A custom audience has no settings fields on the sequence page, which is why the rule lives in your listener. The sequences list and the cart pages describe the audience by its label.
@@ -54,7 +56,7 @@ Carts take the first sequence in the list that matches them, so drag the wholesa
 
 ## Offer the Audience in a Preset
 
-A preset can start new sequences with your audience already chosen. Set its `audienceType` to your type handle in a [`registerPresets`](events.md#the-registerpresets-event) listener:
+A preset can start new sequences with your audience already chosen. Set its `audienceType` to your type handle in a [`registerPresets`](events.md#the-registerpresets-event) listener, as [Custom Presets](custom-presets.md) describes:
 
 ```php
 use verbb\abandonedcart\events\RegisterPresetsEvent;

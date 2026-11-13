@@ -1,6 +1,6 @@
 # Events
 
-Abandoned Cart provides events for extending how carts are matched, emailed and recorded. Modules and plugins can register event listeners, typically in their `init()` methods, to modify Abandoned Cart's behaviour.
+Abandoned Cart provides events for extending its functionality. Modules and plugins can register event listeners, typically in their `init()` methods, to change Abandoned Cart’s behaviour.
 
 ## Sequence Events
 
@@ -70,52 +70,18 @@ Event::on(Sequences::class, Sequences::EVENT_AFTER_DELETE_SEQUENCE, function(Seq
 
 ### The `registerPresets` Event
 
-The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the presets from **Settings → Sequence Presets**, in their order, as `Preset` models. You can add your own, reorder them, change them or remove some.
-
-Presets you add are listed under Settings as **Added by Plugins** and can't be edited there. Changes your listener makes to presets from Settings aren't saved to project config, so they last only as long as the listener is registered. A sequence created from a preset is a one-time copy, so later changes to a preset don't affect existing sequences.
-
-Each preset's `emails` are arrays of email attributes. An email can also have an `emailTemplate` handle, and an `offersDiscount` flag that marks it as the email meant to carry a discount code in the preset picker. An email with a `discountCode` is marked the same way.
+The event that is triggered when Abandoned Cart collects the sequence presets offered by **New Sequence**. `$event->presets` holds the presets from Settings as `Preset` models, and a listener can add, reorder, change or remove them. See [Custom Presets](custom-presets.md).
 
 ```php
 use verbb\abandonedcart\events\RegisterPresetsEvent;
 use verbb\abandonedcart\models\Preset;
-use verbb\abandonedcart\models\Sequence;
 use verbb\abandonedcart\services\Presets;
 use yii\base\Event;
 
 Event::on(Presets::class, Presets::EVENT_REGISTER_PRESETS, function(RegisterPresetsEvent $event) {
-    $event->presets[] = new Preset([
-        'handle' => 'firstOrderDiscount',
-        'name' => 'First Order Discount',
-        'description' => 'A reminder, then 10% off for customers who haven’t ordered before.',
-        'audienceType' => Sequence::AUDIENCE_FIRST_TIME,
-        'emails' => [
-            [
-                'delayMinutes' => 60,
-                'subject' => 'Your cart is saved, {firstName}',
-                'heading' => 'You left something behind',
-                'message' => 'Your cart is waiting whenever you’re ready.',
-            ],
-            [
-                'delayMinutes' => 1440,
-                'subject' => '10% off your first order',
-                'heading' => 'A welcome gift',
-                'message' => 'Your code is added when you return to your cart.',
-                'discountCode' => 'WELCOME10',
-                'emailTemplate' => 'branded',
-            ],
-        ],
-        // Recovery Default overrides, keyed by sequence attribute.
-        'overrides' => [
-            'recoveryWindowMinutes' => 4320,
-        ],
-    ]);
+    $event->presets[] = new Preset(['handle' => 'myPreset', 'name' => 'My Preset']);
 });
 ```
-
-A preset needs a `handle` and a `name`, and its `audienceType` must be a built-in audience, such as `Sequence::AUDIENCE_FIRST_TIME`, or one added with the [`registerAudiences`](#the-registeraudiences-event) event. Presets that fail these checks are left out and logged. Give each preset its own handle, because when two presets share one, the later preset replaces the earlier one without a log entry. When a sequence is created, an `emailTemplate` handle that doesn't exist falls back to the default template, with a notice for the editor.
-
-Abandoned Cart creates the default sequence from the `threeReminders` preset when the plugin is installed or upgraded from v4. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.
 
 ## Email Events
 
@@ -251,7 +217,7 @@ Event::on(EmailTemplates::class, EmailTemplates::EVENT_AFTER_DELETE_EMAIL_TEMPLA
 
 ### The `registerAudiences` Event
 
-The event that is triggered when Abandoned Cart collects the audiences shown under **Who Gets This Sequence**. `$event->audiences` is keyed by audience type, and each entry has a `label` and `description`. Change an entry to suit your store's wording, or add your own audience type. A sequence can be saved with any type in this list.
+The event that is triggered when Abandoned Cart collects the audiences shown under **Who Gets This Sequence**. `$event->audiences` is keyed by audience type, and each entry has a `label` and `description`. Change an entry to suit your store's wording, or add your own audience type, which matches no carts until a [`matchAudience`](#the-matchaudience-event) listener decides. See [Custom Audiences](custom-audiences.md).
 
 ```php
 use verbb\abandonedcart\events\RegisterAudiencesEvent;
@@ -261,21 +227,14 @@ use yii\base\Event;
 
 Event::on(Audiences::class, Audiences::EVENT_REGISTER_AUDIENCES, function(RegisterAudiencesEvent $event) {
     $event->audiences[Sequence::AUDIENCE_RETURNING]['label'] = 'Loyal Customers';
-
-    $event->audiences['wholesale'] = [
-        'label' => 'Wholesale Customers',
-        'description' => 'Customers with a wholesale account',
-    ];
 });
 ```
-
-Abandoned Cart doesn't know how to match an audience type you add, so a registered audience matches no carts until a [`matchAudience`](#the-matchaudience-event) listener decides. [Custom Audiences](custom-audiences.md) walks through building one, from registering it to using it in a sequence and a preset. The sequence editor has no settings fields for a registered audience, so it suits rules that need no settings in the control panel, such as the wholesale check below. When the sequence form posts values under `audienceSettings[...]` for a registered audience, they're saved as the sequence's `audienceSettings` and available to your listener as `$event->sequence->audienceSettings`.
 
 ### The `matchAudience` Event
 
 The event that is triggered after Abandoned Cart decides whether a cart matches a sequence's audience. `$event->matches` holds the result, or `null` for an audience type Abandoned Cart doesn't recognise. Set it to `true` or `false` to decide. A `null` result counts as no match. Carts from a site the sequence doesn't include never reach this event. The event is also triggered when someone tests a cart against a sequence in the sequence editor, so keep listeners free of side effects such as writing data or sending messages.
 
-Use it to match a registered audience, or to refine a built-in one with information Abandoned Cart can't see. This listener matches the `wholesale` audience registered above to customers in the `wholesale` user group:
+Use it to match a registered audience, or to refine a built-in one with information Abandoned Cart can't see. This listener matches a `wholesale` audience, registered as [Custom Audiences](custom-audiences.md) describes, to customers in the `wholesale` user group:
 
 ```php
 use verbb\abandonedcart\events\MatchAudienceEvent;
