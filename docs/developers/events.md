@@ -473,7 +473,7 @@ Event::on(EmailRenderer::class, EmailRenderer::EVENT_RESOLVE_LANGUAGE, function(
 });
 ```
 
-The email's wording is still the wording written on the sequence. To send different wording per language, give each site its own sequence, or translate the subject with Twig as described in [Emails and Email Templates](../feature-tour/emails-and-email-templates.md#twig-in-subjects-and-preview-text).
+The email's wording is still the wording written on the sequence. To send different wording per language, give each site its own sequence, or translate the subject with Twig as described in [Emails & Email Templates](../feature-tour/emails-email-templates.md#twig-in-subjects-and-preview-text).
 
 ## Customer Events
 

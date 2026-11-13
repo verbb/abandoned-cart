@@ -1,4 +1,4 @@
-# Emails and Email Templates
+# Emails & Email Templates
 
 Each email in a sequence has two parts. The email itself holds its timing and wording: the subject, a heading, a short message, the button label and an optional discount code. Its email template decides how that content is laid out. Editors write and adjust emails on the sequence page, while email templates are set up once by an administrator or developer.
 

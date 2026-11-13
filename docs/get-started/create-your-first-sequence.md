@@ -26,7 +26,7 @@ This step usually needs your developer. Abandoned Cart works through carts in a 
 
 You don't need to work out those paths yourself. **Abandoned Carts → Settings → System Status** shows this cron line with the paths filled in for the server it's running on, along with a **Copy cron job** button.
 
-If you can't add a cron job, Abandoned Cart starts a run from ordinary site and control panel traffic instead, using Craft's queue, which handles background tasks and is running on most sites. Cron keeps the timing regular on quiet sites, so prefer it where you can. A development site often has neither, and that's fine for this walkthrough, because the final check starts the run by hand. [Sending and Scheduling](../feature-tour/sending-and-scheduling.md) covers both options.
+If you can't add a cron job, Abandoned Cart starts a run from ordinary site and control panel traffic instead, using Craft's queue, which handles background tasks and is running on most sites. Cron keeps the timing regular on quiet sites, so prefer it where you can. A development site often has neither, and that's fine for this walkthrough, because the final check starts the run by hand. [Sending & Scheduling](../feature-tour/sending-scheduling.md) covers both options.
 
 ## Review the Emails
 
@@ -36,7 +36,7 @@ Every sequence page has the same layout. This example is a sequence for high-val
 
 ![A sequence page with the Cart Value audience selected, a timeline of three emails sent straight away, one day later and two days later, the Default template and a discount chip on each email, and the Sequence Is On switch at the top right](../../screenshots/sequence.png)
 
-Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change. Once you've changed one, the checklist marks this step done. If you're happy with the wording as it is, you can carry on without changing anything, because **Turn On** works whether or not this step is ticked. [Emails and Email Templates](../feature-tour/emails-and-email-templates.md) explains every field.
+Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change. Once you've changed one, the checklist marks this step done. If you're happy with the wording as it is, you can carry on without changing anything, because **Turn On** works whether or not this step is ticked. [Emails & Email Templates](../feature-tour/emails-email-templates.md) explains every field.
 
 If you'd like the last email to include a discount, create a discount with a coupon code in Commerce first. Then open the email and choose that code in its **Discount Code** field, or type it if it isn't listed. Customers who return through that email have the code applied to their cart. [Recover High-Value Carts with a Discount](../user-guides/recover-high-value-carts-with-a-discount.md) walks through a full example.
 

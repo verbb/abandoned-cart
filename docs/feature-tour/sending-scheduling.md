@@ -1,4 +1,4 @@
-# Sending and Scheduling
+# Sending & Scheduling
 
 This page is for whoever sets up and looks after the site, usually a developer. Abandoned Cart does its work in a short background run. Each run ends recoveries whose time is up, finds carts that have gone quiet and starts their sequences, then sends the emails that are due. The background run needs to happen every few minutes, and System Status shows whether it does.
 

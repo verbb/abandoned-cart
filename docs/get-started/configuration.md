@@ -131,7 +131,7 @@ A site template that Abandoned Cart's customer pages render inside, so they look
 
 Holds every recovery email across all sequences. Carts still enter sequences while sending is paused, and their emails wait. Once sending resumes, any that are due go out on the next run, unless the cart's recovery period has ended in the meantime. Use it for emergencies, such as a problem with an email's wording, or to stop a development environment from emailing customers. The control panel switch is read-only where admin changes are off, so on a live site this setting is how you pause. It accepts an environment variable reference such as `'$ABANDONED_CART_PAUSED'`, and reads `true`, `1`, `on` or `yes` as paused.
 
-Pause sending on any development or staging site that holds a copy of production's database. The background run also starts from ordinary site and control panel requests, so browsing that site would otherwise email real customers, even without cron. [Pausing All Sending](../feature-tour/sending-and-scheduling.md#pausing-all-sending) explains more.
+Pause sending on any development or staging site that holds a copy of production's database. The background run also starts from ordinary site and control panel requests, so browsing that site would otherwise email real customers, even without cron. [Pausing All Sending](../feature-tour/sending-scheduling.md#pausing-all-sending) explains more.
 :::
 
 ::: reference
@@ -167,5 +167,5 @@ Keeps the 4.x email template variables, the `beforeMailSend` event, the `abandon
 
 **Type:** `string|null` · **Default:** `null`
 
-The key a scheduled request sends in an `Authorization: Bearer` header to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, which only works while `compatibilityMode` is on. It accepts an environment variable reference. Sites that run the console command from cron, as described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run), can leave it empty.
+The key a scheduled request sends in an `Authorization: Bearer` header to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, which only works while `compatibilityMode` is on. It accepts an environment variable reference. Sites that run the console command from cron, as described in [Sending & Scheduling](../feature-tour/sending-scheduling.md#scheduling-the-run), can leave it empty.
 :::

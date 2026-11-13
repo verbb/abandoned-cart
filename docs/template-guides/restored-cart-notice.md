@@ -46,7 +46,7 @@ When the loop shows nothing, the code is on the cart without a discount applying
 
 ## Test the Notice
 
-Turn on a sequence on a development site, then add something to a cart and enter your own email address at checkout without completing the order. Abandoned Cart only picks the cart up once it's gone without changes for the **Abandoned After** time (an hour by default) and the scheduled run has processed it, as described in [Sending and Scheduling](../feature-tour/sending-and-scheduling.md#scheduling-the-run). The cart then appears under **Abandoned Carts → Carts**. Wait for its first email, or open the cart and use **Send Now** to send it straight away.
+Turn on a sequence on a development site, then add something to a cart and enter your own email address at checkout without completing the order. Abandoned Cart only picks the cart up once it's gone without changes for the **Abandoned After** time (an hour by default) and the scheduled run has processed it, as described in [Sending & Scheduling](../feature-tour/sending-scheduling.md#scheduling-the-run). The cart then appears under **Abandoned Carts → Carts**. Wait for its first email, or open the cart and use **Send Now** to send it straight away.
 
 Follow the link in the email. If you abandoned the cart while signed in to an account, follow the link while signed in to that account, because a cart that belongs to an account only reopens for that account and anyone else is sent to the login page first. Your cart page should show the notice and, if the email has a discount code, the applied code.
 

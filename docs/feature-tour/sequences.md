@@ -38,7 +38,7 @@ A sequence that's on takes carts that become abandoned from then on. A cart beco
 
 Turning a sequence off stops new carts from entering it, so a cart that would have matched it goes to the next matching sequence that's on, often the default. The sequence also holds the emails it hasn't sent yet. Those emails go out once it's back on, unless the customer has ordered or the cart's recovery period has ended in the meantime. If several emails for the same cart have become due while it was off, they're sent on the same run.
 
-To stop every email from every sequence at once, use **Pause All Sending** instead. [Sending and Scheduling](sending-and-scheduling.md#pausing-all-sending) explains the difference.
+To stop every email from every sequence at once, use **Pause All Sending** instead. [Sending & Scheduling](sending-scheduling.md#pausing-all-sending) explains the difference.
 
 ## Audiences
 
@@ -55,7 +55,7 @@ On a store that sells in more than one currency, the **Cart Value** amount is sh
 
 Developers can add audiences of their own with the [`registerAudiences` event](../developers/events.md#the-registeraudiences-event), and they appear in the same list.
 
-On a multi-site install, **Sites** limits the sequence to carts from the sites you tick. Leave every site unticked to include them all. An email's heading and message are written in one language, so a store with sites in several languages gives each language its own sequence and limits it to the matching sites. Subjects can also be translated with Twig, as [Emails and Email Templates](emails-and-email-templates.md#twig-in-subjects-and-preview-text) explains.
+On a multi-site install, **Sites** limits the sequence to carts from the sites you tick. Leave every site unticked to include them all. An email's heading and message are written in one language, so a store with sites in several languages gives each language its own sequence and limits it to the matching sites. Subjects can also be translated with Twig, as [Emails & Email Templates](emails-email-templates.md#twig-in-subjects-and-preview-text) explains.
 
 ### Checking an Audience with a Real Cart
 
@@ -112,7 +112,7 @@ Presets are listed under **Abandoned Carts → Settings → Sequence Presets**, 
 
 Editing a preset never changes sequences already made from it. Deleting all of them is fine, and **New Sequence** then offers a blank sequence only.
 
-The emails in your presets also fill the **Start From** menu when you add an email to a sequence, as [Emails and Email Templates](emails-and-email-templates.md#adding-and-editing-emails) describes.
+The emails in your presets also fill the **Start From** menu when you add an email to a sequence, as [Emails & Email Templates](emails-email-templates.md#adding-and-editing-emails) describes.
 
 Developers can add presets from a plugin or module, or change or remove the ones from Settings, with the [`registerPresets` event](../developers/events.md#the-registerpresets-event). Presets added that way are listed under Settings as **Added by Plugins**, and can only be changed in code.
 

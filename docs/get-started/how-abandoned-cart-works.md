@@ -14,7 +14,7 @@ A cart counts as **abandoned** once it has gone the **Abandoned After** time wit
 
 ## The Background Run Picks It Up
 
-Abandoned Cart does its work in the **background run**, a short task that should happen every five minutes. Your developer usually schedules it with cron, a scheduled task on your web server. Each run ends recoveries that are over, picks up carts that have counted as abandoned, and sends the emails that are due. [Sending and Scheduling](../feature-tour/sending-and-scheduling.md) explains how to schedule it and check that it's happening.
+Abandoned Cart does its work in the **background run**, a short task that should happen every five minutes. Your developer usually schedules it with cron, a scheduled task on your web server. Each run ends recoveries that are over, picks up carts that have counted as abandoned, and sends the emails that are due. [Sending & Scheduling](../feature-tour/sending-scheduling.md) explains how to schedule it and check that it's happening.
 
 Nothing is picked up while every sequence is switched off. A sequence also only takes carts that became abandoned after it was switched on, so turning recovery on never sends reminders about carts that were left weeks ago.
 

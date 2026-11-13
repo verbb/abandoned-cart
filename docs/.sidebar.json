@@ -15,13 +15,13 @@
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "feature-tour/sequences",
-            "feature-tour/emails-and-email-templates",
-            "feature-tour/sending-and-scheduling",
-            "feature-tour/recovery-links",
+            "feature-tour/overview",
             "feature-tour/carts",
             "feature-tour/customers",
-            "feature-tour/overview",
+            "feature-tour/sequences",
+            "feature-tour/emails-email-templates",
+            "feature-tour/sending-scheduling",
+            "feature-tour/recovery-links",
             "feature-tour/permissions"
         ]
     },
