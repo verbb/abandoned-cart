@@ -12,7 +12,7 @@ return [
 ];
 ```
 
-All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults.
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults. You can also manage these settings in the control panel under **Abandoned Carts → Settings**.
 
 ## Configuration Options
 
@@ -151,8 +151,3 @@ Enter emails or domains separated by a comma that should be ignored.
 
 Whether blacklisted carts should be included in the Dashboard.
 :::
-
-
-
-## Control Panel
-You can also manage configuration settings through the Control Panel by visiting Settings → Abandoned Cart.
