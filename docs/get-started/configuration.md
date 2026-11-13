@@ -159,7 +159,7 @@ The most carts that one background run starts sequences for, or records as skipp
 
 **Type:** `bool` · **Default:** `true`
 
-Keeps the 4.x email template variables, the `beforeMailSend` event, the `abandoned-cart/reminders/schedule-emails` console command and the 4.x scheduler URL working for sites upgraded from Abandoned Cart 4. Switch it off once your templates and code don't use any of them. [Upgrading from v4](upgrading-from-v4.md#compatibility-mode) explains each one and how to check your remaining usage.
+This setting is only for sites upgraded from Abandoned Cart 4, and the [upgrade guide](upgrading-from-v4.md#compatibility-mode) explains it.
 :::
 
 ::: reference
@@ -167,5 +167,5 @@ Keeps the 4.x email template variables, the `beforeMailSend` event, the `abandon
 
 **Type:** `string|null` · **Default:** `null`
 
-The key a scheduled request sends in an `Authorization: Bearer` header to the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, which only works while `compatibilityMode` is on. It accepts an environment variable reference. Sites that run the console command from cron, as described in [Sending & Scheduling](../feature-tour/sending-scheduling.md#scheduling-the-run), can leave it empty.
+This setting is only for sites upgraded from Abandoned Cart 4 that still call its scheduler URL, and the [upgrade guide](upgrading-from-v4.md#http-trigger) explains it.
 :::

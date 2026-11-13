@@ -233,7 +233,7 @@ While compatibility mode is on, `abandoned-cart/reminders/schedule-emails` runs 
 
 ### HTTP Trigger
 
-While compatibility mode is on, the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, keeps working, so a scheduled request that called it in 4.x carries on sending. The upgrade keeps your `passKey`, and the request works as it did in 4.x, as a POST with the key in an `Authorization: Bearer` header. It now runs the 5.0 scheduler and responds with a JSON summary of the run instead of redirecting to the control panel. Each call logs a deprecation warning.
+While compatibility mode is on, the 4.x scheduler URL, `actions/abandoned-cart/carts/find-carts`, keeps working, so a scheduled request that called it in 4.x carries on sending. The upgrade keeps your `passKey`, and the request works as it did in 4.x, as a POST with the key in an `Authorization: Bearer` header. It now runs the 5.0 scheduler and responds with a JSON summary of the run instead of redirecting to the control panel. Each call logs a deprecation warning, and System Status labels the Scheduler card **Started by the 4.x URL** while runs come from it.
 
 Switch to the [console command](#console-command) from cron when you can. If you can't use cron, Abandoned Cart also queues a run from ordinary site and control panel requests while a sequence is on, as long as Craft's queue is running. [Sending & Scheduling](../feature-tour/sending-scheduling.md#scheduling-the-run) explains both options. Once nothing calls the URL, remove the `passKey` from your configuration file and any secrets store. With compatibility mode off, the URL returns a 404.
 
@@ -330,7 +330,7 @@ Every 4.x cart that was sent a reminder or recovered appears on the Carts screen
 
 ### Recovery Links
 
-Recovery links in emails customers already have restore their cart until its recovery period ends, regardless of compatibility mode.
+Recovery links in emails customers already have restore their cart until its recovery period ends, regardless of compatibility mode. They use the `abandoned-cart-restore` path, so if your site uses full-page or static caching, exclude it along with the paths listed in [Excluding the Links from Caching](../feature-tour/recovery-links.md#excluding-the-links-from-caching).
 
 ## Behaviour Changes
 

@@ -81,7 +81,6 @@ When a recovery ends for one of the reasons in [Why Recovery Ends](#why-recovery
 - "Cart changed, so the next email moved later" means the customer changed the cart while it was in recovery, so the remaining emails waited.
 - "Next email sent manually" and "Email 2 retried by staff" record someone choosing **Send Now** or **Retry**.
 - "Moved to the customer's newer cart, order …" means the customer left a newer cart, which took over this recovery. You'll see it on the newer cart's page, which also shows the emails sent while the recovery was on the older cart.
-- "Imported from 4.x reminder history" marks a cart brought across from Abandoned Cart 4.
 
 ### When a Newer Cart Takes Over
 
@@ -123,7 +122,6 @@ When a cart leaves recovery without being recovered, its page and the **Not reco
 | Cart emptied | All the items were removed from the cart, which is noticed when its next email falls due. |
 | Cart deleted | The Commerce order was deleted. |
 | Stopped by staff | Someone chose **Stop Emails**. |
-| Imported from 4.x | The cart came from Abandoned Cart 4, which stopped before its last reminder without recording why. These carts aren't counted in the Overview's reasons carts didn't recover. |
 
 ## Skipped Carts
 

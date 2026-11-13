@@ -6,7 +6,7 @@ Abandoned Cart provides events for extending its functionality. Modules and plug
 
 ### The `beforeSaveSequence` Event
 
-The event that is triggered before a sequence is saved, including when one is created from a preset or switched on or off. It runs before the sequence is validated. Set `$event->isValid` to `false` to stop the save. Nothing is written, and the `afterSaveSequence` event isn't triggered. Abandoned Cart also saves the default sequence this way when it's installed or upgraded from v4, and cancelling that save stops the install or upgrade with an error.
+The event that is triggered before a sequence is saved, including when one is created from a preset or switched on or off. It runs before the sequence is validated. Set `$event->isValid` to `false` to stop the save. Nothing is written, and the `afterSaveSequence` event isn't triggered. Abandoned Cart also saves the default sequence this way when it's installed or upgraded, and cancelling that save stops the install or upgrade with an error.
 
 ```php
 use verbb\abandonedcart\events\SequenceEvent;
@@ -578,23 +578,5 @@ use yii\base\Event;
 Event::on(Customers::class, Customers::EVENT_AFTER_DELETE_CUSTOMER, function(CustomerEvent $event) {
     // `MyModule` and its `newsletter` service stand in for your own module's code.
     MyModule::getInstance()->newsletter->forget($event->customer->email);
-});
-```
-
-## Deprecated Events
-
-### The `beforeMailSend` Event
-
-The event that is triggered before each recovery email is sent, after the `beforeSend` event, while the [`compatibilityMode`](../get-started/configuration.md#compatibilitymode) setting is on. Set `$event->isValid` to `false` to skip the email, as with `beforeSend`. It's deprecated, so use the [`beforeSend` event](#the-beforesend-event) instead. [Upgrading from v4](../get-started/upgrading-from-v4.md#events) shows how to move a listener across.
-
-```php
-use verbb\abandonedcart\events\BeforeMailSend;
-use verbb\abandonedcart\services\Carts;
-use yii\base\Event;
-
-Event::on(Carts::class, Carts::EVENT_BEFORE_MAIL_SEND, function(BeforeMailSend $event) {
-    $order = $event->order;
-    $message = $event->message;
-    // ...
 });
 ```

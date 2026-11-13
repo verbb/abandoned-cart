@@ -51,6 +51,5 @@ Recovery and unsubscribe links are served from these paths on each site:
 
 - `abandoned-cart/recover/<token>`, which restores the cart
 - `abandoned-cart/unsubscribe/<token>`, which shows the unsubscribe page and records the unsubscribe
-- `abandoned-cart-restore`, which handles links in emails sent by Abandoned Cart 4
 
 Each one changes the visitor's session or the customer's record, so it must reach Craft on every visit. If your site uses full-page or static caching, or a CDN that caches HTML, exclude these paths from it.

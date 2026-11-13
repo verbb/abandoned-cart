@@ -131,4 +131,4 @@ Event::on(Presets::class, Presets::EVENT_REGISTER_PRESETS, function(RegisterPres
 
 Presets that are missing a `handle` or `name`, or whose `audienceType` isn’t registered, are left out and logged. A sequence created from a preset is a one-time copy that starts switched off, so later changes to a preset don’t affect existing sequences. When a sequence is created, an `emailTemplate` handle that doesn’t exist falls back to the default template, with a notice for the editor.
 
-Abandoned Cart creates the default sequence from the `threeReminders` preset when the plugin is installed or upgraded from v4. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.
+Abandoned Cart creates the default sequence from the `threeReminders` preset when the plugin is installed or upgraded. If that preset has been deleted under Settings or removed by a listener, it uses the built-in Three Reminders instead.

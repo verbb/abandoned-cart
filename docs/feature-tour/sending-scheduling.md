@@ -51,7 +51,6 @@ The **Scheduler** card shows when the background run last happened and, while it
 | Started by the cron job | Recent runs came from the console command at a regular interval. It takes three runs, no more than 15 minutes apart, before this label appears, so a new cron job shows **Started from the command line** for its first 10 minutes or so. |
 | Started by Craft's queue | The latest run came from the queue fallback. Add the cron job so emails go out on time on quiet sites. |
 | Started from the command line | The command ran, but not at a regular interval, such as when someone ran it by hand. |
-| Started by the 4.x URL | Runs come from the deprecated scheduler URL. [Upgrading from v4](../get-started/upgrading-from-v4.md#http-trigger) explains how to replace it with the cron job. |
 
 When the only recent runs came from **Run Now**, the card says "Last started by Run Now." without a label.
 
