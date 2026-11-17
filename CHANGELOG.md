@@ -1,6 +1,6 @@
 # Changelog
 
-## 5.0.0 - Unreleased
+## 5.0.0 - 2026-11-18
 
 > {warning} Before upgrading to Abandoned Cart 5, review the [Upgrading from v4](https://verbb.io/craft-plugins/abandoned-cart/docs/v5/get-started/upgrading-from-v4) guide for breaking changes and required migration steps.
 
