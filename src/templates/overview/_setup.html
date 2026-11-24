@@ -1,4 +1,4 @@
-{# The Overview until the first recovery email goes to a customer, in place of the dashboard. #}
+{# The Overview on new installs until the first cart enters recovery, in place of the dashboard. #}
 {% extends 'abandoned-cart/_layouts' %}
 
 {% import '_includes/forms' as forms %}
@@ -7,7 +7,6 @@
 {% set selectedSubnavItem = 'overview' %}
 {# Sending tests and turning a sequence on need this permission, so others see the steps without their buttons. #}
 {% set canManage = currentUser.can('abandonedCart-manageSequences') %}
-{% set canViewStatus = currentUser.admin or currentUser.can('abandonedCart-viewSystemStatus') %}
 {% set emailCount = fallback ? fallback.emails | length : 0 %}
 {% set abandonedAfter = schedule[0].detail ?? null %}
 
@@ -24,7 +23,7 @@
         done-label="{{ '(done)' | t('abandoned-cart') }}"
     >
         <span slot="intro">
-            {{- 'Recovered orders and revenue will show here once your first reminder goes out. Each step ticks itself off when Abandoned Cart sees it done.' | t('abandoned-cart') -}}
+            {{- 'Carts in recovery and recovered revenue will show here once the first abandoned cart enters a sequence. Each step ticks itself off when Abandoned Cart sees it done.' | t('abandoned-cart') -}}
             {% if not canManage %} {{ 'Someone with Manage sequences and send emails can finish these steps.' | t('abandoned-cart') }}{% endif -%}
         </span>
 
@@ -73,17 +72,9 @@
             <a slot="change" href="{{ url('abandoned-cart/sequences') }}">{{ canManage ? 'Change' | t('abandoned-cart') : 'View sequences' | t('abandoned-cart') }}</a>
         </pk-setup-step>
 
-        {# Ticks once a recovery email reaches a customer, which also ends setup, so on this page it's never done. #}
+        {# The checklist leaves once the first cart enters recovery, which is when this step happens, so on this page it's never done. #}
         <pk-setup-step heading="{{ 'Email your first abandoned cart' | t('abandoned-cart') }}">
-            {% if rightNow.failed %}
-                {{ '{count, plural, =1{1 email} other{# emails}} couldn’t be sent, so nothing has reached a customer yet. System Status shows why.' | t('abandoned-cart', { count: rightNow.failed }) }}
-                {% if canViewStatus %}
-                    <a slot="action" class="btn" href="{{ url('abandoned-cart/settings/system-status') }}">{{ 'View System Status' | t('abandoned-cart') }}</a>
-                {% endif %}
-            {% elseif enabled and rightNow.inRecovery %}
-                {{ '{count, plural, =1{1 cart is} other{# carts are}} in recovery, with {scheduled, plural, =0{no emails} =1{1 email} other{# emails}} due in the next 24 hours.' | t('abandoned-cart', { count: rightNow.inRecovery, scheduled: rightNow.scheduled }) }}
-                <a slot="action" class="btn" href="{{ url('abandoned-cart/carts') }}">{{ 'View carts' | t('abandoned-cart') }}</a>
-            {% elseif enabled %}
+            {% if enabled %}
                 {{ 'The first email goes out once a cart with an email address goes {time}.' | t('abandoned-cart', { time: abandonedAfter | lower }) }}
             {% else %}
                 {{ 'Once recovery is on, a cart with an email address that goes {time} gets the first email.' | t('abandoned-cart', { time: abandonedAfter | lower }) }}

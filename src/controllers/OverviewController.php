@@ -17,6 +17,7 @@ use craft\helpers\UrlHelper;
 
 use DateInterval;
 use DateTime;
+use DateTimeZone;
 use Throwable;
 use yii\web\Response;
 
@@ -26,6 +27,9 @@ class OverviewController extends BaseCpController
     // =========================================================================
 
     public const RANGES = [7, 30, 90];
+
+    // Installs from before the setup checklist was added never see it.
+    public const SETUP_CHECKLIST_SINCE = '2026-11-23';
 
 
     // Public Methods
@@ -38,8 +42,7 @@ class OverviewController extends BaseCpController
         $sequences = $plugin->getSequences();
         $fallback = $sequences->getFallbackSequence();
 
-        // Setup runs until the first real reminder goes out, so the Overview never shows a dashboard with nothing in it.
-        if (!$this->_hasSentFirstEmail()) {
+        if ($this->_showSetup()) {
             $state = $plugin->getState();
             $enabled = $sequences->getEnabledSequences();
 
@@ -51,7 +54,6 @@ class OverviewController extends BaseCpController
                 'sending' => $this->_sendingCheck(),
                 'testSentAt' => $state->get(State::TEST_SENT_AT),
                 'emailsReviewed' => $state->get(State::EMAILS_REVIEWED_AT) || $this->_emailsEdited($fallback),
-                'rightNow' => $reports->getRightNow(),
             ]);
         }
 
@@ -188,6 +190,26 @@ class OverviewController extends BaseCpController
 
         // Adding or removing an email also counts.
         return count($fallback->getEmails()) !== count(AbandonedCart::$plugin->getPresets()->getBuiltInPresetByHandle(Presets::PRESET_THREE_REMINDERS)?->emails ?? []);
+    }
+
+    /**
+     * Whether the Overview shows the setup checklist in place of results. It only shows on installs made since the
+     * checklist was added, and leaves for good once the first cart enters recovery, the first thing the Overview lists.
+     */
+    private function _showSetup(): bool
+    {
+        $installDate = Craft::$app->getPlugins()->getStoredPluginInfo(AbandonedCart::$plugin->handle)['installDate'] ?? null;
+        // Compared in UTC, as Craft stores it, since the site's time zone can move it to the day before.
+        $installedAt = $installDate ? DateTimeHelper::toDateTime($installDate) : false;
+        $installedAt = $installedAt ? (clone $installedAt)->setTimezone(new DateTimeZone('UTC')) : false;
+
+        // A missing date counts as an install from before the checklist.
+        if (!$installedAt || $installedAt->format('Y-m-d') < self::SETUP_CHECKLIST_SINCE) {
+            return false;
+        }
+
+        // A sent email means a cart was in recovery, even once its customer and their history have been deleted.
+        return !AbandonedCart::$plugin->getReports()->hasAnyRecoveries() && !$this->_hasSentFirstEmail();
     }
 
     /**

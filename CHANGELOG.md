@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Changed
-- The Overview’s setup checklist now stays until the first reminder email reaches a customer, with a final step showing carts in recovery, emails due and any failed sends, in place of the separate Recovery Is On page.
+- The Overview’s setup checklist now shows only on new installs, and stays until the first cart enters recovery, in place of the separate Recovery Is On page. Sites that already had Abandoned Cart go straight to the Overview’s results.
 - The setup checklist now uses Plugin Kit’s shared checklist, without the progress bar or the Last 30 Days card.
 - The setup checklist’s Review your emails step now ticks once the default sequence has been opened, not only once it’s been changed.
 - Sequence Presets now shows an empty state when there are no presets, including straight after the last one is deleted.

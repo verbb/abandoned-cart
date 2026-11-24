@@ -6,7 +6,7 @@ You'll need Abandoned Cart installed on a site running Craft Commerce, Craft's e
 
 ## Check Your Sending Details
 
-Open **Abandoned Carts → Overview**. Until the first recovery email goes out, the Overview shows a setup checklist, and each step ticks itself off once it's done. Its first step summarises how emails will be sent, and stays unticked with the reason if something would stop them, such as a missing sender address or **Pause All Sending** being on.
+Open **Abandoned Carts → Overview**. On a new install, until the first cart enters recovery, the Overview shows a setup checklist, and each step ticks itself off once it's done. Its first step summarises how emails will be sent, and stays unticked with the reason if something would stop them, such as a missing sender address or **Pause All Sending** being on.
 
 ![The Overview's setup checklist, with four steps to check the sending details, review the emails, send a test and turn on recovery, beside a summary of carts abandoned in the last 30 days](../../screenshots/overview-first-run.png)
 
@@ -50,7 +50,7 @@ Check that the emails arrive, that the sender looks right, and that the wording 
 
 Choose **Turn on** in the checklist. You can also switch on **Sequence Is On** on the sequence's page and select **Save**. The checklist only shows **Send 3 test emails** and **Turn on** to people with the **Manage sequences and send emails** permission, which admins always have. From that moment, carts that become abandoned on your store are emailed. Carts that had already been abandoned before you turned it on are left alone, so long-forgotten carts don't suddenly receive a reminder.
 
-The checklist's last step, **Email your first abandoned cart**, now says when the first email goes out, how many carts are in recovery and whether any email failed to send. Once the first recovery email reaches a customer, the checklist gives way to the Overview's results.
+The checklist's last step, **Email your first abandoned cart**, now says how long a cart has to go without changes before its first email. Once the first cart enters recovery, the checklist gives way to the Overview's results.
 
 ## Check It Works
 
