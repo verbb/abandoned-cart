@@ -2,13 +2,18 @@
 namespace verbb\abandonedcart\controllers;
 
 use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\db\Table;
 use verbb\abandonedcart\helpers\Duration;
+use verbb\abandonedcart\models\Attempt;
 use verbb\abandonedcart\models\Recovery;
 use verbb\abandonedcart\services\Presets;
 use verbb\abandonedcart\services\State;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\App;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\UrlHelper;
 
 use DateInterval;
 use DateTime;
@@ -32,31 +37,25 @@ class OverviewController extends BaseCpController
         $reports = $plugin->getReports();
         $sequences = $plugin->getSequences();
         $fallback = $sequences->getFallbackSequence();
-        $enabled = $sequences->getEnabledSequences();
-        $hasRecoveries = $reports->hasAnyRecoveries();
 
-        if (!$enabled && !$hasRecoveries) {
+        // Setup runs until the first real reminder goes out, so the Overview never shows a dashboard with nothing in it.
+        if (!$this->_hasSentFirstEmail()) {
+            $state = $plugin->getState();
+            $enabled = $sequences->getEnabledSequences();
+
             return $this->renderTemplate('abandoned-cart/overview/_setup', [
                 'fallback' => $fallback,
-                'schedule' => $this->_schedule($fallback),
-                'checks' => $this->_sendingChecks(),
-                'testSentAt' => $plugin->getState()->get(State::TEST_SENT_AT),
-                'emailsEdited' => $this->_emailsEdited($fallback),
-                'opportunity' => $reports->getOpportunity(new DateTime('-30 days')),
-                'currency' => $reports->getCurrency(),
+                'enabled' => $enabled,
+                // The first sequence on is the one a new cart most likely meets, so its timing describes what happens next.
+                'schedule' => $this->_schedule($enabled[0] ?? $fallback),
+                'sending' => $this->_sendingCheck(),
+                'testSentAt' => $state->get(State::TEST_SENT_AT),
+                'emailsReviewed' => $state->get(State::EMAILS_REVIEWED_AT) || $this->_emailsEdited($fallback),
+                'rightNow' => $reports->getRightNow(),
             ]);
         }
 
         $rightNow = $reports->getRightNow();
-
-        if (!$hasRecoveries) {
-            return $this->renderTemplate('abandoned-cart/overview/_waiting', [
-                'rightNow' => $rightNow,
-                'sequence' => $enabled[0],
-                'schedule' => $this->_schedule($enabled[0]),
-                'currency' => $reports->getCurrency(),
-            ]);
-        }
 
         $days = (int)$this->request->getParam('range', 30);
         $days = in_array($days, self::RANGES, true) ? $days : 30;
@@ -191,19 +190,67 @@ class OverviewController extends BaseCpController
         return count($fallback->getEmails()) !== count(AbandonedCart::$plugin->getPresets()->getBuiltInPresetByHandle(Presets::PRESET_THREE_REMINDERS)?->emails ?? []);
     }
 
-    private function _sendingChecks(): array
+    /**
+     * Whether a recovery email has ever gone to a customer. Sites that sent before this was recorded, including 4.x
+     * history imported on upgrade, are found from their attempts and recorded then.
+     */
+    private function _hasSentFirstEmail(): bool
+    {
+        $state = AbandonedCart::$plugin->getState();
+
+        if ($state->get(State::FIRST_SENT_AT)) {
+            return true;
+        }
+
+        $sent = (new Query())
+            ->select(['sentAt' => 'MIN([[sentAt]])', 'count' => 'COUNT(*)'])
+            ->from([Table::ATTEMPTS])
+            ->where(['status' => Attempt::STATUS_SENT])
+            ->one();
+
+        if (empty($sent['count'])) {
+            return false;
+        }
+
+        $state->set(State::FIRST_SENT_AT, (DateTimeHelper::toDateTime($sent['sentAt']) ?: new DateTime())->format(DATE_ATOM));
+
+        return true;
+    }
+
+    /**
+     * Who emails come from and who can receive them, or the first thing stopping emails going out.
+     */
+    private function _sendingCheck(): array
     {
         $settings = AbandonedCart::$plugin->getSettings();
         $mail = App::mailSettings();
-        $checks = [
-            ['ok' => true, 'text' => Craft::t('abandoned-cart', 'Emails come from **{name}** ({email}), set in Craft’s email settings.', ['name' => App::parseEnv($mail->fromName), 'email' => App::parseEnv($mail->fromEmail)])],
+        $fromEmail = App::parseEnv($mail->fromEmail);
+        $fromName = App::parseEnv($mail->fromName);
+        $consentField = $settings->consentFieldHandle ? Craft::$app->getFields()->getFieldByHandle($settings->consentFieldHandle) : null;
+        $user = Craft::$app->getUser();
+        $isAdmin = $user->getIsAdmin();
+        $emailSettings = $isAdmin && Craft::$app->getConfig()->getGeneral()->allowAdminChanges ? ['label' => Craft::t('abandoned-cart', 'Email Settings'), 'url' => UrlHelper::cpUrl('settings/email')] : null;
+        $generalSettings = $isAdmin ? ['label' => Craft::t('abandoned-cart', 'General Settings'), 'url' => UrlHelper::cpUrl('abandoned-cart/settings')] : null;
+
+        if (!$fromEmail || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+            return ['ok' => false, 'text' => Craft::t('abandoned-cart', 'Craft’s email settings have no valid sender address, so emails can’t go out.'), 'action' => $emailSettings];
+        }
+
+        if ($settings->getDeliveryPaused()) {
+            return ['ok' => false, 'text' => Craft::t('abandoned-cart', 'All sending is paused in General Settings, so due emails wait until it’s off.'), 'action' => $generalSettings];
+        }
+
+        if ($settings->consentFieldHandle && !$consentField) {
+            return ['ok' => false, 'text' => Craft::t('abandoned-cart', 'The consent field “{handle}” doesn’t exist, so nobody is emailed.', ['handle' => $settings->consentFieldHandle]), 'action' => $generalSettings];
+        }
+
+        return [
+            'ok' => true,
+            'text' => $consentField
+                ? Craft::t('abandoned-cart', 'Emails come from **{name}** ({email}), only to customers who switch on **{field}**.', ['name' => $fromName, 'email' => $fromEmail, 'field' => $consentField->name])
+                : Craft::t('abandoned-cart', 'Emails come from **{name}** ({email}), to every cart with an email address unless you choose a consent field in General Settings.', ['name' => $fromName, 'email' => $fromEmail]),
+            'action' => $generalSettings,
         ];
-
-        $checks[] = $settings->consentFieldHandle
-            ? ['ok' => true, 'text' => Craft::t('abandoned-cart', 'Only customers who switch on **{field}** are emailed.', ['field' => Craft::$app->getFields()->getFieldByHandle($settings->consentFieldHandle)?->name ?? $settings->consentFieldHandle])]
-            : ['ok' => null, 'text' => Craft::t('abandoned-cart', 'Every cart with an email address can be emailed. Choose a consent field in General Settings if the law where you trade requires opt-in.')];
-
-        return $checks;
     }
 
     /**

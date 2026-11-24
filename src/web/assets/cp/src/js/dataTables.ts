@@ -148,8 +148,8 @@ function mount(container: HTMLElement): void {
     table.labels = {
         ...Object.fromEntries(Object.entries(dataTableLabels).map(([key, value]) => [key, t(value)])),
         search: config.kind === 'carts' ? t('Search by email') : t('Search by email or name'),
-        empty: config.kind === 'carts' ? t('No abandoned carts yet.') : t('No customers have abandoned a cart yet.'),
-        noResults: t('Nothing matches those filters.'),
+        empty: config.kind === 'carts' ? t('No abandoned carts yet') : t('No customers have abandoned a cart yet'),
+        noResults: t('Nothing matches those filters'),
     };
     table.query = { ...defaultDataTableQuery(), search: config.search ?? '', sort: table.defaultSort, pageSize: 50 } as DataTableQuery;
 

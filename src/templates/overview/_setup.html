@@ -1,13 +1,15 @@
+{# The Overview until the first recovery email goes to a customer, in place of the dashboard. #}
 {% extends 'abandoned-cart/_layouts' %}
 
 {% import '_includes/forms' as forms %}
 
 {% set title = 'Overview' | t('abandoned-cart') %}
 {% set selectedSubnavItem = 'overview' %}
-{% set formatter = craft.app.formatter %}
-{% set done = 1 + (emailsEdited ? 1 : 0) + (testSentAt ? 1 : 0) %}
 {# Sending tests and turning a sequence on need this permission, so others see the steps without their buttons. #}
 {% set canManage = currentUser.can('abandonedCart-manageSequences') %}
+{% set canViewStatus = currentUser.admin or currentUser.can('abandonedCart-viewSystemStatus') %}
+{% set emailCount = fallback ? fallback.emails | length : 0 %}
+{% set abandonedAfter = schedule[0].detail ?? null %}
 
 {% block main %}
     <div class="content-grid__main">
@@ -16,92 +18,86 @@
 {% endblock %}
 
 {% block blockContent %}
-    <div class="ac-setup">
-        <div>
-            <div class="ac-card ac-welcome">
-                <h2>{{ 'Win Back Abandoned Carts' | t('abandoned-cart') }}</h2>
-                <p>{{ 'Your first sequence is ready, with friendly reminders an hour, a day and three days after a cart is left. Check the details, send yourself a test, then turn it on.' | t('abandoned-cart') }}</p>
-                <div class="ac-progress"><span class="ac-progress__bar"><span style="width: {{ (done / 4 * 100) | round }}%"></span></span>{{ '{done} of 4 done' | t('abandoned-cart', { done: done }) }}</div>
-            </div>
+    <pk-setup-checklist
+        heading="{{ 'Win Back Abandoned Carts' | t('abandoned-cart') }}"
+        count-label="{{ '{done} of {total} done' | t('abandoned-cart') }}"
+        done-label="{{ '(done)' | t('abandoned-cart') }}"
+    >
+        <span slot="intro">
+            {{- 'Recovered orders and revenue will show here once your first reminder goes out. Each step ticks itself off when Abandoned Cart sees it done.' | t('abandoned-cart') -}}
+            {% if not canManage %} {{ 'Someone with Manage sequences and send emails can finish these steps.' | t('abandoned-cart') }}{% endif -%}
+        </span>
 
-            <div class="ac-card">
-                <ol class="ac-steps">
-                    <li class="ac-step ac-step--done">
-                        <span class="ac-step__mark" aria-hidden="true">✓</span>
-                        <div>
-                            <div class="ac-step__title">{{ 'Check Your Sending Details' | t('abandoned-cart') }}</div>
-                            <ul class="ac-step__checks">
-                                {% for check in checks %}
-                                    <li><span class="{{ check.ok ? 'ac-ok' : 'light' }}" aria-hidden="true">{{ check.ok ? '✓' : '•' }}</span><span>{{ check.text | md(inlineOnly=true) }}</span></li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </li>
-                    <li class="ac-step{{ emailsEdited ? ' ac-step--done' : ' ac-step--current' }}">
-                        <span class="ac-step__mark" aria-hidden="true">{{ emailsEdited ? '✓' : '2' }}</span>
-                        <div>
-                            <div class="ac-step__title">{{ 'Review Your Emails' | t('abandoned-cart') }}</div>
-                            <p>{{ 'Your default sequence has {count} emails, using the bundled design.' | t('abandoned-cart', { count: schedule | length - 1 }) }}</p>
-                            <div class="ac-step__action"><a class="btn" href="{{ fallback.cpEditUrl }}">{{ 'Review the Emails' | t('abandoned-cart') }}</a></div>
-                        </div>
-                    </li>
-                    <li class="ac-step{{ testSentAt ? ' ac-step--done' : (emailsEdited ? ' ac-step--current' : '') }}">
-                        <span class="ac-step__mark" aria-hidden="true">{{ testSentAt ? '✓' : '3' }}</span>
-                        <div>
-                            <div class="ac-step__title">{{ 'Send Yourself a Test' | t('abandoned-cart') }}</div>
-                            <p>{{ 'See every email in your own inbox, filled in with a sample cart.' | t('abandoned-cart') }}</p>
-                            {% if canManage %}
-                                <form method="post" class="ac-step__action">
-                                    {{ csrfInput() }}{{ actionInput('abandoned-cart/overview/send-tests') }}{{ redirectInput('abandoned-cart') }}
-                                    {{ forms.text({ name: 'to', type: 'email', value: currentUser.email, size: 30 }) }}
-                                    <button type="submit" class="btn{{ testSentAt ? '' : ' submit' }}">{{ 'Send {count} Test Emails' | t('abandoned-cart', { count: schedule | length - 1 }) }}</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    </li>
-                    <li class="ac-step">
-                        <span class="ac-step__mark" aria-hidden="true">4</span>
-                        <div>
-                            <div class="ac-step__title">{{ 'Turn On Recovery' | t('abandoned-cart') }}</div>
-                            <p>{{ 'Only carts abandoned from now on are emailed. Carts already sitting in your store won’t suddenly get a reminder.' | t('abandoned-cart') }}</p>
-                            {% if canManage %}
-                                <form method="post" class="ac-step__action">
-                                    {{ csrfInput() }}{{ actionInput('abandoned-cart/sequences/save') }}{{ redirectInput('abandoned-cart') }}
-                                    {{ hiddenInput('sequenceId', fallback.id) }}{{ hiddenInput('enabled', 1) }}
-                                    <button type="submit" class="btn{{ testSentAt ? ' submit' : '' }}">{{ 'Turn On' | t('abandoned-cart') }}</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                    </li>
-                </ol>
-            </div>
-        </div>
-
-        <aside class="ac-setup__side">
-            <div class="ac-card ac-opportunity">
-                <span class="ac-eyebrow">{{ 'Last 30 Days' | t('abandoned-cart') }}</span>
-                {% if opportunity.carts %}
-                    <strong class="ac-opportunity__value">{{ formatter.asCurrency(opportunity.value, currency) }}</strong>
-                    <span class="light">{{ 'left in {count, plural, =1{1 abandoned cart} other{# abandoned carts}}' | t('abandoned-cart', { count: opportunity.carts }) }}</span>
-                    <div class="ac-split">
-                        <div><strong>{{ opportunity.withEmail }}</strong><span class="light">{{ 'had an email address' | t('abandoned-cart') }}</span></div>
-                        <div><strong>{{ opportunity.carts - opportunity.withEmail }}</strong><span class="light">{{ 'had no email yet' | t('abandoned-cart') }}</span></div>
-                    </div>
-                    <p class="light ac-hint">{{ 'These are the carts your emails could have reached, read from your Commerce orders. How many come back varies from store to store.' | t('abandoned-cart') }}</p>
+        <pk-setup-step heading="{{ 'Check your sending details' | t('abandoned-cart') }}"{{ sending.ok ? ' done' }}>
+            {{ sending.text | md(inlineOnly=true) }}
+            {% if sending.action %}
+                {% if sending.ok %}
+                    <a slot="change" href="{{ sending.action.url }}">{{ 'Change' | t('abandoned-cart') }}</a>
                 {% else %}
-                    <p><strong>{{ 'No abandoned carts yet' | t('abandoned-cart') }}</strong></p>
-                    <p class="light ac-hint">{{ 'Carts left in your store over the last 30 days will show here, so you can see what your emails could reach.' | t('abandoned-cart') }}</p>
+                    <a slot="action" class="btn" href="{{ sending.action.url }}">{{ sending.action.label }}</a>
                 {% endif %}
-            </div>
-            <div class="ac-card">
-                <strong>{{ 'How It Works' | t('abandoned-cart') }}</strong>
-                <ol class="ac-howto">
-                    <li>{{ 'A cart with an email address goes {time} without changes.' | t('abandoned-cart', { time: schedule[0].detail | lower | replace({ ' without changes': '' }) }) }}</li>
-                    <li>{{ 'It gets the first sequence it matches, from the top.' | t('abandoned-cart') }}</li>
-                    <li>{{ 'Emails stop as soon as the customer buys or unsubscribes.' | t('abandoned-cart') }}</li>
-                    <li>{{ 'An order soon after an email counts as recovered.' | t('abandoned-cart') }}</li>
-                </ol>
-            </div>
-        </aside>
-    </div>
+            {% endif %}
+        </pk-setup-step>
+
+        <pk-setup-step heading="{{ 'Review your emails' | t('abandoned-cart') }}"{{ emailsReviewed ? ' done' }}>
+            {{ '{count, plural, =1{Your default sequence has 1 email} other{Your default sequence has # emails}}, using the bundled design.' | t('abandoned-cart', { count: emailCount }) }}
+            {% if fallback %}
+                <a slot="action" class="btn" href="{{ fallback.cpEditUrl }}">{{ 'Review the emails' | t('abandoned-cart') }}</a>
+            {% endif %}
+        </pk-setup-step>
+
+        <pk-setup-step heading="{{ 'Send yourself a test' | t('abandoned-cart') }}"{{ testSentAt ? ' done' }}>
+            {{ 'See every email in your own inbox, filled in with a sample cart.' | t('abandoned-cart') }}
+            {% if canManage and fallback %}
+                <form slot="action" method="post" class="ac-setup-form">
+                    {{ csrfInput() }}{{ actionInput('abandoned-cart/overview/send-tests') }}{{ redirectInput('abandoned-cart') }}
+                    {{ forms.text({ name: 'to', type: 'email', value: currentUser.email, size: 30, inputAttributes: { 'aria-label': 'Send tests to' | t('abandoned-cart') } }) }}
+                    <button type="submit" class="btn">{{ '{count, plural, =1{Send test email} other{Send # test emails}}' | t('abandoned-cart', { count: emailCount }) }}</button>
+                </form>
+            {% endif %}
+        </pk-setup-step>
+
+        <pk-setup-step heading="{{ 'Turn on recovery' | t('abandoned-cart') }}"{{ enabled ? ' done' }}>
+            {% if enabled %}
+                {{ '{names} {count, plural, =1{is} other{are}} on. Only carts abandoned after a sequence was turned on are emailed.' | t('abandoned-cart', { names: enabled | map(sequence => sequence.name) | join(', '), count: enabled | length }) }}
+            {% else %}
+                {{ 'Only carts abandoned from now on are emailed. Carts already sitting in your store won’t suddenly get a reminder.' | t('abandoned-cart') }}
+            {% endif %}
+            {% if canManage and fallback %}
+                <form slot="action" method="post">
+                    {{ csrfInput() }}{{ actionInput('abandoned-cart/sequences/save') }}{{ redirectInput('abandoned-cart') }}
+                    {{ hiddenInput('sequenceId', fallback.id) }}{{ hiddenInput('enabled', 1) }}
+                    <button type="submit" class="btn">{{ 'Turn on' | t('abandoned-cart') }}</button>
+                </form>
+            {% endif %}
+            <a slot="change" href="{{ url('abandoned-cart/sequences') }}">{{ canManage ? 'Change' | t('abandoned-cart') : 'View sequences' | t('abandoned-cart') }}</a>
+        </pk-setup-step>
+
+        {# Ticks once a recovery email reaches a customer, which also ends setup, so on this page it's never done. #}
+        <pk-setup-step heading="{{ 'Email your first abandoned cart' | t('abandoned-cart') }}">
+            {% if rightNow.failed %}
+                {{ '{count, plural, =1{1 email} other{# emails}} couldn’t be sent, so nothing has reached a customer yet. System Status shows why.' | t('abandoned-cart', { count: rightNow.failed }) }}
+                {% if canViewStatus %}
+                    <a slot="action" class="btn" href="{{ url('abandoned-cart/settings/system-status') }}">{{ 'View System Status' | t('abandoned-cart') }}</a>
+                {% endif %}
+            {% elseif enabled and rightNow.inRecovery %}
+                {{ '{count, plural, =1{1 cart is} other{# carts are}} in recovery, with {scheduled, plural, =0{no emails} =1{1 email} other{# emails}} due in the next 24 hours.' | t('abandoned-cart', { count: rightNow.inRecovery, scheduled: rightNow.scheduled }) }}
+                <a slot="action" class="btn" href="{{ url('abandoned-cart/carts') }}">{{ 'View carts' | t('abandoned-cart') }}</a>
+            {% elseif enabled %}
+                {{ 'The first email goes out once a cart with an email address goes {time}.' | t('abandoned-cart', { time: abandonedAfter | lower }) }}
+            {% else %}
+                {{ 'Once recovery is on, a cart with an email address that goes {time} gets the first email.' | t('abandoned-cart', { time: abandonedAfter | lower }) }}
+            {% endif %}
+        </pk-setup-step>
+
+        <div slot="aside">
+            <h2 class="ac-setup__aside-heading">{{ 'How It Works' | t('abandoned-cart') }}</h2>
+            <ol class="ac-howto">
+                <li>{{ 'A cart with an email address goes {time}.' | t('abandoned-cart', { time: abandonedAfter | lower }) }}</li>
+                <li>{{ 'It gets the first sequence it matches, from the top.' | t('abandoned-cart') }}</li>
+                <li>{{ 'Emails stop as soon as the customer buys or unsubscribes.' | t('abandoned-cart') }}</li>
+                <li>{{ 'An order soon after an email counts as recovered.' | t('abandoned-cart') }}</li>
+            </ol>
+        </div>
+    </pk-setup-checklist>
 {% endblock %}

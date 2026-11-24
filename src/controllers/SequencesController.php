@@ -5,6 +5,7 @@ use verbb\abandonedcart\AbandonedCart;
 use verbb\abandonedcart\helpers\Duration;
 use verbb\abandonedcart\models\Email;
 use verbb\abandonedcart\models\Sequence;
+use verbb\abandonedcart\services\State;
 
 use Craft;
 use craft\db\Query;
@@ -53,6 +54,11 @@ class SequencesController extends BaseCpController
             if (!$sequence) {
                 throw new NotFoundHttpException('Sequence not found');
             }
+        }
+
+        // Opening the default sequence ticks the Overview's "Review your emails" step, which an unchanged sequence can't show otherwise.
+        if ($sequence->isFallback && Craft::$app->getUser()->checkPermission(AbandonedCart::PERMISSION_MANAGE_SEQUENCES) && !$plugin->getState()->get(State::EMAILS_REVIEWED_AT)) {
+            $plugin->getState()->set(State::EMAILS_REVIEWED_AT, (new DateTime())->format(DATE_ATOM));
         }
 
         $emails = $sequence->getEmails();

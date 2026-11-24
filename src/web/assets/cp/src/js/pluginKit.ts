@@ -9,6 +9,7 @@ import { PkDataTable, PkDataTableToolbar } from '@verbb/plugin-kit-web/component
 import { PkInput } from '@verbb/plugin-kit-web/components/input.js';
 import { PkDialog } from '@verbb/plugin-kit-web/components/dialog.js';
 import { PkOption, PkSelect } from '@verbb/plugin-kit-web/components/select.js';
+import { PkSetupChecklist, PkSetupStep } from '@verbb/plugin-kit-web/components/setup-checklist.js';
 import { PkStatePanel } from '@verbb/plugin-kit-web/components/state-panel.js';
 import { PkStatus } from '@verbb/plugin-kit-web/components/status/pk-status.js';
 import { PkStatusLabel } from '@verbb/plugin-kit-web/components/status-label.js';
@@ -16,7 +17,7 @@ import { PkStatusLabel } from '@verbb/plugin-kit-web/components/status-label.js'
 // Importing a component registers it. Listing the constructors keeps them from being tree-shaken out of the bundle.
 const constructors = [
     PkAlert, PkBarChart, PkButton, PkCombobox, PkCopyButton, PkDataTable, PkDataTableToolbar, PkDialog, PkDonutChart, PkFunnelChart, PkInput, PkLineChart, PkMeter, PkOption, PkSelect,
-    PkSparkline, PkStatePanel, PkStatus, PkStatusLabel,
+    PkSetupChecklist, PkSetupStep, PkSparkline, PkStatePanel, PkStatus, PkStatusLabel,
 ] as const;
 
 export function registerPluginKit(): void {

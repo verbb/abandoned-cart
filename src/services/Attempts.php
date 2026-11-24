@@ -359,6 +359,13 @@ class Attempts extends Component
             ], ['id' => $attempt->id]);
 
             AbandonedCart::$plugin->getActivities()->log($recovery->id, Activities::TYPE_SENT, $attempt->id, ['position' => $attempt->position, 'subject' => $rendered?->subject]);
+
+            // Kept apart from the attempt, so the Overview stays past setup once a customer and their history are deleted.
+            $state = AbandonedCart::$plugin->getState();
+
+            if (!$state->get(State::FIRST_SENT_AT)) {
+                $state->set(State::FIRST_SENT_AT, $now->format(DATE_ATOM));
+            }
         } else {
             $tries = $attempt->tries + 1;
             $reason = $failure ?? Craft::t('abandoned-cart', 'The mailer reported that it couldn’t send the email.');

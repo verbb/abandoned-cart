@@ -57,9 +57,14 @@
                 {% endfor %}
             </tbody>
         </table>
-    {% else %}
-        <p class="light">{{ 'There are no presets, so New Sequence starts from a blank sequence.' | t('abandoned-cart') }}</p>
     {% endif %}
+
+    {# Also shown in place of the table once its last preset is deleted. #}
+    <pk-state-panel class="{{ presets ? 'hidden' }}" data-ac-presets-empty heading="{{ 'No presets' | t('abandoned-cart') }}">
+        {{ readOnly
+            ? 'New Sequence starts from a blank sequence. Presets are added where admin changes are allowed, then deployed.' | t('abandoned-cart')
+            : 'New Sequence starts from a blank sequence until you add one.' | t('abandoned-cart') }}
+    </pk-state-panel>
 
     {% if pluginPresets %}
         <h2 class="ac-settings-subhead">{{ 'Added by Plugins' | t('abandoned-cart') }}</h2>
@@ -95,6 +100,7 @@
                 tableSelector: '[data-ac-presets-table]',
                 sortable: true,
                 minItems: 0,
+                noItemsSelector: '[data-ac-presets-empty]',
                 reorderAction: 'abandoned-cart/presets/reorder',
                 deleteAction: 'abandoned-cart/presets/delete',
                 confirmDeleteMessage: {{ 'Delete “{name}”? Sequences made from it aren’t affected.' | t('abandoned-cart') | json_encode | raw }},

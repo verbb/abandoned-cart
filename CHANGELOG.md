@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- The Overview’s setup checklist now stays until the first reminder email reaches a customer, with a final step showing carts in recovery, emails due and any failed sends, in place of the separate Recovery Is On page.
+- The setup checklist now uses Plugin Kit’s shared checklist, without the progress bar or the Last 30 Days card.
+- The setup checklist’s Review your emails step now ticks once the default sequence has been opened, not only once it’s been changed.
+- Sequence Presets now shows an empty state when there are no presets, including straight after the last one is deleted.
+- The Overview’s Recent Recoveries and Why Carts Didn’t Recover cards now show empty states when there’s nothing to list.
+- The Carts and Customers screens’ empty-state headings no longer end in a full stop.
+
+### Fixed
+- Fixed the setup checklist marking Check your sending details as done when Craft’s sender address was missing, sending was paused or the consent field no longer existed.
+
 ## 5.0.0 - 2026-11-18
 
 > {warning} Before upgrading to Abandoned Cart 5, review the [Upgrading from v4](https://verbb.io/craft-plugins/abandoned-cart/docs/v5/get-started/upgrading-from-v4) guide for breaking changes and required migration steps.

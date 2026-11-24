@@ -7,6 +7,7 @@ use verbb\abandonedcart\models\Recovery;
 use verbb\abandonedcart\models\Sequence;
 use verbb\abandonedcart\models\SkippedCart;
 use verbb\abandonedcart\services\Presets;
+use verbb\abandonedcart\services\State;
 
 uses(verbb\abandonedcart\tests\Integration\TestCase::class);
 
@@ -38,6 +39,8 @@ it('enrols an idle cart in the default sequence and sends the first email', func
     $order = $this->createCart('amelia.hart@example.test', idleMinutes: 90);
     $before = $this->sentMailCount();
 
+    expect(AbandonedCart::$plugin->getState()->get(State::FIRST_SENT_AT))->toBeNull();
+
     $summary = engine()->run();
     $recovery = engine()->getRecoveriesByCustomerId(AbandonedCart::$plugin->getCustomers()->getCustomerByEmail('amelia.hart@example.test')->id)[0];
 
@@ -45,7 +48,9 @@ it('enrols an idle cart in the default sequence and sends the first email', func
         ->and($recovery->orderId)->toBe($order->id)
         ->and($recovery->status)->toBe(Recovery::STATUS_ACTIVE)
         ->and(attemptStatuses($recovery))->toBe([Attempt::STATUS_SENT, Attempt::STATUS_SCHEDULED, Attempt::STATUS_SCHEDULED])
-        ->and($this->sentMailCount())->toBe($before + 1);
+        ->and($this->sentMailCount())->toBe($before + 1)
+        // The Overview's setup ends here.
+        ->and(AbandonedCart::$plugin->getState()->get(State::FIRST_SENT_AT))->toBeString();
 });
 
 it('waits for a cart that hasn’t been idle long enough', function() {

@@ -143,25 +143,29 @@
     <div class="ac-grid ac-grid--2">
         <div class="ac-card">
             <div class="ac-card__head"><h2>{{ 'Recent Recoveries' | t('abandoned-cart') }}</h2><a href="{{ url('abandoned-cart/carts', { status: 'recovered' }) }}">{{ 'View all carts' | t('abandoned-cart') }}</a></div>
-            <ul class="ac-feed">
-                {% for row in recent %}
-                    {% set name = row.name ?: row.email %}
-                    <li>
-                        <span class="ac-avatar" aria-hidden="true">{{ name | split(' ') | map(part => part | slice(0, 1)) | join('') | slice(0, 2) | upper }}</span>
-                        <a href="{{ url('abandoned-cart/carts/' ~ row.id) }}">
-                            <span><strong>{{ name }}</strong>{% if row.isFirstOrder %} <span class="ac-chip ac-chip--accent">{{ 'First order' | t('abandoned-cart') }}</span>{% endif %}</span>
-                            <span class="light">
-                                {{- row.clickedBeforeOrder and row.subject ? 'After “{subject}”' | t('abandoned-cart', { subject: row.subject }) : 'Bought without clicking an email' | t('abandoned-cart') -}}
-                                {{- row.couponCode ? ' · ' ~ 'used {code}' | t('abandoned-cart', { code: row.couponCode }) -}}
-                                {{- ' · ' ~ formatter.asRelativeTime(row.recoveredAt) -}}
-                            </span>
-                        </a>
-                        <strong class="ac-num ac-feed__value">{{ formatter.asCurrency(row.orderTotal, row.currency ?: currency) }}</strong>
-                    </li>
-                {% else %}
-                    <li class="light">{{ 'No recoveries yet.' | t('abandoned-cart') }}</li>
-                {% endfor %}
-            </ul>
+            {% if recent %}
+                <ul class="ac-feed">
+                    {% for row in recent %}
+                        {% set name = row.name ?: row.email %}
+                        <li>
+                            <span class="ac-avatar" aria-hidden="true">{{ name | split(' ') | map(part => part | slice(0, 1)) | join('') | slice(0, 2) | upper }}</span>
+                            <a href="{{ url('abandoned-cart/carts/' ~ row.id) }}">
+                                <span><strong>{{ name }}</strong>{% if row.isFirstOrder %} <span class="ac-chip ac-chip--accent">{{ 'First order' | t('abandoned-cart') }}</span>{% endif %}</span>
+                                <span class="light">
+                                    {{- row.clickedBeforeOrder and row.subject ? 'After “{subject}”' | t('abandoned-cart', { subject: row.subject }) : 'Bought without clicking an email' | t('abandoned-cart') -}}
+                                    {{- row.couponCode ? ' · ' ~ 'used {code}' | t('abandoned-cart', { code: row.couponCode }) -}}
+                                    {{- ' · ' ~ formatter.asRelativeTime(row.recoveredAt) -}}
+                                </span>
+                            </a>
+                            <strong class="ac-num ac-feed__value">{{ formatter.asCurrency(row.orderTotal, row.currency ?: currency) }}</strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <pk-state-panel class="ac-card-empty" size="sm" heading-level="3" heading="{{ 'No recoveries yet' | t('abandoned-cart') }}">
+                    {{- 'Orders customers place after a recovery email show here.' | t('abandoned-cart') -}}
+                </pk-state-panel>
+            {% endif %}
         </div>
 
         <div class="ac-card">
@@ -181,7 +185,9 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="light">{{ 'Nothing to show for this period.' | t('abandoned-cart') }}</p>
+                <pk-state-panel class="ac-card-empty" size="sm" heading-level="3" heading="{{ 'No carts ended without an order' | t('abandoned-cart') }}">
+                    {%- if range < ranges | last %}{{ 'Choose a longer period to look further back.' | t('abandoned-cart') }}{% endif -%}
+                </pk-state-panel>
             {% endif %}
             {% if frequent %}
                 <p class="ac-hint"><a href="{{ url('abandoned-cart/customers') }}">{{ '{count, plural, =1{1 customer} other{# customers}} abandoned 3 or more carts in the last 30 days →' | t('abandoned-cart', { count: frequent }) }}</a></p>
