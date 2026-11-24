@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.0.1 - 2026-11-24
 
 ### Changed
 - The Overview’s setup checklist now shows only on new installs, and stays until the first cart enters recovery, in place of the separate Recovery Is On page. Sites that already had Abandoned Cart go straight to the Overview’s results.
