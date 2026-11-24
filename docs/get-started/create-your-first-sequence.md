@@ -6,7 +6,7 @@ You'll need Abandoned Cart installed on a site running Craft Commerce, Craft's e
 
 ## Check Your Sending Details
 
-Open **Abandoned Carts → Overview**. Until a sequence is switched on, the Overview shows a short setup checklist, and its first step summarises how emails will be sent.
+Open **Abandoned Carts → Overview**. Until the first recovery email goes out, the Overview shows a setup checklist, and each step ticks itself off once it's done. Its first step summarises how emails will be sent, and stays unticked with the reason if something would stop them, such as a missing sender address or **Pause All Sending** being on.
 
 ![The Overview's setup checklist, with four steps to check the sending details, review the emails, send a test and turn on recovery, beside a summary of carts abandoned in the last 30 days](../../screenshots/overview-first-run.png)
 
@@ -30,27 +30,27 @@ If you can't add a cron job, Abandoned Cart starts a run from ordinary site and 
 
 ## Review the Emails
 
-Choose **Review the Emails** in the checklist, or go to **Abandoned Carts → Sequences** and select **All Other Carts**. The sequence page shows who gets the sequence and a timeline of its emails. For All Other Carts, the cart is abandoned after an hour without changes, email 1 goes out straight away, email 2 a day later and email 3 two days after that.
+Choose **Review the emails** in the checklist, or go to **Abandoned Carts → Sequences** and select **All Other Carts**. The sequence page shows who gets the sequence and a timeline of its emails. For All Other Carts, the cart is abandoned after an hour without changes, email 1 goes out straight away, email 2 a day later and email 3 two days after that.
 
 Every sequence page has the same layout. This example is a sequence for high-value carts, with a discount code in its last email:
 
 ![A sequence page with the Cart Value audience selected, a timeline of three emails sent straight away, one day later and two days later, the Default template and a discount chip on each email, and the Sequence Is On switch at the top right](../../screenshots/sequence.png)
 
-Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change. Once you've changed one, the checklist marks this step done. If you're happy with the wording as it is, you can carry on without changing anything, because **Turn On** works whether or not this step is ticked. [Emails & Email Templates](../feature-tour/emails-email-templates.md) explains every field.
+Select an email to open it. You can change its subject, preview text, heading, message and button label, and insert tokens such as `{firstName}` to personalise them. The preview beside the fields updates as you type, using a sample cart. Save each email you change. Opening the sequence is enough for the checklist to mark this step done, so if you're happy with the wording as it is, you can carry on without changing anything. [Emails & Email Templates](../feature-tour/emails-email-templates.md) explains every field.
 
 If you'd like the last email to include a discount, create a discount with a coupon code in Commerce first. Then open the email and choose that code in its **Discount Code** field, or type it if it isn't listed. Customers who return through that email have the code applied to their cart. [Recover High-Value Carts with a Discount](../user-guides/recover-high-value-carts-with-a-discount.md) walks through a full example.
 
 ## Send Yourself a Test
 
-Back on the Overview, the **Send Yourself a Test** step has an email field that starts with your account's address. Change it if you'd like the tests to go elsewhere, then select **Send 3 Test Emails**. You'll receive every email in the sequence, each with `[Test]` at the start of its subject and filled in with a sample cart. Links in test emails are placeholders, so they don't restore anything.
+Back on the Overview, the **Send yourself a test** step has an email field that starts with your account's address. Change it if you'd like the tests to go elsewhere, then select **Send 3 test emails**. You'll receive every email in the sequence, each with `[Test]` at the start of its subject and filled in with a sample cart. Links in test emails are placeholders, so they don't restore anything.
 
 Check that the emails arrive, that the sender looks right, and that the wording reads well on your phone as well as your desktop. If nothing arrives, use the **Test** button in Craft's **Settings → Email** and check your mail provider's logs before going further.
 
 ## Turn On Recovery
 
-Choose **Turn On** in the checklist. You can also switch on **Sequence Is On** on the sequence's page and select **Save**. The checklist only shows **Send 3 Test Emails** and **Turn On** to people with the **Manage sequences and send emails** permission, which admins always have. From that moment, carts that become abandoned on your store are emailed. Carts that had already been abandoned before you turned it on are left alone, so long-forgotten carts don't suddenly receive a reminder.
+Choose **Turn on** in the checklist. You can also switch on **Sequence Is On** on the sequence's page and select **Save**. The checklist only shows **Send 3 test emails** and **Turn on** to people with the **Manage sequences and send emails** permission, which admins always have. From that moment, carts that become abandoned on your store are emailed. Carts that had already been abandoned before you turned it on are left alone, so long-forgotten carts don't suddenly receive a reminder.
 
-The Overview changes to show that recovery is on. Once customers start coming back, it fills with results.
+The checklist's last step, **Email your first abandoned cart**, now says when the first email goes out, how many carts are in recovery and whether any email failed to send. Once the first recovery email reaches a customer, the checklist gives way to the Overview's results.
 
 ## Check It Works
 

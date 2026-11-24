@@ -61,7 +61,7 @@ The recovery period, meaning how long a cart stays in recovery after it's abando
 
 **Type:** `int` · **Default:** `7200` (5 days)
 
-How long after the cart's last email a completed order by the same customer counts as recovered, whether or not the customer clicked the email's link, and whether they completed this cart or another one. An order completed after the window has closed doesn't count, even if the customer followed a link. [Overview](../feature-tour/overview.md#how-recoveries-are-credited) explains how recoveries are credited.
+How long after the cart's last email a completed order by the same customer counts as recovered, whether or not the customer clicked the email's link, and whether they completed this cart or another one. An order completed after the window has closed doesn't count, even if the customer followed a link. [How Recoveries Are Credited](../feature-tour/recovery-results.md#how-recoveries-are-credited) explains how they show in your results.
 :::
 
 ::: reference
