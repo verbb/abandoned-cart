@@ -319,10 +319,14 @@ class Install extends Migration
 
     public function insertDefaultData(): void
     {
+        $projectConfig = Craft::$app->getProjectConfig();
         $emailTemplates = AbandonedCart::$plugin->getEmailTemplates();
 
-        // Installing while applying project config from another environment brings the templates with it.
-        if (!Craft::$app->getProjectConfig()->getIsApplyingExternalChanges() && !$emailTemplates->getDefaultTemplate()) {
+        // Installing while applying project config from another environment brings the templates with it. A fresh Craft
+        // install installs plugins before it applies the project config files, so templates already in those files count too.
+        $configHoldsTemplates = !empty($projectConfig->get(EmailTemplates::CONFIG_KEY, true));
+
+        if (!$projectConfig->getIsApplyingExternalChanges() && !$configHoldsTemplates && !$emailTemplates->getDefaultTemplate()) {
             $template = new EmailTemplate([
                 'name' => Craft::t('abandoned-cart', 'Default'),
                 'handle' => 'default',
