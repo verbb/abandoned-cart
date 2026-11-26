@@ -3,6 +3,8 @@ namespace verbb\abandonedcart;
 
 use verbb\abandonedcart\base\PluginTrait;
 use verbb\abandonedcart\controllers\UsersController as AbandonedCartUsersController;
+use verbb\abandonedcart\db\Table;
+use verbb\abandonedcart\migrations\Install;
 use verbb\abandonedcart\models\Settings;
 use verbb\abandonedcart\services\EmailTemplates;
 use verbb\abandonedcart\services\Presets;
@@ -13,9 +15,11 @@ use craft\controllers\UsersController;
 use craft\events\DefineEditUserScreensEvent;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
+use craft\events\PluginEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\UrlHelper;
+use craft\services\Plugins;
 use craft\services\ProjectConfig;
 use craft\services\UserPermissions;
 use craft\web\twig\variables\CraftVariable;
@@ -212,6 +216,13 @@ class AbandonedCart extends Plugin
 
     private function _registerEventHandlers(): void
     {
+        // Registered before this plugin counts as installed, because a fresh install from project config installs it first.
+        Event::on(Plugins::class, Plugins::EVENT_AFTER_INSTALL_PLUGIN, function(PluginEvent $event) {
+            if ($event->plugin->id === 'commerce' && Craft::$app->getDb()->tableExists(Table::RECOVERIES)) {
+                (new Install(['compact' => true]))->addCommerceForeignKeys();
+            }
+        });
+
         // The engine's Commerce and garbage-collection listeners are registered by the Recoveries service.
         if (Craft::$app->getPlugins()->isPluginInstalled('abandoned-cart')) {
             $this->getRecoveries()->registerEventHandlers();

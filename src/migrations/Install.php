@@ -9,6 +9,7 @@ use verbb\abandonedcart\services\EmailTemplates;
 use Craft;
 use craft\db\Migration;
 use craft\db\Table as CraftTable;
+use craft\helpers\Db;
 
 use RuntimeException;
 
@@ -279,10 +280,6 @@ class Install extends Migration
         $this->addForeignKey(null, Table::EMAILS, ['emailTemplateId'], Table::EMAIL_TEMPLATES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::CUSTOMERS, ['userId'], CraftTable::USERS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::CUSTOMERS, ['statusChangedById'], CraftTable::USERS, ['id'], 'SET NULL', null);
-
-        // Commerce purges old carts, and recovery history has to outlive them.
-        $this->addForeignKey(null, Table::RECOVERIES, ['orderId'], CommerceTable::ORDERS, ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, Table::RECOVERIES, ['recoveredOrderId'], CommerceTable::ORDERS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::RECOVERIES, ['customerId'], Table::CUSTOMERS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::RECOVERIES, ['siteId'], CraftTable::SITES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::RECOVERIES, ['sequenceId'], Table::SEQUENCES, ['id'], 'SET NULL', null);
@@ -293,9 +290,31 @@ class Install extends Migration
         $this->addForeignKey(null, Table::VISITS, ['attemptId'], Table::ATTEMPTS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::ACTIVITIES, ['recoveryId'], Table::RECOVERIES, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::ACTIVITIES, ['attemptId'], Table::ATTEMPTS, ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, Table::SKIPPED_CARTS, ['orderId'], CommerceTable::ORDERS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::SKIPPED_CARTS, ['customerId'], Table::CUSTOMERS, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::SKIPPED_CARTS, ['siteId'], CraftTable::SITES, ['id'], 'SET NULL', null);
+
+        $this->addCommerceForeignKeys();
+    }
+
+    /**
+     * Commerce purges old carts, and recovery history has to outlive them. A fresh install from project config installs
+     * plugins alphabetically, so Commerce's tables may not exist yet. The plugin calls this again once Commerce installs.
+     */
+    public function addCommerceForeignKeys(): void
+    {
+        if (!$this->db->tableExists(CommerceTable::ORDERS)) {
+            return;
+        }
+
+        foreach ([
+            [Table::RECOVERIES, 'orderId'],
+            [Table::RECOVERIES, 'recoveredOrderId'],
+            [Table::SKIPPED_CARTS, 'orderId'],
+        ] as [$table, $column]) {
+            if (!Db::findForeignKey($table, $column, $this->db)) {
+                $this->addForeignKey(null, $table, [$column], CommerceTable::ORDERS, ['id'], 'SET NULL', null);
+            }
+        }
     }
 
     public function insertDefaultData(): void

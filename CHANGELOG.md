@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed a fresh `craft install` failing when project config lists Abandoned Cart before Commerce, as it does by default. The Commerce order foreign keys are now added once Commerce is installed. ([#104](https://github.com/verbb/abandoned-cart/issues/104))
+
 ## 5.0.1 - 2026-11-24
 
 ### Changed
