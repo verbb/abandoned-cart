@@ -11255,17 +11255,17 @@
         },
         {
             "name": "verbb/abandoned-cart",
-            "version": "5.0.0-alpha.1",
+            "version": "5.0.1",
             "dist": {
                 "type": "path",
                 "url": "../../..",
-                "reference": "cfa0b3a291353bea26c303741f73508cfda1a8ab"
+                "reference": "a2ffb86cd6ab9aa963d5e86877d01c51ebd34a2c"
             },
             "require": {
-                "craftcms/cms": "^5.0.0",
+                "craftcms/cms": "^5.6.0",
                 "craftcms/commerce": "^5.0.0",
                 "php": "^8.2",
-                "verbb/base": "^3.0.20"
+                "verbb/base": "^3.0.23"
             },
             "require-dev": {
                 "pestphp/pest": "^3.8",
@@ -11329,16 +11329,16 @@
         },
         {
             "name": "verbb/base",
-            "version": "3.0.21",
+            "version": "3.0.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/verbb/verbb-base.git",
-                "reference": "53320faafc3cb9590513c857cea9f68efa6043f7"
+                "reference": "7d4dbb3eb3e380cc3576ab8932dcc8daab12b67c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/53320faafc3cb9590513c857cea9f68efa6043f7",
-                "reference": "53320faafc3cb9590513c857cea9f68efa6043f7",
+                "url": "https://api.github.com/repos/verbb/verbb-base/zipball/7d4dbb3eb3e380cc3576ab8932dcc8daab12b67c",
+                "reference": "7d4dbb3eb3e380cc3576ab8932dcc8daab12b67c",
                 "shasum": ""
             },
             "require": {
@@ -11375,7 +11375,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-01T10:54:30+00:00"
+            "time": "2026-11-27T12:37:31+00:00"
         },
         {
             "name": "voku/portable-ascii",
