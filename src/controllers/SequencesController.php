@@ -20,6 +20,8 @@ use craft\commerce\db\Table as CommerceTable;
 use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
 
+use verbb\base\helpers\EnvironmentSettings;
+
 class SequencesController extends BaseCpController
 {
     // Public Methods
@@ -154,7 +156,18 @@ class SequencesController extends BaseCpController
                 $sequence->$key = $override ? Duration::toMinutes($this->request->getBodyParam($key)) : null;
             }
 
-            $sequence->returnUrl = $override ? (trim((string)$this->request->getBodyParam('returnUrl')) ?: null) : null;
+            $returnUrl = $override ? (trim((string)$this->request->getBodyParam('returnUrl')) ?: null) : null;
+
+            // Customers are redirected to the resolved return page, so only admins can point it at an environment
+            // variable. A reference an admin already saved can stay.
+            $violation = EnvironmentSettings::violation(['returnUrl' => $returnUrl], ['returnUrl' => $sequence->returnUrl], []);
+            $sequence->returnUrl = $returnUrl;
+
+            if ($violation) {
+                $sequence->addError('returnUrl', Craft::t('abandoned-cart', 'Only admins can use environment variables here.'));
+
+                return $this->asModelFailure($sequence, Craft::t('abandoned-cart', 'Couldn’t save sequence.'), 'sequence');
+            }
         }
 
         if (!$sequences->saveSequence($sequence)) {

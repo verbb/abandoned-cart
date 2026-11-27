@@ -435,6 +435,7 @@ return [
   'On Do Not Email' => 'On Do Not Email',
   'Once recovery is on, a cart with an email address that goes {time} gets the first email.' => 'Once recovery is on, a cart with an email address that goes {time} gets the first email.',
   'One friendly email. Good for stores that email customers rarely.' => 'One friendly email. Good for stores that email customers rarely.',
+  'Only admins can use environment variables here.' => 'Only admins can use environment variables here.',
   'Only carts abandoned from now on are emailed. Carts already sitting in your store won’t suddenly get a reminder.' => 'Only carts abandoned from now on are emailed. Carts already sitting in your store won’t suddenly get a reminder.',
   'Only customers with {field} switched on are emailed.' => 'Only customers with {field} switched on are emailed.',
   'Only email customers who have completed an order before.' => 'Only email customers who have completed an order before.',

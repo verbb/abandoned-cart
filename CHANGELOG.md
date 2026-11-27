@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed a moderate-severity information disclosure vulnerability.
 - Fixed a fresh `craft install` failing when project config lists Abandoned Cart before Commerce, as it does by default. The Commerce order foreign keys are now added once Commerce is installed. ([#104](https://github.com/verbb/abandoned-cart/issues/104))
 - Fixed a fresh `craft install` failing with a duplicate `default` email template when project config already holds Abandoned Cart’s email templates. ([#105](https://github.com/verbb/abandoned-cart/issues/105))
 

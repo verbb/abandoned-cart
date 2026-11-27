@@ -1,6 +1,7 @@
 <?php
 
 use verbb\abandonedcart\AbandonedCart;
+use verbb\abandonedcart\controllers\SequencesController;
 use verbb\abandonedcart\db\Table;
 use verbb\abandonedcart\events\SequenceEvent;
 use verbb\abandonedcart\models\Email;
@@ -8,6 +9,12 @@ use verbb\abandonedcart\models\Sequence;
 use verbb\abandonedcart\services\Sequences;
 
 use craft\db\Query;
+use craft\db\Table as CraftTable;
+use craft\elements\User;
+use craft\helpers\Db;
+use craft\helpers\StringHelper;
+use craft\web\Request;
+use craft\web\Response;
 
 uses(verbb\abandonedcart\tests\Integration\TestCase::class);
 
@@ -18,6 +25,47 @@ function saveSequence(array $attributes = []): Sequence
     expect(AbandonedCart::$plugin->getSequences()->saveSequence($sequence))->toBeTrue(implode(' ', $sequence->getFirstErrors()));
 
     return $sequence;
+}
+
+/**
+ * Posts the sequence edit form as a control panel user with the Manage sequences permission.
+ */
+function postSequenceForm(Sequence $sequence, array $body, bool $admin = false): Response
+{
+    $app = Craft::$app;
+    $user = new User(['username' => 'sequences-' . StringHelper::randomString(8), 'email' => StringHelper::randomString(8) . '@example.test', 'admin' => $admin]);
+
+    expect($app->getElements()->saveElement($user, false))->toBeTrue();
+
+    // Granted directly, because `saveUserPermissions()` lists a permission twice once other tests have reloaded the plugin.
+    $permission = strtolower(AbandonedCart::PERMISSION_MANAGE_SEQUENCES);
+    $permissionId = fn() => (new Query())->select(['id'])->from(CraftTable::USERPERMISSIONS)->where(['name' => $permission])->scalar();
+
+    if (!$permissionId()) {
+        Db::insert(CraftTable::USERPERMISSIONS, ['name' => $permission]);
+    }
+
+    Db::insert(CraftTable::USERPERMISSIONS_USERS, ['permissionId' => $permissionId(), 'userId' => $user->id]);
+
+    $request = new Request(['cookieValidationKey' => 'abandoned-cart-tests', 'isConsoleRequest' => false]);
+    $request->setBodyParams(['sequenceId' => $sequence->id] + $body);
+    $request->getHeaders()->set('Accept', 'application/json')->set('X-Http-Method-Override', 'POST');
+
+    $originalRequest = $app->get('request');
+    $originalResponse = $app->get('response');
+    $originalIdentity = $app->getUser()->getIdentity();
+
+    $app->set('request', $request);
+    $app->set('response', new Response());
+    $app->getUser()->setIdentity($user);
+
+    try {
+        return (new SequencesController('sequences', AbandonedCart::$plugin))->actionSave();
+    } finally {
+        $app->getUser()->setIdentity($originalIdentity);
+        $app->set('request', $originalRequest);
+        $app->set('response', $originalResponse);
+    }
 }
 
 function versionCount(Sequence $sequence): int
@@ -174,4 +222,43 @@ it('matches the Products audience on the products chosen, and nothing else', fun
     // There's no category setting. One left in a sequence's settings is ignored.
     $sequence->audienceSettings = ['match' => 'any', 'productIds' => [], 'categoryIds' => [123]];
     expect($audiences->matches($sequence, $cart))->toBeFalse();
+});
+
+it('only lets admins point a sequence’s return page at an environment variable', function() {
+    $sequence = saveSequence(['returnUrl' => 'shop/cart']);
+    $sequences = AbandonedCart::$plugin->getSequences();
+
+    foreach (['$CRAFT_DB_PASSWORD', '${CRAFT_SECURITY_KEY}', 'https://example.test/$CRAFT_SECURITY_KEY'] as $returnUrl) {
+        $response = postSequenceForm($sequence, ['overrideDefaults' => '1', 'returnUrl' => $returnUrl]);
+
+        expect($response->getStatusCode())->toBe(400)
+            ->and($response->data['errors']['returnUrl'] ?? [])->not->toBeEmpty()
+            ->and($sequences->getSequenceById($sequence->id)->returnUrl)->toBe('shop/cart');
+    }
+
+    $response = postSequenceForm($sequence, ['overrideDefaults' => '1', 'returnUrl' => '$PRIMARY_SITE_URL/thanks'], true);
+
+    expect($response->getStatusCode())->toBe(200)
+        ->and($sequences->getSequenceById($sequence->id)->returnUrl)->toBe('$PRIMARY_SITE_URL/thanks');
+});
+
+it('lets sequence managers keep, replace or clear a return page an admin set to an environment variable', function() {
+    $sequence = saveSequence(['returnUrl' => '$PRIMARY_SITE_URL/thanks']);
+    $sequences = AbandonedCart::$plugin->getSequences();
+
+    $kept = postSequenceForm($sequence, ['name' => 'Renamed', 'overrideDefaults' => '1', 'returnUrl' => '$PRIMARY_SITE_URL/thanks']);
+    $afterKeep = $sequences->getSequenceById($sequence->id);
+
+    $replaced = postSequenceForm($sequence, ['overrideDefaults' => '1', 'returnUrl' => 'shop/thanks']);
+    $afterReplace = $sequences->getSequenceById($sequence->id)->returnUrl;
+
+    $cleared = postSequenceForm($sequence, ['overrideDefaults' => '']);
+
+    expect($kept->getStatusCode())->toBe(200)
+        ->and($afterKeep->name)->toBe('Renamed')
+        ->and($afterKeep->returnUrl)->toBe('$PRIMARY_SITE_URL/thanks')
+        ->and($replaced->getStatusCode())->toBe(200)
+        ->and($afterReplace)->toBe('shop/thanks')
+        ->and($cleared->getStatusCode())->toBe(200)
+        ->and($sequences->getSequenceById($sequence->id)->returnUrl)->toBeNull();
 });

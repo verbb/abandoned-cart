@@ -236,7 +236,7 @@
 
         <div id="ac-overrides"{% if not sequence.hasOverrides() %} class="hidden"{% endif %}>
             {{ acMacros.durationField({ label: 'Abandoned After' | t('abandoned-cart'), name: 'abandonedAfterMinutes', minutes: sequence.abandonedAfterMinutes ?? craft.abandonedCart.getSettings().abandonedAfterMinutes }) }}
-            {{ forms.textField({ label: 'Return Page' | t('abandoned-cart'), name: 'returnUrl', value: sequence.returnUrl, placeholder: craft.abandonedCart.getSettings().returnUrl }) }}
+            {{ forms.textField({ label: 'Return Page' | t('abandoned-cart'), name: 'returnUrl', value: sequence.returnUrl, placeholder: craft.abandonedCart.getSettings().returnUrl, errors: sequence.getErrors('returnUrl') }) }}
             {{ acMacros.durationField({ label: 'Recovery Ends After' | t('abandoned-cart'), name: 'recoveryWindowMinutes', minutes: sequence.recoveryWindowMinutes ?? craft.abandonedCart.getSettings().recoveryWindowMinutes, units: ['hours', 'days'] }) }}
             {{ acMacros.durationField({ label: 'Attribution Window' | t('abandoned-cart'), name: 'attributionWindowMinutes', minutes: sequence.attributionWindowMinutes ?? craft.abandonedCart.getSettings().attributionWindowMinutes, units: ['hours', 'days'] }) }}
             {{ acMacros.durationField({ label: 'Contact Limit' | t('abandoned-cart'), name: 'contactLimitMinutes', minutes: sequence.contactLimitMinutes ?? craft.abandonedCart.getSettings().contactLimitMinutes, units: ['hours', 'days'] }) }}
