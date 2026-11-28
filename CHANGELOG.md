@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.0.2 - 2026-11-29
 
 ### Fixed
 - Fixed a moderate-severity information disclosure vulnerability.
